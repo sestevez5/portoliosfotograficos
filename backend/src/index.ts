@@ -10,7 +10,7 @@ const PORT = process.env.PORT ?? 3000;
 const app = express();
 app.use(cors());
 app.use('/api', albumsRouter);
-app.use('/photos', express.static(path.resolve(__dirname, '../photos')));
+app.use('/photos', express.static(path.resolve(__dirname, '../datos/fotos')));
 
 app.listen(PORT, () => {
   console.log(`API del portfolio escuchando en http://localhost:${PORT}`);
