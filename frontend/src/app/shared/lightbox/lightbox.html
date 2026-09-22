@@ -1,0 +1,22 @@
+<div class="lightbox" (click)="close()">
+  <button class="lightbox__close" type="button" (click)="close()" aria-label="Cerrar">&times;</button>
+
+  @if (photos().length > 1) {
+    <button class="lightbox__nav lightbox__nav--prev" type="button" (click)="$event.stopPropagation(); goTo(-1)" aria-label="Foto anterior">
+      &#8249;
+    </button>
+  }
+
+  <figure class="lightbox__content" (click)="$event.stopPropagation()">
+    <img [src]="current.url" [alt]="current.title ?? ''" />
+    @if (current.title) {
+      <figcaption>{{ current.title }}</figcaption>
+    }
+  </figure>
+
+  @if (photos().length > 1) {
+    <button class="lightbox__nav lightbox__nav--next" type="button" (click)="$event.stopPropagation(); goTo(1)" aria-label="Foto siguiente">
+      &#8250;
+    </button>
+  }
+</div>

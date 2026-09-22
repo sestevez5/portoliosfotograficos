@@ -1,0 +1,33 @@
+@if (fotografo(); as f) {
+  <section class="hero">
+    <h1>Álbumes</h1>
+    <p>{{ f.descripcion }}</p>
+  </section>
+
+  <section class="album-grid">
+    @for (album of f.albumes; track album.id) {
+      <a class="album-card" [routerLink]="['/', f.slug, 'albums', album.id]">
+        <div class="album-card__image">
+          <img [src]="album.coverPhotoUrl" [alt]="album.title" loading="lazy" />
+        </div>
+        <div class="album-card__info">
+          <h2>{{ album.title }}</h2>
+          @if (album.tags.length) {
+            <ul class="tags">
+              @for (tag of album.tags; track tag) {
+                <li>{{ tag }}</li>
+              }
+            </ul>
+          }
+        </div>
+      </a>
+    } @empty {
+      <p class="empty-state">No hay álbumes disponibles todavía.</p>
+    }
+  </section>
+} @else if (fotografo() === null) {
+  <section class="hero">
+    <h1>Fotógrafo no encontrado</h1>
+    <p><a routerLink="/">Ver todos los fotógrafos</a></p>
+  </section>
+}

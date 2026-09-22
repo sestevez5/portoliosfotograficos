@@ -1,0 +1,34 @@
+@if (album(); as a) {
+  <a class="back-link" [routerLink]="['/', fotografoSlug()]">&larr; Álbumes</a>
+
+  <header class="album-header">
+    <h1>{{ a.title }}</h1>
+    @if (a.description) {
+      <p class="album-description">{{ a.description }}</p>
+    }
+    @if (a.tags.length) {
+      <ul class="tags">
+        @for (tag of a.tags; track tag) {
+          <li>{{ tag }}</li>
+        }
+      </ul>
+    }
+  </header>
+
+  <section class="photo-grid">
+    @for (photo of a.photos; track photo.id; let i = $index) {
+      <button class="photo-grid__item" type="button" (click)="openLightbox(i)">
+        <img [src]="photo.url" [alt]="photo.title ?? a.title" loading="lazy" />
+      </button>
+    }
+  </section>
+
+  @if (lightboxIndex() !== null) {
+    <app-lightbox
+      [photos]="a.photos"
+      [index]="lightboxIndex()!"
+      (closeRequested)="closeLightbox()"
+      (indexChange)="lightboxIndex.set($event)"
+    />
+  }
+}

@@ -1,0 +1,12 @@
+<div class="site">
+  <header class="site-header">
+    <a class="brand" routerLink="/">Portfolio<span>.</span></a>
+    @if (fotografo(); as f) {
+      <a class="fotografo" [routerLink]="['/', f.slug]">{{ f.nombre }}</a>
+    }
+  </header>
+
+  <main class="site-main">
+    <router-outlet />
+  </main>
+</div>
