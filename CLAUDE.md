@@ -71,16 +71,20 @@ Sistema de diseño propio en SCSS (sin Angular Material ni Tailwind, por decisi�
 
 ### Despliegue con Docker (NAS)
 
-`docker-compose.yml` en la raíz levanta dos servicios en la red interna `portfolio`:
+`docker-compose.yml` en la raíz levanta dos servicios en la red interna `portfolio`, usando imágenes ya construidas en vez de build local:
 
-- `backend` — build de `backend/Dockerfile` (multi-stage: `npm run build` en la etapa de build, `npm ci --omit=dev` + `node dist/index.js` en la de runtime). No publica puerto al host; solo es accesible desde `frontend` a través de la red de Docker Compose.
-- `frontend` — build de `frontend/Dockerfile` (multi-stage: `ng build` y luego nginx sirviendo `dist/frontend/browser`). Publica un único puerto al host (`FRONTEND_PORT`, por defecto 8080).
+- `backend` — imagen `ghcr.io/sestevez5/portoliosfotograficos-backend:latest`. No publica puerto al host; solo es accesible desde `frontend` a través de la red de Docker Compose.
+- `frontend` — imagen `ghcr.io/sestevez5/portoliosfotograficos-frontend:latest`. Publica un único puerto al host (`FRONTEND_PORT`, por defecto 8080).
+
+Las imágenes se construyen y publican automáticamente en GitHub Container Registry (GHCR) mediante `.github/workflows/docker-publish.yml` en cada push a `main` (tags `:latest` y `:<sha>`). Por eso el NAS **no necesita el código fuente**: solo `docker-compose.yml`, `.env` y la carpeta `datos/` (ver más abajo). Si el paquete de GHCR está en privado, hay que hacer `docker login ghcr.io` una vez en el NAS con un token con permiso `read:packages` antes de poder hacer `pull` (o marcar el paquete como público desde la configuración de GitHub).
+
+`docker-compose.override.yml` (no se copia al NAS) añade `build: context: ...` a ambos servicios y Docker Compose lo aplica automáticamente cuando está presente junto a `docker-compose.yml` — así en local, con el repo completo, `docker compose build`/`up` siguen construyendo las imágenes desde los Dockerfiles en vez de tirar de GHCR. Los Dockerfiles (`backend/Dockerfile`, `frontend/Dockerfile`) son multi-stage: el backend hace `npm run build` + `npm ci --omit=dev` + `node dist/index.js`; el frontend hace `ng build` y sirve `dist/frontend/browser` con nginx.
 
 `frontend/nginx.conf` hace de proxy inverso: sirve los estáticos de Angular y reenvía `/api/` y `/photos/` al servicio `backend:3000`, de forma que el navegador solo ve un origen. Por eso en build de producción `API_BASE_URL` debe ser `''` (ruta relativa) en vez de `http://localhost:3000`: `angular.json` usa `fileReplacements` en la configuración `production` para sustituir `api.config.ts` por `api.config.prod.ts` automáticamente en cualquier `ng build` (o `npm run build`) sin flags adicionales. En desarrollo (`ng serve`) se sigue usando `api.config.ts` tal cual.
 
-La carpeta `backend/datos` (fotos + `organizacionFotos.json`) se monta como volumen externo, no se hornea en la imagen (`backend/.dockerignore` la excluye). La ruta real en el host del NAS se configura vía variable de entorno `DATOS_PATH` en un fichero `.env` (no versionado; ver `.env.example`) junto con `FRONTEND_PORT`.
+La carpeta `backend/datos` (fotos + `organizacionFotos.json`) se monta como volumen externo, no se hornea en la imagen (`backend/.dockerignore` la excluye, y el backend lee el JSON en runtime con `fs.readFileSync` en vez de importarlo como módulo ESM, precisamente para que el build de la imagen no dependa de que ese archivo exista). La ruta real en el host del NAS se configura vía variable de entorno `DATOS_PATH` en un fichero `.env` (no versionado; ver `.env.example`) junto con `FRONTEND_PORT`.
 
-Comandos típicos en el NAS: `cp .env.example .env` (ajustar rutas), `docker compose build`, `docker compose up -d`.
+Despliegue típico en el NAS (solo con `docker-compose.yml`, `.env` y `datos/` copiados, sin el resto del repo): `cp .env.example .env` (ajustar rutas), `docker compose pull`, `docker compose up -d`. Para desplegar una versión nueva más adelante: `docker compose pull && docker compose up -d` de nuevo.
 
 ## Notas para seguir desarrollando
 

@@ -1,6 +1,14 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { Router } from 'express';
 import type { Album, AlbumSummary, OrganizacionFotos } from '../types/album.js';
-import organizacionFotos from '../../datos/estructura/organizacionFotos.json' with { type: 'json' };
+
+// Se lee en runtime (no se importa como módulo ESM) porque "datos" se monta como
+// volumen externo en Docker y no está presente en el contexto de build de la imagen.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const organizacionFotosPath = path.join(__dirname, '../../datos/estructura/organizacionFotos.json');
+const organizacionFotos = JSON.parse(readFileSync(organizacionFotosPath, 'utf-8')) as OrganizacionFotos[];
 
 // El slug de un fotógrafo es su primer nombre sin acentos y en minúsculas ("Santi Estévez" -> "santi").
 // También es el nombre de su carpeta en backend/datos/fotos.
@@ -13,7 +21,7 @@ function toSlug(nombre: string): string {
     .toLowerCase();
 }
 
-const organizacion = (organizacionFotos as OrganizacionFotos[]).map((o) => ({
+const organizacion = organizacionFotos.map((o) => ({
   ...o,
   slug: toSlug(o.fotografo.nombre),
 }));
