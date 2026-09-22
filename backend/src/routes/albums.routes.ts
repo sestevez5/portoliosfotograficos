@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import type { Album, AlbumSummary, OrganizacionFotos } from '../types/album.js';
-import organizacionFotos from '../data/organizacionFotos.json' with { type: 'json' };
+import organizacionFotos from '../../datos/estructura/organizacionFotos.json' with { type: 'json' };
 
 // El slug de un fotógrafo es su primer nombre sin acentos y en minúsculas ("Santi Estévez" -> "santi").
-// También es el nombre de su carpeta en backend/photos.
+// También es el nombre de su carpeta en backend/datos/fotos.
 function toSlug(nombre: string): string {
   return nombre
     .trim()
