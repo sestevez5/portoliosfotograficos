@@ -1,7 +1,6 @@
 services:
   backend:
-    build:
-      context: ./backend
+    image: ghcr.io/sestevez5/portoliosfotograficos-backend:latest
     restart: unless-stopped
     volumes:
       - ${DATOS_PATH}:/app/datos
@@ -9,8 +8,7 @@ services:
       - portfolio
 
   frontend:
-    build:
-      context: ./frontend
+    image: ghcr.io/sestevez5/portoliosfotograficos-frontend:latest
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-8080}:80"

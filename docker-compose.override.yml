@@ -1,0 +1,15 @@
+# Se aplica automáticamente cuando el repo completo está presente (docker compose
+# lo carga solo si existe junto a docker-compose.yml). Permite construir las
+# imágenes en local en vez de descargarlas de GHCR, útil para desarrollo y para
+# probar cambios en los Dockerfiles antes de publicarlos.
+#
+# En el NAS (donde solo se copian docker-compose.yml, .env y datos/) este fichero
+# no existe, así que docker-compose.yml usa directamente las imágenes de GHCR.
+services:
+  backend:
+    build:
+      context: ./backend
+
+  frontend:
+    build:
+      context: ./frontend
