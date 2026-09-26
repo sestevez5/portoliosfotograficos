@@ -30,13 +30,18 @@ export class AlbumService {
   }
 
   getFotografos(): Observable<FotografoSummary[]> {
-    return this.http.get<FotografoSummary[]>(`${this.baseUrl}/fotografos`);
+    return this.http.get<FotografoSummary[]>(`${this.baseUrl}/fotografos`).pipe(
+      map((fotografos) =>
+        fotografos.map((fotografo) => ({ ...fotografo, logoUrl: toAbsoluteUrl(fotografo.logoUrl) })),
+      ),
+    );
   }
 
   getFotografo(slug: string): Observable<FotografoDetail> {
     return this.http.get<FotografoDetail>(`${this.baseUrl}/fotografos/${encodeURIComponent(slug)}`).pipe(
       map((fotografo) => ({
         ...fotografo,
+        logoUrl: toAbsoluteUrl(fotografo.logoUrl),
         albumes: fotografo.albumes.map((album) => ({ ...album, coverPhotoUrl: toAbsoluteUrl(album.coverPhotoUrl) })),
       })),
     );

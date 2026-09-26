@@ -8,6 +8,21 @@
   }
 }
 
+.volver {
+  display: inline-block;
+  margin-bottom: var(--space-3);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--transition);
+
+  &:hover {
+    color: var(--color-text);
+  }
+}
+
 .album-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
