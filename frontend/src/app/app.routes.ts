@@ -9,10 +9,15 @@ export const routes: Routes = [
   {
     path: ':fotografo',
     pathMatch: 'full',
+    loadComponent: () => import('./features/portfolio-list/portfolio-list').then((m) => m.PortfolioList),
+  },
+  {
+    path: ':fotografo/:portfolio',
+    pathMatch: 'full',
     loadComponent: () => import('./features/album-list/album-list').then((m) => m.AlbumList),
   },
   {
-    path: ':fotografo/albums/:id',
+    path: ':fotografo/:portfolio/:album',
     loadComponent: () => import('./features/album-detail/album-detail').then((m) => m.AlbumDetail),
   },
   {

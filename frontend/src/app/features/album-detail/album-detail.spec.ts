@@ -14,7 +14,7 @@ describe('AlbumDetail', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideRouter([{ path: ':fotografo/albums/:id', component: AlbumDetail }]),
+        provideRouter([{ path: ':fotografo/:portfolio/:album', component: AlbumDetail }]),
       ],
     }).compileComponents();
 

@@ -17,12 +17,12 @@ export class AlbumDetail {
 
   protected readonly fotografoSlug = toSignal(this.route.paramMap.pipe(map((params) => params.get('fotografo')!)));
 
-  // undefined = cargando, null = álbum no encontrado para ese fotógrafo
+  // undefined = cargando, null = álbum no encontrado en ese portfolio
   protected readonly album = toSignal(
     this.route.paramMap.pipe(
       switchMap((params) =>
         this.albumService
-          .getAlbumDeFotografo(params.get('fotografo')!, params.get('id')!)
+          .getAlbumDePortfolio(params.get('fotografo')!, params.get('portfolio')!, params.get('album')!)
           .pipe(catchError(() => of(null))),
       ),
     ),

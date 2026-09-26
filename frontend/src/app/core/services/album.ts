@@ -2,7 +2,7 @@ import { Service, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { Album, AlbumSummary, FotografoDetail, FotografoSummary } from '../models/album.model';
+import { Album, AlbumSummary, FotografoDetail, FotografoSummary, PortfolioDetail } from '../models/album.model';
 
 function toAbsoluteUrl(path: string): string {
   return path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
@@ -42,13 +42,25 @@ export class AlbumService {
       map((fotografo) => ({
         ...fotografo,
         logoUrl: toAbsoluteUrl(fotografo.logoUrl),
-        albumes: fotografo.albumes.map((album) => ({ ...album, coverPhotoUrl: toAbsoluteUrl(album.coverPhotoUrl) })),
+        portfolios: fotografo.portfolios.map((portfolio) => ({
+          ...portfolio,
+          coverPhotoUrl: toAbsoluteUrl(portfolio.coverPhotoUrl),
+        })),
       })),
     );
   }
 
-  getAlbumDeFotografo(slug: string, id: string): Observable<Album> {
-    return this.http.get<Album>(`${this.baseUrl}/fotografos/${encodeURIComponent(slug)}/albums/${id}`).pipe(
+  getPortfolio(slug: string, portfolioId: string): Observable<PortfolioDetail> {
+    return this.http.get<PortfolioDetail>(this.portfolioUrl(slug, portfolioId)).pipe(
+      map((portfolio) => ({
+        ...portfolio,
+        albumes: portfolio.albumes.map((album) => ({ ...album, coverPhotoUrl: toAbsoluteUrl(album.coverPhotoUrl) })),
+      })),
+    );
+  }
+
+  getAlbumDePortfolio(slug: string, portfolioId: string, id: string): Observable<Album> {
+    return this.http.get<Album>(`${this.portfolioUrl(slug, portfolioId)}/albums/${encodeURIComponent(id)}`).pipe(
       map((album) => ({
         ...album,
         photos: album.photos.map((photo) => ({ ...photo, url: toAbsoluteUrl(photo.url) })),
@@ -58,5 +70,9 @@ export class AlbumService {
 
   getTags(): Observable<string[]> {
     return this.http.get<string[]>(`${this.baseUrl}/tags`);
+  }
+
+  private portfolioUrl(slug: string, portfolioId: string): string {
+    return `${this.baseUrl}/fotografos/${encodeURIComponent(slug)}/portfolios/${encodeURIComponent(portfolioId)}`;
   }
 }

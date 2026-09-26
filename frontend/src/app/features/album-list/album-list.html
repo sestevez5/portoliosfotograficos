@@ -1,15 +1,15 @@
-@if (fotografo(); as f) {
+@if (portfolio(); as p) {
   <section class="hero">
-    @if (desdeInicio) {
-      <a class="volver" routerLink="/">← Volver</a>
+    <a class="back-link" [routerLink]="['/', fotografoSlug()]">&larr; Portfolios</a>
+    <h1>{{ p.title }}</h1>
+    @if (p.description) {
+      <p>{{ p.description }}</p>
     }
-    <h1>Álbumes</h1>
-    <p>{{ f.descripcion }}</p>
   </section>
 
   <section class="album-grid">
-    @for (album of f.albumes; track album.id) {
-      <a class="album-card" [routerLink]="['/', f.slug, 'albums', album.id]">
+    @for (album of p.albumes; track album.id) {
+      <a class="album-card" [routerLink]="['/', fotografoSlug(), p.id, album.id]">
         <div class="album-card__image">
           <img [src]="album.coverPhotoUrl" [alt]="album.title" loading="lazy" />
         </div>
@@ -28,9 +28,9 @@
       <p class="empty-state">No hay álbumes disponibles todavía.</p>
     }
   </section>
-} @else if (fotografo() === null) {
+} @else if (portfolio() === null) {
   <section class="hero">
-    <h1>Fotógrafo no encontrado</h1>
-    <p><a routerLink="/">Ver todos los fotógrafos</a></p>
+    <h1>Portfolio no encontrado</h1>
+    <p><a [routerLink]="['/', fotografoSlug()]">Ver los portfolios del fotógrafo</a></p>
   </section>
 }

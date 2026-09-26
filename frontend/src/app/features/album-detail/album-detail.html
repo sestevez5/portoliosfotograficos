@@ -1,5 +1,5 @@
 @if (album(); as a) {
-  <a class="back-link" [routerLink]="['/', fotografoSlug()]">&larr; Álbumes</a>
+  <a class="back-link" [routerLink]="['/', fotografoSlug(), a.portfolio.id]">&larr; {{ a.portfolio.title }}</a>
 
   <header class="album-header">
     <h1>{{ a.title }}</h1>

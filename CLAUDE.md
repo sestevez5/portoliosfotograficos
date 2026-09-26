@@ -9,7 +9,7 @@ Portfolio fotográfico elegante y minimalista. Monorepo con dos paquetes indepen
 - `backend/` — API sencilla en Node.js + Express + TypeScript (ESM) que sirve el catálogo de álbumes/fotos desde un JSON y las imágenes como archivos estáticos.
 - `frontend/` — Aplicación Angular (standalone components, sin librería de UI) que consume esa API y presenta las fotos.
 
-No hay base de datos: toda la organización (álbumes, fotos, tags) vive en `backend/datos/estructura/organizacionFotos.json`.
+No hay base de datos: toda la organización (fotógrafos, portfolios, álbumes, fotos, tags) vive en `backend/datos/estructura/organizacionFotos.json`.
 
 ## Comandos
 
@@ -39,29 +39,30 @@ El frontend espera la API en `http://localhost:3000` (constante `API_BASE_URL` e
 
 ### Modelo de datos
 
-Un álbum tiene título, descripción opcional, una lista de `tags` (los tags cuelgan del álbum, no de la foto individual) y una lista ordenada de fotos. Cada foto solo guarda `filename`; la URL pública se construye en el backend como `/photos/<fotografoSlug>/<albumId>/<filename>`.
+Jerarquía: **fotógrafo → portfolios → álbumes → fotos**. Un fotógrafo tiene varios portfolios y cada portfolio agrupa varios álbumes. Un portfolio tiene `id` (único dentro del fotógrafo), título y descripción opcional; su portada es la del primer álbum. Un álbum tiene título, descripción opcional, una lista de `tags` (los tags cuelgan del álbum, no de la foto individual) y una lista ordenada de fotos; su `id` es único en todo el catálogo (lo usan `/api/albums/:id`). Cada foto solo guarda `filename`; la URL pública se construye en el backend como `/photos/<fotografoSlug>/<portfolioId>/<albumId>/<filename>`.
 
-- Fuente de verdad: `backend/datos/estructura/organizacionFotos.json` (forma: `OrganizacionFotos[]`, cada elemento `{ fotografo: { nombre, descripcion, logoSubtitulo?, logo? }, albumes: Album[] }`; `logo` no se rellena a mano, lo escribe el backend al generar el logo).
-- Archivos de imagen reales: `backend/datos/fotos/<fotografoSlug>/<albumId>/<filename>` — las carpetas deben reflejar exactamente el slug del fotógrafo (primer nombre sin acentos y en minúsculas, p. ej. `santi`), los `id` de álbum y los `filename` de foto usados en el JSON, o las imágenes no se resolverán.
+- Fuente de verdad: `backend/datos/estructura/organizacionFotos.json` (forma: `OrganizacionFotos[]`, cada elemento `{ fotografo: { nombre, descripcion, logoSubtitulo?, logo? }, portfolios: [{ id, title, description?, albumes: Album[] }] }`; `logo` no se rellena a mano, lo escribe el backend al generar el logo).
+- Archivos de imagen reales: `backend/datos/fotos/<fotografoSlug>/<portfolioId>/<albumId>/<filename>` — las carpetas deben reflejar exactamente el slug del fotógrafo (primer nombre sin acentos y en minúsculas, p. ej. `santi`), los `id` de portfolio y de álbum y los `filename` de foto usados en el JSON, o las imágenes no se resolverán.
 - Logos de fotógrafo: nunca los aporta el usuario, los genera el backend. `GET /api/fotografos/:slug/logo` llama a `asegurarLogo` (`backend/src/services/logo.service.ts`): si `fotografo.logo` referencia un archivo que existe en `backend/datos/logos/`, lo sirve tal cual; si no, genera `<slug>.svg` a partir del `nombre` y del `logoSubtitulo` opcional, lo guarda en esa carpeta y escribe la referencia `"logo"` en `organizacionFotos.json` mediante `guardarOrganizacion` (`backend/src/services/organizacion.service.ts`: escritura atómica con temporal + rename, síncrona, conservando el formato del fichero). El logo es un SVG tipo firma: letra manuscrita Mrs Saint Delafield, subrayado de plumilla y subtítulo en Inter, con el texto convertido a trazos (un `<img>` no puede cargar fuentes) y tinta `#f2f1ed` para el fondo oscuro. Las fuentes (OFL) están en `backend/assets/fonts` y se copian a la imagen Docker. La API expone solo `logoUrl`. Para regenerar un logo basta con borrar su archivo o su referencia.
 - Tipos compartidos conceptualmente (no compartidos por código, ya que son dos paquetes npm separados): `backend/src/types/album.ts` y `frontend/src/app/core/models/album.model.ts`. Si se cambia la forma del JSON hay que actualizar ambos.
 
 ### Backend (`backend/src/`)
 
 - `index.ts` — arranque de Express, monta `/api` y sirve `/photos` como estático desde `backend/datos/fotos`.
-- `routes/albums.routes.ts` — único router: `GET /api/albums` (con filtro opcional `?tag=`), `GET /api/albums/:id`, `GET /api/tags` (tags únicos derivados de todos los álbumes, no hay colección de tags separada), `GET /api/fotografos`, `GET /api/fotografos/:slug` (fotógrafo + resúmenes de sus álbumes, filtro opcional `?tag=`), `GET /api/fotografos/:slug/logo` y `GET /api/fotografos/:slug/albums/:id`. El `slug` es el primer nombre del fotógrafo sin acentos y en minúsculas (`Santi Estévez` -> `santi`), insensible a mayúsculas en la URL.
+- `routes/albums.routes.ts` — único router: `GET /api/albums` (todos los álbumes, filtro opcional `?tag=`), `GET /api/albums/:id`, `GET /api/tags` (tags únicos derivados de todos los álbumes, no hay colección de tags separada), `GET /api/fotografos` (con `portfolioCount` y `albumCount`), `GET /api/fotografos/:slug` (fotógrafo + resúmenes de sus portfolios), `GET /api/fotografos/:slug/logo`, `GET /api/fotografos/:slug/portfolios/:portfolio` (portfolio + resúmenes de sus álbumes, filtro opcional `?tag=`) y `GET /api/fotografos/:slug/portfolios/:portfolio/albums/:id` (detalle del álbum, incluye `portfolio: { id, title }`). El `slug` es el primer nombre del fotógrafo sin acentos y en minúsculas (`Santi Estévez` -> `santi`), insensible a mayúsculas en la URL.
 - `services/organizacion.service.ts` — carga `organizacionFotos.json` al arrancar (con `readFileSync`, no como import ESM) y expone `guardarOrganizacion()` para reescribirlo. `services/logo.service.ts` — generación y persistencia de logos (ver "Modelo de datos"). El paquete es ESM (`"type": "module"`, `module`/`moduleResolution: NodeNext`).
 
 ### Frontend (`frontend/src/app/`)
 
 Angular standalone (sin `NgModule`), routing con `loadComponent` (lazy):
 
-- `core/services/album.ts` — `AlbumService` (decorador `@Service()`, la forma moderna de `@Injectable` en esta versión de Angular) con los tres métodos que reflejan las rutas del backend.
-- `core/models/album.model.ts` — interfaces `Album`, `AlbumSummary`, `Photo`.
+- `core/services/album.ts` — `AlbumService` (decorador `@Service()`, la forma moderna de `@Injectable` en esta versión de Angular) con un método por ruta del backend (`getFotografos`, `getFotografo`, `getPortfolio`, `getAlbumDePortfolio`, además de los globales `getAlbums`, `getAlbum`, `getTags`).
+- `core/models/album.model.ts` — interfaces `Fotografo*`, `Portfolio*`, `Album`, `AlbumSummary`, `Photo`.
 - `core/config/api.config.ts` — URL base de la API.
 - `features/fotografo-list/` — página raíz (`/`), listado de fotógrafos.
-- `features/album-list/` — página `/:fotografo`, grid de álbumes de ese fotógrafo.
-- `features/album-detail/` — página `/:fotografo/albums/:id`, grid de fotos del álbum; obtiene el `id` vía `ActivatedRoute.paramMap` con `switchMap` + `toSignal`.
+- `features/portfolio-list/` — página `/:fotografo`, grid de portfolios del fotógrafo; muestra "Volver" solo si se ha llegado desde la portada.
+- `features/album-list/` — página `/:fotografo/:portfolio`, grid de álbumes del portfolio, con enlace de vuelta a los portfolios.
+- `features/album-detail/` — página `/:fotografo/:portfolio/:album`, grid de fotos del álbum con enlace de vuelta a su portfolio; obtiene los parámetros vía `ActivatedRoute.paramMap` con `switchMap` + `toSignal`.
 - `shared/lightbox/` — visor modal reutilizable (controlado por el padre vía `photos`/`index` como inputs y eventos `closeRequested`/`indexChange`); navegación por teclado (flechas, Escape).
 
 Patrón de datos: los componentes usan `toSignal()` (`@angular/core/rxjs-interop`) sobre los observables de `AlbumService` en lugar de `subscribe()` manual; no hay gestión de estado global (no hace falta con esta escala de app).

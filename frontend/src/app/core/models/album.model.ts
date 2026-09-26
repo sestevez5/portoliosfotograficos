@@ -12,6 +12,7 @@ export interface Album {
   description?: string;
   tags: string[];
   coverPhotoId: string;
+  portfolio: PortfolioRef;
   photos: Photo[];
 }
 
@@ -24,6 +25,22 @@ export interface AlbumSummary {
   photoCount: number;
 }
 
+export interface PortfolioRef {
+  id: string;
+  title: string;
+}
+
+export interface PortfolioSummary extends PortfolioRef {
+  description?: string;
+  coverPhotoUrl: string;
+  albumCount: number;
+}
+
+export interface PortfolioDetail extends PortfolioRef {
+  description?: string;
+  albumes: AlbumSummary[];
+}
+
 export interface Fotografo {
   slug: string;
   nombre: string;
@@ -32,9 +49,10 @@ export interface Fotografo {
 }
 
 export interface FotografoSummary extends Fotografo {
+  portfolioCount: number;
   albumCount: number;
 }
 
 export interface FotografoDetail extends Fotografo {
-  albumes: AlbumSummary[];
+  portfolios: PortfolioSummary[];
 }

@@ -28,9 +28,18 @@ export interface Fotografo {
   logoSubtitulo?: string;
 }
 
+// Un portfolio agrupa álbumes de un fotógrafo. Su id es único dentro del fotógrafo y
+// es también el nombre de su carpeta en datos/fotos/<fotografoSlug>/.
+export interface Portfolio {
+  id: string;
+  title: string;
+  description?: string;
+  albumes: Album[];
+}
+
 export interface OrganizacionFotos {
   fotografo: Fotografo;
-  albumes: Album[];
+  portfolios: Portfolio[];
 }
 
 export interface AlbumSummary {
@@ -44,16 +53,32 @@ export interface AlbumSummary {
 
 // En las respuestas de la API los datos del logo se sustituyen por la URL que lo sirve
 // (propio o generado, eso es un detalle interno del backend).
+export interface PortfolioSummary {
+  id: string;
+  title: string;
+  description?: string;
+  coverPhotoUrl: string;
+  albumCount: number;
+}
+
+export interface PortfolioDetail {
+  id: string;
+  title: string;
+  description?: string;
+  albumes: AlbumSummary[];
+}
+
 export interface FotografoPublico extends Omit<Fotografo, 'logo' | 'logoSubtitulo'> {
   logoUrl: string;
 }
 
 export interface FotografoSummary extends FotografoPublico {
   slug: string;
+  portfolioCount: number;
   albumCount: number;
 }
 
 export interface FotografoDetail extends FotografoPublico {
   slug: string;
-  albumes: AlbumSummary[];
+  portfolios: PortfolioSummary[];
 }

@@ -9,6 +9,10 @@
       <a class="fotografo-card" [routerLink]="['/', fotografo.slug]">
         <h2>{{ fotografo.nombre }}</h2>
         <p>{{ fotografo.descripcion }}</p>
+        <span class="fotografo-card__meta">
+          {{ fotografo.portfolioCount }} {{ fotografo.portfolioCount === 1 ? 'portfolio' : 'portfolios' }} ·
+          {{ fotografo.albumCount }} {{ fotografo.albumCount === 1 ? 'álbum' : 'álbumes' }}
+        </span>
       </a>
     </li>
   } @empty {

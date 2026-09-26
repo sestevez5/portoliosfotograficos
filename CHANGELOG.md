@@ -5,6 +5,23 @@ Todos los cambios relevantes del proyecto se documentan en este fichero.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [Versionado Semántico](https://semver.org/lang/es/) (`MAYOR.MENOR.PARCHE`).
 
+## [Sin publicar]
+
+Cambio incompatible: la próxima versión debe ser **2.0.0**.
+
+### Cambiado
+
+- Nuevo nivel **portfolio** entre fotógrafo y álbumes: cada fotógrafo tiene varios portfolios y cada portfolio
+  varios álbumes.
+- `organizacionFotos.json`: `albumes` pasa a estar dentro de `portfolios: [{ id, title, description?, albumes }]`.
+- Las fotos se mueven a `datos/fotos/<fotógrafo>/<portfolio>/<álbum>/`. **Al desplegar hay que copiar al NAS la
+  carpeta `datos` completa (JSON y fotos) junto con las imágenes nuevas.**
+- API: `GET /api/fotografos/:slug` devuelve portfolios. Nuevas rutas `GET /api/fotografos/:slug/portfolios/:portfolio`
+  y `.../portfolios/:portfolio/albums/:id`. Se elimina `GET /api/fotografos/:slug/albums/:id`.
+- Interfaz: navegación `/:fotógrafo` (portfolios) → `/:fotógrafo/:portfolio` (álbumes) → `/:fotógrafo/:portfolio/:álbum`
+  (fotos), con enlace para volver al nivel anterior. Las URL antiguas `/:fotógrafo/albums/:id` dejan de funcionar.
+- La portada muestra el número de portfolios y álbumes de cada fotógrafo.
+
 ## [1.0.0] - 2026-09-26
 
 Primera versión estable.
