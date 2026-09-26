@@ -2,7 +2,9 @@
   {
     "fotografo": {
       "nombre": "Santi Estévez",
-      "descripcion": "Fotógrafo de paisaje y naturaleza."
+      "descripcion": "Fotógrafo de paisaje y naturaleza.",
+      "logoSubtitulo": "Paisaje · Naturaleza",
+      "logo": "santi.svg"
     },
     "albumes": [
       {
@@ -35,7 +37,9 @@
   {
     "fotografo": {
       "nombre": "Emilio Abad",
-      "descripcion": "Fotógrafo de arquitectura y espacios urbanos."
+      "descripcion": "Fotógrafo de arquitectura y espacios urbanos.",
+      "logoSubtitulo": "Arquitectura · Ciudad",
+      "logo": "emilio.svg"
     },
     "albumes": [
       {
@@ -60,6 +64,551 @@
           { "id": "calle-01", "filename": "01.jpg", "order": 1 },
           { "id": "calle-02", "filename": "02.jpg", "order": 2 },
           { "id": "calle-03", "filename": "03.jpg", "order": 3 }
+        ]
+      }
+    ]
+  },
+  {
+    "fotografo": {
+      "nombre": "Lucía Martín",
+      "descripcion": "Retrato y fotografía de estudio.",
+      "logoSubtitulo": "Retrato · Estudio",
+      "logo": "lucia.svg"
+    },
+    "albumes": [
+      {
+        "id": "editorial",
+        "title": "Editorial",
+        "description": "Producciones para revistas.",
+        "tags": ["moda", "editorial", "color"],
+        "coverPhotoId": "editorial-06",
+        "photos": [
+          { "id": "editorial-01", "filename": "01.jpg", "order": 1 },
+          { "id": "editorial-02", "filename": "02.jpg", "order": 2 },
+          { "id": "editorial-03", "filename": "03.jpg", "order": 3 },
+          { "id": "editorial-04", "filename": "04.jpg", "order": 4 },
+          { "id": "editorial-05", "filename": "05.jpg", "order": 5 },
+          { "id": "editorial-06", "filename": "06.jpg", "order": 6 },
+          { "id": "editorial-07", "filename": "07.jpg", "order": 7 },
+          { "id": "editorial-08", "filename": "08.jpg", "order": 8 },
+          { "id": "editorial-09", "filename": "09.jpg", "order": 9 },
+          { "id": "editorial-10", "filename": "10.jpg", "order": 10 },
+          { "id": "editorial-11", "filename": "11.jpg", "order": 11 },
+          { "id": "editorial-12", "filename": "12.jpg", "order": 12 }
+        ]
+      },
+      {
+        "id": "bosque",
+        "title": "Bosque",
+        "description": "Luz entre los árboles.",
+        "tags": ["naturaleza", "paisaje", "verde"],
+        "coverPhotoId": "bosque-02",
+        "photos": [
+          { "id": "bosque-01", "filename": "01.jpg", "order": 1 },
+          { "id": "bosque-02", "filename": "02.jpg", "order": 2 },
+          { "id": "bosque-03", "filename": "03.jpg", "order": 3 },
+          { "id": "bosque-04", "filename": "04.jpg", "order": 4 },
+          { "id": "bosque-05", "filename": "05.jpg", "order": 5 },
+          { "id": "bosque-06", "filename": "06.jpg", "order": 6 }
+        ]
+      },
+      {
+        "id": "asia",
+        "title": "Asia",
+        "description": "Un recorrido por el sudeste asiático.",
+        "tags": ["viajes", "documental"],
+        "coverPhotoId": "asia-03",
+        "photos": [
+          { "id": "asia-01", "filename": "01.jpg", "order": 1 },
+          { "id": "asia-02", "filename": "02.jpg", "order": 2 },
+          { "id": "asia-03", "filename": "03.jpg", "order": 3 }
+        ]
+      },
+      {
+        "id": "surf",
+        "title": "Surf",
+        "description": "Olas y equilibrio.",
+        "tags": ["deporte", "mar", "azul"],
+        "coverPhotoId": "surf-01",
+        "photos": [
+          { "id": "surf-01", "filename": "01.jpg", "order": 1 },
+          { "id": "surf-02", "filename": "02.jpg", "order": 2 },
+          { "id": "surf-03", "filename": "03.jpg", "order": 3 },
+          { "id": "surf-04", "filename": "04.jpg", "order": 4 },
+          { "id": "surf-05", "filename": "05.jpg", "order": 5 },
+          { "id": "surf-06", "filename": "06.jpg", "order": 6 }
+        ]
+      },
+      {
+        "id": "escalada",
+        "title": "Escalada",
+        "description": "Paredes verticales.",
+        "tags": ["deporte", "montaña"],
+        "coverPhotoId": "escalada-05",
+        "photos": [
+          { "id": "escalada-01", "filename": "01.jpg", "order": 1 },
+          { "id": "escalada-02", "filename": "02.jpg", "order": 2 },
+          { "id": "escalada-03", "filename": "03.jpg", "order": 3 },
+          { "id": "escalada-04", "filename": "04.jpg", "order": 4 },
+          { "id": "escalada-05", "filename": "05.jpg", "order": 5 },
+          { "id": "escalada-06", "filename": "06.jpg", "order": 6 },
+          { "id": "escalada-07", "filename": "07.jpg", "order": 7 }
+        ]
+      }
+    ]
+  },
+  {
+    "fotografo": {
+      "nombre": "Andrés Quintero",
+      "descripcion": "Fotografía de viajes y documental.",
+      "logoSubtitulo": "Viajes · Documental"
+    },
+    "albumes": [
+      {
+        "id": "aves",
+        "title": "Aves",
+        "description": "Vuelo y plumaje.",
+        "tags": ["fauna", "naturaleza"],
+        "coverPhotoId": "aves-11",
+        "photos": [
+          { "id": "aves-01", "filename": "01.jpg", "order": 1 },
+          { "id": "aves-02", "filename": "02.jpg", "order": 2 },
+          { "id": "aves-03", "filename": "03.jpg", "order": 3 },
+          { "id": "aves-04", "filename": "04.jpg", "order": 4 },
+          { "id": "aves-05", "filename": "05.jpg", "order": 5 },
+          { "id": "aves-06", "filename": "06.jpg", "order": 6 },
+          { "id": "aves-07", "filename": "07.jpg", "order": 7 },
+          { "id": "aves-08", "filename": "08.jpg", "order": 8 },
+          { "id": "aves-09", "filename": "09.jpg", "order": 9 },
+          { "id": "aves-10", "filename": "10.jpg", "order": 10 },
+          { "id": "aves-11", "filename": "11.jpg", "order": 11 }
+        ]
+      },
+      {
+        "id": "cocina",
+        "title": "Cocina",
+        "description": "Platos y producto.",
+        "tags": ["gastronomía", "color"],
+        "coverPhotoId": "cocina-01",
+        "photos": [
+          { "id": "cocina-01", "filename": "01.jpg", "order": 1 },
+          { "id": "cocina-02", "filename": "02.jpg", "order": 2 },
+          { "id": "cocina-03", "filename": "03.jpg", "order": 3 },
+          { "id": "cocina-04", "filename": "04.jpg", "order": 4 },
+          { "id": "cocina-05", "filename": "05.jpg", "order": 5 },
+          { "id": "cocina-06", "filename": "06.jpg", "order": 6 }
+        ]
+      }
+    ]
+  },
+  {
+    "fotografo": {
+      "nombre": "Marta Vidal",
+      "descripcion": "Moda y editorial.",
+      "logoSubtitulo": "Moda · Editorial"
+    },
+    "albumes": [
+      {
+        "id": "escalada-marta",
+        "title": "Escalada",
+        "description": "Paredes verticales.",
+        "tags": ["deporte", "montaña"],
+        "coverPhotoId": "escalada-marta-03",
+        "photos": [
+          { "id": "escalada-marta-01", "filename": "01.jpg", "order": 1 },
+          { "id": "escalada-marta-02", "filename": "02.jpg", "order": 2 },
+          { "id": "escalada-marta-03", "filename": "03.jpg", "order": 3 }
+        ]
+      },
+      {
+        "id": "montana",
+        "title": "Montaña",
+        "description": "Cumbres, valles y niebla.",
+        "tags": ["paisaje", "montaña"],
+        "coverPhotoId": "montana-06",
+        "photos": [
+          { "id": "montana-01", "filename": "01.jpg", "order": 1 },
+          { "id": "montana-02", "filename": "02.jpg", "order": 2 },
+          { "id": "montana-03", "filename": "03.jpg", "order": 3 },
+          { "id": "montana-04", "filename": "04.jpg", "order": 4 },
+          { "id": "montana-05", "filename": "05.jpg", "order": 5 },
+          { "id": "montana-06", "filename": "06.jpg", "order": 6 },
+          { "id": "montana-07", "filename": "07.jpg", "order": 7 }
+        ]
+      },
+      {
+        "id": "sabana",
+        "title": "Sabana",
+        "description": "Fauna africana en libertad.",
+        "tags": ["fauna", "viajes", "naturaleza"],
+        "coverPhotoId": "sabana-06",
+        "photos": [
+          { "id": "sabana-01", "filename": "01.jpg", "order": 1 },
+          { "id": "sabana-02", "filename": "02.jpg", "order": 2 },
+          { "id": "sabana-03", "filename": "03.jpg", "order": 3 },
+          { "id": "sabana-04", "filename": "04.jpg", "order": 4 },
+          { "id": "sabana-05", "filename": "05.jpg", "order": 5 },
+          { "id": "sabana-06", "filename": "06.jpg", "order": 6 }
+        ]
+      }
+    ]
+  },
+  {
+    "fotografo": {
+      "nombre": "Óscar Ferrer",
+      "descripcion": "Deporte y acción al aire libre.",
+      "logoSubtitulo": "Deporte · Aventura",
+      "logo": "oscar.svg"
+    },
+    "albumes": [
+      {
+        "id": "desierto",
+        "title": "Desierto",
+        "description": "Dunas y horizontes infinitos.",
+        "tags": ["paisaje", "viajes", "color"],
+        "coverPhotoId": "desierto-03",
+        "photos": [
+          { "id": "desierto-01", "filename": "01.jpg", "order": 1 },
+          { "id": "desierto-02", "filename": "02.jpg", "order": 2 },
+          { "id": "desierto-03", "filename": "03.jpg", "order": 3 },
+          { "id": "desierto-04", "filename": "04.jpg", "order": 4 },
+          { "id": "desierto-05", "filename": "05.jpg", "order": 5 },
+          { "id": "desierto-06", "filename": "06.jpg", "order": 6 },
+          { "id": "desierto-07", "filename": "07.jpg", "order": 7 }
+        ]
+      },
+      {
+        "id": "mercados",
+        "title": "Mercados",
+        "description": "Color y bullicio de los mercados locales.",
+        "tags": ["viajes", "calle", "color"],
+        "coverPhotoId": "mercados-03",
+        "photos": [
+          { "id": "mercados-01", "filename": "01.jpg", "order": 1 },
+          { "id": "mercados-02", "filename": "02.jpg", "order": 2 },
+          { "id": "mercados-03", "filename": "03.jpg", "order": 3 },
+          { "id": "mercados-04", "filename": "04.jpg", "order": 4 },
+          { "id": "mercados-05", "filename": "05.jpg", "order": 5 }
+        ]
+      },
+      {
+        "id": "bodegones",
+        "title": "Bodegones",
+        "description": "Composición y textura.",
+        "tags": ["gastronomía", "bodegón"],
+        "coverPhotoId": "bodegones-01",
+        "photos": [
+          { "id": "bodegones-01", "filename": "01.jpg", "order": 1 },
+          { "id": "bodegones-02", "filename": "02.jpg", "order": 2 },
+          { "id": "bodegones-03", "filename": "03.jpg", "order": 3 },
+          { "id": "bodegones-04", "filename": "04.jpg", "order": 4 },
+          { "id": "bodegones-05", "filename": "05.jpg", "order": 5 },
+          { "id": "bodegones-06", "filename": "06.jpg", "order": 6 }
+        ]
+      },
+      {
+        "id": "bosque-oscar",
+        "title": "Bosque",
+        "description": "Luz entre los árboles.",
+        "tags": ["naturaleza", "paisaje", "verde"],
+        "coverPhotoId": "bosque-oscar-03",
+        "photos": [
+          { "id": "bosque-oscar-01", "filename": "01.jpg", "order": 1 },
+          { "id": "bosque-oscar-02", "filename": "02.jpg", "order": 2 },
+          { "id": "bosque-oscar-03", "filename": "03.jpg", "order": 3 },
+          { "id": "bosque-oscar-04", "filename": "04.jpg", "order": 4 },
+          { "id": "bosque-oscar-05", "filename": "05.jpg", "order": 5 },
+          { "id": "bosque-oscar-06", "filename": "06.jpg", "order": 6 },
+          { "id": "bosque-oscar-07", "filename": "07.jpg", "order": 7 },
+          { "id": "bosque-oscar-08", "filename": "08.jpg", "order": 8 },
+          { "id": "bosque-oscar-09", "filename": "09.jpg", "order": 9 }
+        ]
+      },
+      {
+        "id": "fiestas",
+        "title": "Fiestas",
+        "description": "Celebraciones y eventos.",
+        "tags": ["eventos", "personas", "color"],
+        "coverPhotoId": "fiestas-08",
+        "photos": [
+          { "id": "fiestas-01", "filename": "01.jpg", "order": 1 },
+          { "id": "fiestas-02", "filename": "02.jpg", "order": 2 },
+          { "id": "fiestas-03", "filename": "03.jpg", "order": 3 },
+          { "id": "fiestas-04", "filename": "04.jpg", "order": 4 },
+          { "id": "fiestas-05", "filename": "05.jpg", "order": 5 },
+          { "id": "fiestas-06", "filename": "06.jpg", "order": 6 },
+          { "id": "fiestas-07", "filename": "07.jpg", "order": 7 },
+          { "id": "fiestas-08", "filename": "08.jpg", "order": 8 },
+          { "id": "fiestas-09", "filename": "09.jpg", "order": 9 },
+          { "id": "fiestas-10", "filename": "10.jpg", "order": 10 },
+          { "id": "fiestas-11", "filename": "11.jpg", "order": 11 }
+        ]
+      }
+    ]
+  },
+  {
+    "fotografo": {
+      "nombre": "Irene Castaño",
+      "descripcion": "Fotografía de bodas y eventos.",
+      "logoSubtitulo": "Bodas · Eventos"
+    },
+    "albumes": [
+      {
+        "id": "bodegones-irene",
+        "title": "Bodegones",
+        "description": "Composición y textura.",
+        "tags": ["gastronomía", "bodegón"],
+        "coverPhotoId": "bodegones-irene-02",
+        "photos": [
+          { "id": "bodegones-irene-01", "filename": "01.jpg", "order": 1 },
+          { "id": "bodegones-irene-02", "filename": "02.jpg", "order": 2 },
+          { "id": "bodegones-irene-03", "filename": "03.jpg", "order": 3 },
+          { "id": "bodegones-irene-04", "filename": "04.jpg", "order": 4 }
+        ]
+      },
+      {
+        "id": "bosque-irene",
+        "title": "Bosque",
+        "description": "Luz entre los árboles.",
+        "tags": ["naturaleza", "paisaje", "verde"],
+        "coverPhotoId": "bosque-irene-03",
+        "photos": [
+          { "id": "bosque-irene-01", "filename": "01.jpg", "order": 1 },
+          { "id": "bosque-irene-02", "filename": "02.jpg", "order": 2 },
+          { "id": "bosque-irene-03", "filename": "03.jpg", "order": 3 },
+          { "id": "bosque-irene-04", "filename": "04.jpg", "order": 4 },
+          { "id": "bosque-irene-05", "filename": "05.jpg", "order": 5 },
+          { "id": "bosque-irene-06", "filename": "06.jpg", "order": 6 },
+          { "id": "bosque-irene-07", "filename": "07.jpg", "order": 7 },
+          { "id": "bosque-irene-08", "filename": "08.jpg", "order": 8 },
+          { "id": "bosque-irene-09", "filename": "09.jpg", "order": 9 },
+          { "id": "bosque-irene-10", "filename": "10.jpg", "order": 10 },
+          { "id": "bosque-irene-11", "filename": "11.jpg", "order": 11 }
+        ]
+      },
+      {
+        "id": "editorial-irene",
+        "title": "Editorial",
+        "description": "Producciones para revistas.",
+        "tags": ["moda", "editorial", "color"],
+        "coverPhotoId": "editorial-irene-07",
+        "photos": [
+          { "id": "editorial-irene-01", "filename": "01.jpg", "order": 1 },
+          { "id": "editorial-irene-02", "filename": "02.jpg", "order": 2 },
+          { "id": "editorial-irene-03", "filename": "03.jpg", "order": 3 },
+          { "id": "editorial-irene-04", "filename": "04.jpg", "order": 4 },
+          { "id": "editorial-irene-05", "filename": "05.jpg", "order": 5 },
+          { "id": "editorial-irene-06", "filename": "06.jpg", "order": 6 },
+          { "id": "editorial-irene-07", "filename": "07.jpg", "order": 7 },
+          { "id": "editorial-irene-08", "filename": "08.jpg", "order": 8 },
+          { "id": "editorial-irene-09", "filename": "09.jpg", "order": 9 },
+          { "id": "editorial-irene-10", "filename": "10.jpg", "order": 10 }
+        ]
+      },
+      {
+        "id": "desierto-irene",
+        "title": "Desierto",
+        "description": "Dunas y horizontes infinitos.",
+        "tags": ["paisaje", "viajes", "color"],
+        "coverPhotoId": "desierto-irene-02",
+        "photos": [
+          { "id": "desierto-irene-01", "filename": "01.jpg", "order": 1 },
+          { "id": "desierto-irene-02", "filename": "02.jpg", "order": 2 },
+          { "id": "desierto-irene-03", "filename": "03.jpg", "order": 3 }
+        ]
+      },
+      {
+        "id": "auroras",
+        "title": "Auroras",
+        "description": "Luces del norte.",
+        "tags": ["noche", "viajes"],
+        "coverPhotoId": "auroras-03",
+        "photos": [
+          { "id": "auroras-01", "filename": "01.jpg", "order": 1 },
+          { "id": "auroras-02", "filename": "02.jpg", "order": 2 },
+          { "id": "auroras-03", "filename": "03.jpg", "order": 3 },
+          { "id": "auroras-04", "filename": "04.jpg", "order": 4 },
+          { "id": "auroras-05", "filename": "05.jpg", "order": 5 },
+          { "id": "auroras-06", "filename": "06.jpg", "order": 6 },
+          { "id": "auroras-07", "filename": "07.jpg", "order": 7 },
+          { "id": "auroras-08", "filename": "08.jpg", "order": 8 },
+          { "id": "auroras-09", "filename": "09.jpg", "order": 9 },
+          { "id": "auroras-10", "filename": "10.jpg", "order": 10 },
+          { "id": "auroras-11", "filename": "11.jpg", "order": 11 }
+        ]
+      }
+    ]
+  },
+  {
+    "fotografo": {
+      "nombre": "Javier Solís",
+      "descripcion": "Astrofotografía y paisaje nocturno.",
+      "logoSubtitulo": "Noche · Estrellas"
+    },
+    "albumes": [
+      {
+        "id": "ciudad-noche",
+        "title": "Ciudad de noche",
+        "description": "Neones y reflejos.",
+        "tags": ["urbano", "noche", "color"],
+        "coverPhotoId": "ciudad-noche-04",
+        "photos": [
+          { "id": "ciudad-noche-01", "filename": "01.jpg", "order": 1 },
+          { "id": "ciudad-noche-02", "filename": "02.jpg", "order": 2 },
+          { "id": "ciudad-noche-03", "filename": "03.jpg", "order": 3 },
+          { "id": "ciudad-noche-04", "filename": "04.jpg", "order": 4 }
+        ]
+      },
+      {
+        "id": "montana-javier",
+        "title": "Montaña",
+        "description": "Cumbres, valles y niebla.",
+        "tags": ["paisaje", "montaña"],
+        "coverPhotoId": "montana-javier-08",
+        "photos": [
+          { "id": "montana-javier-01", "filename": "01.jpg", "order": 1 },
+          { "id": "montana-javier-02", "filename": "02.jpg", "order": 2 },
+          { "id": "montana-javier-03", "filename": "03.jpg", "order": 3 },
+          { "id": "montana-javier-04", "filename": "04.jpg", "order": 4 },
+          { "id": "montana-javier-05", "filename": "05.jpg", "order": 5 },
+          { "id": "montana-javier-06", "filename": "06.jpg", "order": 6 },
+          { "id": "montana-javier-07", "filename": "07.jpg", "order": 7 },
+          { "id": "montana-javier-08", "filename": "08.jpg", "order": 8 }
+        ]
+      },
+      {
+        "id": "sabana-javier",
+        "title": "Sabana",
+        "description": "Fauna africana en libertad.",
+        "tags": ["fauna", "viajes", "naturaleza"],
+        "coverPhotoId": "sabana-javier-05",
+        "photos": [
+          { "id": "sabana-javier-01", "filename": "01.jpg", "order": 1 },
+          { "id": "sabana-javier-02", "filename": "02.jpg", "order": 2 },
+          { "id": "sabana-javier-03", "filename": "03.jpg", "order": 3 },
+          { "id": "sabana-javier-04", "filename": "04.jpg", "order": 4 },
+          { "id": "sabana-javier-05", "filename": "05.jpg", "order": 5 },
+          { "id": "sabana-javier-06", "filename": "06.jpg", "order": 6 },
+          { "id": "sabana-javier-07", "filename": "07.jpg", "order": 7 },
+          { "id": "sabana-javier-08", "filename": "08.jpg", "order": 8 },
+          { "id": "sabana-javier-09", "filename": "09.jpg", "order": 9 }
+        ]
+      },
+      {
+        "id": "cocina-javier",
+        "title": "Cocina",
+        "description": "Platos y producto.",
+        "tags": ["gastronomía", "color"],
+        "coverPhotoId": "cocina-javier-01",
+        "photos": [
+          { "id": "cocina-javier-01", "filename": "01.jpg", "order": 1 },
+          { "id": "cocina-javier-02", "filename": "02.jpg", "order": 2 },
+          { "id": "cocina-javier-03", "filename": "03.jpg", "order": 3 },
+          { "id": "cocina-javier-04", "filename": "04.jpg", "order": 4 },
+          { "id": "cocina-javier-05", "filename": "05.jpg", "order": 5 }
+        ]
+      },
+      {
+        "id": "mercados-javier",
+        "title": "Mercados",
+        "description": "Color y bullicio de los mercados locales.",
+        "tags": ["viajes", "calle", "color"],
+        "coverPhotoId": "mercados-javier-10",
+        "photos": [
+          { "id": "mercados-javier-01", "filename": "01.jpg", "order": 1 },
+          { "id": "mercados-javier-02", "filename": "02.jpg", "order": 2 },
+          { "id": "mercados-javier-03", "filename": "03.jpg", "order": 3 },
+          { "id": "mercados-javier-04", "filename": "04.jpg", "order": 4 },
+          { "id": "mercados-javier-05", "filename": "05.jpg", "order": 5 },
+          { "id": "mercados-javier-06", "filename": "06.jpg", "order": 6 },
+          { "id": "mercados-javier-07", "filename": "07.jpg", "order": 7 },
+          { "id": "mercados-javier-08", "filename": "08.jpg", "order": 8 },
+          { "id": "mercados-javier-09", "filename": "09.jpg", "order": 9 },
+          { "id": "mercados-javier-10", "filename": "10.jpg", "order": 10 },
+          { "id": "mercados-javier-11", "filename": "11.jpg", "order": 11 }
+        ]
+      }
+    ]
+  },
+  {
+    "fotografo": {
+      "nombre": "Nuria Beltrán",
+      "descripcion": "Gastronomía y bodegón.",
+      "logoSubtitulo": "Gastronomía · Bodegón"
+    },
+    "albumes": [
+      {
+        "id": "ciudad-noche-nuria",
+        "title": "Ciudad de noche",
+        "description": "Neones y reflejos.",
+        "tags": ["urbano", "noche", "color"],
+        "coverPhotoId": "ciudad-noche-nuria-06",
+        "photos": [
+          { "id": "ciudad-noche-nuria-01", "filename": "01.jpg", "order": 1 },
+          { "id": "ciudad-noche-nuria-02", "filename": "02.jpg", "order": 2 },
+          { "id": "ciudad-noche-nuria-03", "filename": "03.jpg", "order": 3 },
+          { "id": "ciudad-noche-nuria-04", "filename": "04.jpg", "order": 4 },
+          { "id": "ciudad-noche-nuria-05", "filename": "05.jpg", "order": 5 },
+          { "id": "ciudad-noche-nuria-06", "filename": "06.jpg", "order": 6 },
+          { "id": "ciudad-noche-nuria-07", "filename": "07.jpg", "order": 7 }
+        ]
+      },
+      {
+        "id": "escalada-nuria",
+        "title": "Escalada",
+        "description": "Paredes verticales.",
+        "tags": ["deporte", "montaña"],
+        "coverPhotoId": "escalada-nuria-03",
+        "photos": [
+          { "id": "escalada-nuria-01", "filename": "01.jpg", "order": 1 },
+          { "id": "escalada-nuria-02", "filename": "02.jpg", "order": 2 },
+          { "id": "escalada-nuria-03", "filename": "03.jpg", "order": 3 },
+          { "id": "escalada-nuria-04", "filename": "04.jpg", "order": 4 },
+          { "id": "escalada-nuria-05", "filename": "05.jpg", "order": 5 },
+          { "id": "escalada-nuria-06", "filename": "06.jpg", "order": 6 },
+          { "id": "escalada-nuria-07", "filename": "07.jpg", "order": 7 },
+          { "id": "escalada-nuria-08", "filename": "08.jpg", "order": 8 },
+          { "id": "escalada-nuria-09", "filename": "09.jpg", "order": 9 }
+        ]
+      },
+      {
+        "id": "surf-nuria",
+        "title": "Surf",
+        "description": "Olas y equilibrio.",
+        "tags": ["deporte", "mar", "azul"],
+        "coverPhotoId": "surf-nuria-01",
+        "photos": [
+          { "id": "surf-nuria-01", "filename": "01.jpg", "order": 1 },
+          { "id": "surf-nuria-02", "filename": "02.jpg", "order": 2 },
+          { "id": "surf-nuria-03", "filename": "03.jpg", "order": 3 }
+        ]
+      }
+    ]
+  },
+  {
+    "fotografo": {
+      "nombre": "Tomás Rivera",
+      "descripcion": "Fauna salvaje y naturaleza.",
+      "logoSubtitulo": "Fauna · Naturaleza"
+    },
+    "albumes": [
+      {
+        "id": "aves-tomas",
+        "title": "Aves",
+        "description": "Vuelo y plumaje.",
+        "tags": ["fauna", "naturaleza"],
+        "coverPhotoId": "aves-tomas-04",
+        "photos": [
+          { "id": "aves-tomas-01", "filename": "01.jpg", "order": 1 },
+          { "id": "aves-tomas-02", "filename": "02.jpg", "order": 2 },
+          { "id": "aves-tomas-03", "filename": "03.jpg", "order": 3 },
+          { "id": "aves-tomas-04", "filename": "04.jpg", "order": 4 },
+          { "id": "aves-tomas-05", "filename": "05.jpg", "order": 5 },
+          { "id": "aves-tomas-06", "filename": "06.jpg", "order": 6 },
+          { "id": "aves-tomas-07", "filename": "07.jpg", "order": 7 },
+          { "id": "aves-tomas-08", "filename": "08.jpg", "order": 8 },
+          { "id": "aves-tomas-09", "filename": "09.jpg", "order": 9 },
+          { "id": "aves-tomas-10", "filename": "10.jpg", "order": 10 }
         ]
       }
     ]

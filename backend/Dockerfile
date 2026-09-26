@@ -18,6 +18,8 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 COPY --from=build /app/dist ./dist
+# Fuentes usadas para generar los logos de los fotógrafos
+COPY assets ./assets
 
 # backend/datos se monta como volumen externo (fotos + organizacionFotos.json)
 EXPOSE 3000

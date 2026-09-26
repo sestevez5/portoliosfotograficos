@@ -43,6 +43,18 @@
   color: var(--color-text);
 }
 
+.fotografo__logo {
+  display: block;
+  height: 4.5rem;
+  width: auto;
+}
+
+@media (max-width: 640px) {
+  .fotografo__logo {
+    height: 3rem;
+  }
+}
+
 .site-main {
   flex: 1;
   padding: 0 var(--space-5) var(--space-5);
