@@ -1,14 +1,7 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 import { Router } from 'express';
-import type { Album, AlbumSummary, OrganizacionFotos } from '../types/album.js';
-
-// Se lee en runtime (no se importa como módulo ESM) porque "datos" se monta como
-// volumen externo en Docker y no está presente en el contexto de build de la imagen.
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const organizacionFotosPath = path.join(__dirname, '../../datos/estructura/organizacionFotos.json');
-const organizacionFotos = JSON.parse(readFileSync(organizacionFotosPath, 'utf-8')) as OrganizacionFotos[];
+import { asegurarLogo } from '../services/logo.service.js';
+import { organizacionFotos } from '../services/organizacion.service.js';
+import type { Album, AlbumSummary, Fotografo, FotografoPublico } from '../types/album.js';
 
 // El slug de un fotógrafo es su primer nombre sin acentos y en minúsculas ("Santi Estévez" -> "santi").
 // También es el nombre de su carpeta en backend/datos/fotos.
@@ -43,6 +36,11 @@ function findFotografo(slug: string) {
 // /photos/<fotografo>/<album>/<archivo>
 function photoUrl(slug: string, albumId: string, filename: string): string {
   return `/photos/${slug}/${albumId}/${filename}`;
+}
+
+// Todos los fotógrafos tienen logo: si aún no existe se genera al pedirlo (GET /fotografos/:slug/logo).
+function toFotografoPublico(slug: string, { logo, logoSubtitulo, ...fotografo }: Fotografo): FotografoPublico {
+  return { ...fotografo, logoUrl: `/api/fotografos/${slug}/logo` };
 }
 
 function toSummary({ slug, album }: AlbumEntry): AlbumSummary {
@@ -96,7 +94,7 @@ albumsRouter.get('/fotografos', (_req, res) => {
   res.json(
     organizacion.map((o) => ({
       slug: o.slug,
-      ...o.fotografo,
+      ...toFotografoPublico(o.slug, o.fotografo),
       albumCount: o.albumes.length,
     })),
   );
@@ -112,9 +110,20 @@ albumsRouter.get('/fotografos/:slug', (req, res) => {
   const entries = entry.albumes.map((album) => ({ slug: entry.slug, album }));
   res.json({
     slug: entry.slug,
-    ...entry.fotografo,
+    ...toFotografoPublico(entry.slug, entry.fotografo),
     albumes: filterByTag(entries, req.query.tag).map(toSummary),
   });
+});
+
+albumsRouter.get('/fotografos/:slug/logo', (req, res) => {
+  const entry = findFotografo(req.params.slug);
+  if (!entry) {
+    res.status(404).json({ message: `Fotógrafo '${req.params.slug}' no encontrado` });
+    return;
+  }
+
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.sendFile(asegurarLogo(entry.slug, entry.fotografo));
 });
 
 albumsRouter.get('/fotografos/:slug/albums/:id', (req, res) => {
