@@ -41,15 +41,16 @@ El frontend espera la API en `http://localhost:3000` (constante `API_BASE_URL` e
 
 Un álbum tiene título, descripción opcional, una lista de `tags` (los tags cuelgan del álbum, no de la foto individual) y una lista ordenada de fotos. Cada foto solo guarda `filename`; la URL pública se construye en el backend como `/photos/<fotografoSlug>/<albumId>/<filename>`.
 
-- Fuente de verdad: `backend/datos/estructura/organizacionFotos.json` (forma: `OrganizacionFotos[]`, cada elemento `{ fotografo: { nombre, descripcion }, albumes: Album[] }`).
+- Fuente de verdad: `backend/datos/estructura/organizacionFotos.json` (forma: `OrganizacionFotos[]`, cada elemento `{ fotografo: { nombre, descripcion, logoSubtitulo?, logo? }, albumes: Album[] }`; `logo` no se rellena a mano, lo escribe el backend al generar el logo).
 - Archivos de imagen reales: `backend/datos/fotos/<fotografoSlug>/<albumId>/<filename>` — las carpetas deben reflejar exactamente el slug del fotógrafo (primer nombre sin acentos y en minúsculas, p. ej. `santi`), los `id` de álbum y los `filename` de foto usados en el JSON, o las imágenes no se resolverán.
+- Logos de fotógrafo: nunca los aporta el usuario, los genera el backend. `GET /api/fotografos/:slug/logo` llama a `asegurarLogo` (`backend/src/services/logo.service.ts`): si `fotografo.logo` referencia un archivo que existe en `backend/datos/logos/`, lo sirve tal cual; si no, genera `<slug>.svg` a partir del `nombre` y del `logoSubtitulo` opcional, lo guarda en esa carpeta y escribe la referencia `"logo"` en `organizacionFotos.json` mediante `guardarOrganizacion` (`backend/src/services/organizacion.service.ts`: escritura atómica con temporal + rename, síncrona, conservando el formato del fichero). El logo es un SVG tipo firma: letra manuscrita Mrs Saint Delafield, subrayado de plumilla y subtítulo en Inter, con el texto convertido a trazos (un `<img>` no puede cargar fuentes) y tinta `#f2f1ed` para el fondo oscuro. Las fuentes (OFL) están en `backend/assets/fonts` y se copian a la imagen Docker. La API expone solo `logoUrl`. Para regenerar un logo basta con borrar su archivo o su referencia.
 - Tipos compartidos conceptualmente (no compartidos por código, ya que son dos paquetes npm separados): `backend/src/types/album.ts` y `frontend/src/app/core/models/album.model.ts`. Si se cambia la forma del JSON hay que actualizar ambos.
 
 ### Backend (`backend/src/`)
 
 - `index.ts` — arranque de Express, monta `/api` y sirve `/photos` como estático desde `backend/datos/fotos`.
-- `routes/albums.routes.ts` — único router: `GET /api/albums` (con filtro opcional `?tag=`), `GET /api/albums/:id`, `GET /api/tags` (tags únicos derivados de todos los álbumes, no hay colección de tags separada), `GET /api/fotografos`, `GET /api/fotografos/:slug` (fotógrafo + resúmenes de sus álbumes, filtro opcional `?tag=`) y `GET /api/fotografos/:slug/albums/:id`. El `slug` es el primer nombre del fotógrafo sin acentos y en minúsculas (`Santi Estévez` -> `santi`), insensible a mayúsculas en la URL.
-- El JSON de datos se importa directamente con `import ... with { type: 'json' }` (ESM import attributes) — por eso `package.json` tiene `"type": "module"` y `tsconfig.json` usa `module`/`moduleResolution: NodeNext`.
+- `routes/albums.routes.ts` — único router: `GET /api/albums` (con filtro opcional `?tag=`), `GET /api/albums/:id`, `GET /api/tags` (tags únicos derivados de todos los álbumes, no hay colección de tags separada), `GET /api/fotografos`, `GET /api/fotografos/:slug` (fotógrafo + resúmenes de sus álbumes, filtro opcional `?tag=`), `GET /api/fotografos/:slug/logo` y `GET /api/fotografos/:slug/albums/:id`. El `slug` es el primer nombre del fotógrafo sin acentos y en minúsculas (`Santi Estévez` -> `santi`), insensible a mayúsculas en la URL.
+- `services/organizacion.service.ts` — carga `organizacionFotos.json` al arrancar (con `readFileSync`, no como import ESM) y expone `guardarOrganizacion()` para reescribirlo. `services/logo.service.ts` — generación y persistencia de logos (ver "Modelo de datos"). El paquete es ESM (`"type": "module"`, `module`/`moduleResolution: NodeNext`).
 
 ### Frontend (`frontend/src/app/`)
 
@@ -86,9 +87,19 @@ La carpeta `backend/datos` (fotos + `organizacionFotos.json`) se monta como volu
 
 Despliegue típico en el NAS (solo con `docker-compose.yml`, `.env` y `datos/` copiados, sin el resto del repo): `cp .env.example .env` (ajustar rutas), `docker compose pull`, `docker compose up -d`. Para desplegar una versión nueva más adelante: `docker compose pull && docker compose up -d` de nuevo.
 
+## Versionado
+
+Versionado semántico `MAYOR.MENOR.PARCHE` (semver), una única versión para todo el monorepo:
+
+- **MAYOR**: cambios incompatibles (p. ej. cambios en la forma de `organizacionFotos.json` que obligan a migrar los datos del NAS, o rutas de la API que desaparecen).
+- **MENOR**: funcionalidad nueva compatible hacia atrás.
+- **PARCHE**: correcciones sin cambios de funcionalidad.
+
+Al publicar una versión: actualizar `version` en `backend/package.json` y `frontend/package.json` (`npm version X.Y.Z --no-git-tag-version` en cada paquete, que también actualiza el lockfile), añadir la entrada en `CHANGELOG.md`, hacer commit en `develop`, fusionar en `main` y crear el tag anotado `vX.Y.Z` en `main`. El desarrollo diario va en `develop`; `main` solo recibe versiones.
+
 ## Notas para seguir desarrollando
 
 - Las fotos y el JSON de ejemplo (`naturaleza`, `arquitectura`) son contenido de prueba generado como placeholders de color — hay que sustituirlos por fotos reales y actualizar `organizacionFotos.json` en consecuencia.
-- Si se añade subida de fotos o edición del catálogo en caliente, el backend deja de ser "solo lectura de un JSON estático" y probablemente convenga mover `organizacionFotos.json` a algo con escritura atómica (o una base de datos ligera tipo SQLite) — evaluarlo antes de escribir concurrentemente sobre el archivo.
+- El backend ya escribe en `organizacionFotos.json` (solo para añadir la referencia `logo` al generar un logo), con escritura atómica y síncrona. Si se añade subida de fotos o edición del catálogo en caliente, habrá más escrituras y probablemente convenga pasar a una base de datos ligera tipo SQLite; evaluarlo antes. Ojo: editar el JSON a mano con el backend en marcha se pierde si el backend lo reescribe después, porque trabaja con la copia cargada al arrancar; conviene parar el backend para editarlo.
 - Repositorio git inicializado, con remoto en GitHub (`https://github.com/sestevez5/portoliosfotograficos.git`, rama `main`).
 

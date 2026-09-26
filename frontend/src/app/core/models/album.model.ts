@@ -28,6 +28,7 @@ export interface Fotografo {
   slug: string;
   nombre: string;
   descripcion: string;
+  logoUrl: string;
 }
 
 export interface FotografoSummary extends Fotografo {

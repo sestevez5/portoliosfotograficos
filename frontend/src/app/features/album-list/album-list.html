@@ -1,5 +1,8 @@
 @if (fotografo(); as f) {
   <section class="hero">
+    @if (desdeInicio) {
+      <a class="volver" routerLink="/">← Volver</a>
+    }
     <h1>Álbumes</h1>
     <p>{{ f.descripcion }}</p>
   </section>
