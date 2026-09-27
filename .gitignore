@@ -6,7 +6,9 @@ dist/
 Thumbs.db
 .env
 
-# Base de datos SQLite (se genera desde organizacionFotos.json)
+# Datos del catálogo (base de datos en BD/, fotos y logos): viven solo en cada instalación (el NAS
+# los monta como volumen). El repositorio refleja siempre una base de datos vacía.
+backend/datos/
 *.db
 *.db-wal
 *.db-shm

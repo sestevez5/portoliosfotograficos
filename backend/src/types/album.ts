@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------------------
-// organizacionFotos.json (fuente de importación). Mismo vocabulario que la base de datos.
+// Catálogo en JSON para cargas masivas (npm run db:importar). Mismo vocabulario que la BD.
 // ---------------------------------------------------------------------------------------
 
 export interface FotoJson {

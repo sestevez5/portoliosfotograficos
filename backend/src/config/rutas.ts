@@ -12,7 +12,4 @@ export const fotosDir = path.join(datosDir, 'fotos');
 export const logosDir = path.join(datosDir, 'logos');
 
 // Base de datos SQLite con todo el catálogo. Se puede cambiar con la variable DB_PATH.
-export const dbPath = process.env.DB_PATH ?? path.join(datosDir, 'estructura/portfolio.db');
-
-// JSON del que se importa el catálogo cuando la base de datos está vacía.
-export const organizacionJsonPath = path.join(datosDir, 'estructura/organizacionFotos.json');
+export const dbPath = process.env.DB_PATH ?? path.join(datosDir, 'BD/portfolio.db');

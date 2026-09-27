@@ -32,7 +32,6 @@ COPY --from=build /app/dist ./dist
 # Fuentes usadas para generar los logos de los fotógrafos
 COPY assets ./assets
 
-# backend/datos se monta como volumen externo (fotos, logos, base de datos SQLite y el
-# organizacionFotos.json del que se importa el catálogo si la base de datos está vacía)
+# backend/datos se monta como volumen externo (fotos, logos y base de datos SQLite en BD/)
 EXPOSE 3000
 CMD ["node", "dist/index.js"]

@@ -1,18 +1,24 @@
-// Importa organizacionFotos.json (u otro JSON con la misma forma) en la base de datos SQLite.
+// Importa un catálogo en JSON (forma OrganizacionFotos[], ver types/album.ts) en la base de datos
+// SQLite. La BD es la única fuente de verdad: esto solo sirve para cargas masivas puntuales (p. ej.
+// fotos, mientras no se puedan subir desde la web). Las carpetas de datos/fotos ya deben existir
+// con los nombres normalizados.
 //
-//   npm run db:importar                          -> solo si la base de datos está vacía
-//   npm run db:importar -- --reemplazar          -> borra el catálogo actual y lo vuelve a importar
-//   npm run db:importar -- ruta/al/fichero.json
+//   npm run db:importar -- ruta/al/fichero.json                -> solo si la base de datos está vacía
+//   npm run db:importar -- ruta/al/fichero.json --reemplazar   -> borra el catálogo actual antes
 //
-// En el contenedor Docker: node dist/scripts/importar-json.js [--reemplazar] [ruta]
-import { dbPath, organizacionJsonPath } from '../config/rutas.js';
+// En el contenedor Docker: node dist/scripts/importar-json.js <ruta> [--reemplazar]
+import { dbPath } from '../config/rutas.js';
 import { abrirBaseDatos } from '../db/conexion.js';
 import { estaVacia, importarOrganizacion, leerOrganizacionJson } from '../db/importar.js';
 import { ReglaNegocioIncumplida } from '../reglas/index.js';
 
 const args = process.argv.slice(2);
 const reemplazar = args.includes('--reemplazar');
-const ruta = args.find((a) => !a.startsWith('--')) ?? organizacionJsonPath;
+const ruta = args.find((a) => !a.startsWith('--'));
+if (!ruta) {
+  console.error('Uso: npm run db:importar -- <ruta/al/fichero.json> [--reemplazar]');
+  process.exit(1);
+}
 
 const db = abrirBaseDatos();
 if (!reemplazar && !estaVacia(db)) {

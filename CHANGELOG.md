@@ -11,6 +11,13 @@ Cambio incompatible: la próxima versión debe ser **2.0.0**.
 
 ### Cambiado
 
+- **La carpeta `backend/datos` deja de versionarse** (está en `.gitignore`): el repositorio refleja siempre una base
+  de datos vacía y las fotos y los logos viven solo en cada instalación. Un clon nuevo arranca con el catálogo vacío.
+- La base de datos pasa de `datos/estructura/portfolio.db` a **`datos/BD/portfolio.db`**. **Al desplegar hay que
+  renombrar en el NAS la carpeta `estructura` a `BD`, o copiar la carpeta `datos` completa (con el backend parado).**
+- Se elimina `organizacionFotos.json` y la importación automática al arrancar con la base de datos vacía (el JSON
+  estaba desfasado respecto a la base de datos y a las carpetas). `npm run db:importar` exige ahora la ruta del JSON
+  (`npm run db:importar -- <fichero.json> [--reemplazar]`) y queda solo para cargas masivas puntuales.
 - Nuevo nivel **portfolio** entre fotógrafo y álbumes: cada fotógrafo tiene varios portfolios y cada portfolio
   varios álbumes.
 - `organizacionFotos.json`: `albumes` pasa a estar dentro de `portfolios: [{ id, title, description?, albumes }]`.

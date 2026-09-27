@@ -194,7 +194,7 @@ function migrar(db: Database.Database): void {
       migrarA9(db);
     } else if (version < 8) {
       // Esquemas anteriores a la versión 8 (solo existieron en desarrollo, antes de publicar
-      // la base de datos): se descartan y el catálogo se vuelve a importar desde el JSON.
+      // la base de datos): se descartan y el catálogo queda vacío.
       db.exec(`
         DROP TABLE IF EXISTS album_tags;
         DROP TABLE IF EXISTS albumTags;

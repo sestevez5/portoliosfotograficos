@@ -1,33 +1,13 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { fotosDir, organizacionJsonPath } from '../config/rutas.js';
-import { ReglaNegocioIncumplida, validadorCatalogo } from '../reglas/index.js';
+import { fotosDir } from '../config/rutas.js';
+import { validadorCatalogo } from '../reglas/index.js';
 import { abrirBaseDatos } from './conexion.js';
-import { estaVacia, importarOrganizacion, leerOrganizacionJson } from './importar.js';
 
 const db = abrirBaseDatos();
 
 // Validador de reglas de negocio sobre esta conexión (ver reglas/validaciones.ts).
 export const validar = validadorCatalogo(db);
-
-// Primera ejecución (p. ej. al desplegar en el NAS): si la base de datos está vacía y existe
-// el JSON del catálogo, se importa automáticamente.
-// Si el JSON incumple alguna regla de negocio no se importa nada y el backend no arranca.
-if (estaVacia(db) && existsSync(organizacionJsonPath)) {
-  try {
-    const totales = importarOrganizacion(db, leerOrganizacionJson(organizacionJsonPath));
-    console.log(
-      `Base de datos vacía: importado ${organizacionJsonPath} ` +
-        `(${totales.fotografos} fotógrafos, ${totales.portfolios} portfolios, ${totales.albumes} álbumes, ${totales.fotos} fotos)`,
-    );
-  } catch (error) {
-    if (error instanceof ReglaNegocioIncumplida) {
-      console.error(`No se ha podido importar ${organizacionJsonPath}; no se ha importado nada.\n${error.aTexto()}`);
-      process.exit(1);
-    }
-    throw error;
-  }
-}
 
 // Nunca incluye email ni passwordHash: las consultas públicas no los leen.
 export interface FotografoFila {
