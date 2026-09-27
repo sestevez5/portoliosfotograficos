@@ -1,0 +1,178 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { abrirBaseDatos } from '../db/conexion.js';
+import { importarOrganizacion } from '../db/importar.js';
+import type { AlbumJson, OrganizacionFotos, PortfolioJson } from '../types/album.js';
+import { OPERACIONES, REGLAS, type CodigoRegla } from './catalogo.js';
+import { ReglaNegocioIncumplida } from './regla-incumplida.js';
+import { validadorCatalogo } from './validaciones.js';
+
+// Cada prueba importa un catálogo en una BD en memoria y comprueba qué regla se incumple.
+
+const album = (nombre: string, extra: Partial<AlbumJson> = {}): AlbumJson => ({
+  nombre,
+  tags: [],
+  fotos: [{ nombreFichero: '01.jpg', orden: 1 }],
+  ...extra,
+});
+
+const portfolio = (nombre: string, albumes: AlbumJson[] = [], extra: Partial<PortfolioJson> = {}): PortfolioJson => ({
+  nombre,
+  albumes,
+  ...extra,
+});
+
+const fotografo = (nombreInformal: string, portfolios: PortfolioJson[] = [], extra = {}): OrganizacionFotos => ({
+  fotografo: { nombreInformal, nombre: nombreInformal.split(' ')[0], primerApellido: 'Apellido', descripcion: 'x', ...extra },
+  portfolios,
+});
+
+function importar(catalogo: OrganizacionFotos[]) {
+  const db = abrirBaseDatos(':memory:');
+  return { db, totales: importarOrganizacion(db, catalogo) };
+}
+
+function esperaRegla(catalogo: OrganizacionFotos[], codigo: CodigoRegla) {
+  const db = abrirBaseDatos(':memory:');
+  assert.throws(
+    () => importarOrganizacion(db, catalogo),
+    (error: unknown) => error instanceof ReglaNegocioIncumplida && error.codigo === codigo,
+  );
+  // La importación es una transacción: al incumplirse una regla no queda nada guardado.
+  assert.equal((db.prepare('SELECT count(*) AS n FROM fotografos').get() as { n: number }).n, 0);
+}
+
+test('un catálogo válido se importa entero', () => {
+  const { totales } = importar([
+    fotografo('Ana Uno', [portfolio('Viajes', [album('Mar'), album('Montaña')]), portfolio('Retratos')]),
+    fotografo('Bea Dos', [portfolio('Viajes', [album('Mar')])]),
+  ]);
+  assert.deepEqual(totales, { fotografos: 2, portfolios: 3, albumes: 3, fotos: 3 });
+});
+
+test('el mensaje se redacta con los datos de la regla', () => {
+  const error = new ReglaNegocioIncumplida('PORTFOLIO_NOMBRE_DUPLICADO', { nombre: 'Viajes' });
+  assert.equal(error.message, 'Ya existe otro portfolio con el mismo nombre ("Viajes") para este fotógrafo.');
+});
+
+test('todas las reglas del catálogo tienen mensaje', () => {
+  for (const [codigo, mensaje] of Object.entries(REGLAS)) {
+    assert.ok(mensaje.trim().length > 0, codigo);
+  }
+});
+
+test('un fotógrafo no puede tener dos portfolios con el mismo nombre', () => {
+  esperaRegla([fotografo('Ana Uno', [portfolio('Viajes'), portfolio('Viajes')])], 'PORTFOLIO_NOMBRE_DUPLICADO');
+});
+
+test('los nombres se comparan en su forma de URL (mayúsculas, espacios y tildes)', () => {
+  esperaRegla(
+    [fotografo('Ana Uno', [portfolio('Ciudad de noche'), portfolio('  ciudad-de   NOCHE ')])],
+    'PORTFOLIO_NOMBRE_DUPLICADO',
+  );
+  esperaRegla([fotografo('Ana Uno', [portfolio('P', [album('Montaña'), album('montanya')])])], 'ALBUM_NOMBRE_DUPLICADO');
+});
+
+test('un portfolio no puede tener dos álbumes con el mismo nombre', () => {
+  esperaRegla([fotografo('Ana Uno', [portfolio('P', [album('Mar'), album('Mar')])])], 'ALBUM_NOMBRE_DUPLICADO');
+});
+
+test('el nombre normalizado se calcula al importar y es el de la carpeta', () => {
+  const { db } = importar([fotografo('Ana Uno', [portfolio('  Proyectos   Personales ', [album('Montaña Ñandú')])])]);
+  assert.deepEqual(db.prepare('SELECT nombre, nombreNormalizado FROM portfolios').get(), {
+    nombre: 'Proyectos   Personales',
+    nombreNormalizado: 'proyectos-personales',
+  });
+  assert.deepEqual(db.prepare('SELECT nombreNormalizado FROM albumes').get(), { nombreNormalizado: 'montanya-nyandu' });
+});
+
+test('los nombres que no sirven como carpeta no se admiten', () => {
+  for (const nombre of ['a/b', 'a\\b', '..', '../fuera', '.oculta']) {
+    esperaRegla([fotografo('Ana Uno', [portfolio(nombre)])], 'NOMBRE_NO_VALIDO');
+    esperaRegla([fotografo('Ana Uno', [portfolio('P', [album(nombre)])])], 'NOMBRE_NO_VALIDO');
+  }
+  esperaRegla([fotografo('Ana/Uno')], 'NOMBRE_NO_VALIDO');
+});
+
+test('nombres obligatorios', () => {
+  esperaRegla([fotografo('Ana Uno', [portfolio('  ')])], 'PORTFOLIO_NOMBRE_OBLIGATORIO');
+  esperaRegla([fotografo('Ana Uno', [portfolio('P', [album(' ')])])], 'ALBUM_NOMBRE_OBLIGATORIO');
+  esperaRegla([fotografo('   ', [], { nombre: 'Ana' })], 'FOTOGRAFO_NOMBRE_INFORMAL_OBLIGATORIO');
+  esperaRegla([fotografo('Ana Uno', [], { nombre: '', primerApellido: '' })], 'FOTOGRAFO_NOMBRE_OBLIGATORIO');
+  esperaRegla([fotografo('Ana Uno', [], { primerApellido: '' })], 'FOTOGRAFO_PRIMER_APELLIDO_OBLIGATORIO');
+  esperaRegla([fotografo('Ana Uno', [], { nombre: '' })], 'FOTOGRAFO_NOMBRE_OBLIGATORIO');
+});
+
+test('dos fotógrafos no pueden tener el mismo nombre informal normalizado', () => {
+  esperaRegla([fotografo('Íñigo Pérez'), fotografo('inyigo perez')], 'FOTOGRAFO_NOMBRE_INFORMAL_DUPLICADO');
+});
+
+test('el correo y el usuario no pueden repetirse', () => {
+  esperaRegla([fotografo('Ana Uno', [], { email: 'a@x.com' }), fotografo('Bea Dos', [], { email: 'A@X.COM' })], 'FOTOGRAFO_EMAIL_DUPLICADO');
+  esperaRegla([fotografo('Ana Uno', [], { usuario: 'ana' }), fotografo('Bea Dos', [], { usuario: 'ana' })], 'FOTOGRAFO_USUARIO_DUPLICADO');
+});
+
+test('reglas de las fotos y los tags de un álbum', () => {
+  const dosFotos = { fotos: [{ nombreFichero: '01.jpg', orden: 1 }, { nombreFichero: '01.jpg', orden: 2 }] };
+  esperaRegla([fotografo('Ana Uno', [portfolio('P', [album('Mar', dosFotos)])])], 'FOTO_FICHERO_DUPLICADO');
+  esperaRegla([fotografo('Ana Uno', [portfolio('P', [album('Mar', { fotoPortada: '99.jpg' })])])], 'ALBUM_FOTO_PORTADA_INEXISTENTE');
+  esperaRegla([fotografo('Ana Uno', [portfolio('P', [album('Mar', { tags: ['a', 'b', 'a'] })])])], 'ALBUM_TAG_DUPLICADO');
+});
+
+test('eliminar con contenido exige confirmación', () => {
+  const validar = validadorCatalogo(abrirBaseDatos(':memory:'));
+  const incumple = (codigo: CodigoRegla) => (error: unknown) =>
+    error instanceof ReglaNegocioIncumplida && error.codigo === codigo;
+  assert.throws(() => validar.eliminacionPortfolio(2, false), incumple('PORTFOLIO_ELIMINAR_CON_ALBUMES'));
+  assert.throws(() => validar.eliminacionAlbum(3, false), incumple('ALBUM_ELIMINAR_CON_FOTOS'));
+  assert.doesNotThrow(() => validar.eliminacionAlbum(3, true));
+  assert.doesNotThrow(() => validar.eliminacionAlbum(0, false));
+});
+
+test('al modificar un elemento no choca consigo mismo', () => {
+  const { db } = importar([fotografo('Ana Uno', [portfolio('Viajes')])]);
+  const validar = validadorCatalogo(db);
+  const { idFotografo } = db.prepare('SELECT idFotografo FROM fotografos').get() as { idFotografo: number };
+  const { idPortfolio } = db.prepare('SELECT idPortfolio FROM portfolios').get() as { idPortfolio: number };
+  assert.doesNotThrow(() => validar.portfolio(idFotografo, 'VIAJES', idPortfolio));
+  assert.doesNotThrow(() => validar.nombreInformal('ANA UNO', idFotografo));
+  assert.throws(() => validar.portfolio(idFotografo, 'viajes'), /Ya existe otro portfolio/);
+});
+
+test('la regla incumplida indica qué se intentaba hacer', () => {
+  const db = abrirBaseDatos(':memory:');
+  const catalogo = [fotografo('Ana Uno', [portfolio('Viajes'), portfolio('viajes')])];
+  try {
+    importarOrganizacion(db, catalogo);
+    assert.fail('debía incumplirse una regla');
+  } catch (error) {
+    assert.ok(error instanceof ReglaNegocioIncumplida);
+    assert.deepEqual(error.toJSON(), {
+      tipo: 'reglaNegocioIncumplida',
+      operacion: { codigo: 'CREAR_PORTFOLIO', descripcion: 'Crear el portfolio "viajes" del fotógrafo "Ana Uno"' },
+      regla: {
+        codigo: 'PORTFOLIO_NOMBRE_DUPLICADO',
+        mensaje: 'Ya existe otro portfolio con el mismo nombre ("viajes") para este fotógrafo.',
+      },
+      message:
+        'No se ha podido crear el portfolio "viajes" del fotógrafo "Ana Uno". Ya existe otro portfolio con el mismo nombre ("viajes") para este fotógrafo.',
+    });
+  }
+});
+
+test('se conserva la operación más concreta (la foto, no el álbum que la contiene)', () => {
+  const dosFotos = { fotos: [{ nombreFichero: '01.jpg', orden: 1 }, { nombreFichero: '01.jpg', orden: 2 }] };
+  assert.throws(
+    () => importarOrganizacion(abrirBaseDatos(':memory:'), [fotografo('Ana Uno', [portfolio('P', [album('Mar', dosFotos)])])]),
+    (error: unknown) =>
+      error instanceof ReglaNegocioIncumplida &&
+      error.operacion?.codigo === 'ANYADIR_FOTO' &&
+      error.operacion.descripcion === 'Añadir la foto "01.jpg" al álbum "Mar" del portfolio "P"',
+  );
+});
+
+test('todas las operaciones del catálogo tienen texto', () => {
+  for (const [codigo, texto] of Object.entries(OPERACIONES)) {
+    assert.ok(texto.trim().length > 0, codigo);
+  }
+});

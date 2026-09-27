@@ -30,7 +30,15 @@
   padding-bottom: var(--space-5);
 }
 
+// La tarjeta contiene el enlace al portfolio y, debajo, sus acciones (un botón no puede ir dentro
+// de un enlace).
 .portfolio-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.portfolio-card__enlace {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -52,7 +60,7 @@
   }
 }
 
-.portfolio-card:hover .portfolio-card__image img {
+.portfolio-card__enlace:hover .portfolio-card__image img {
   transform: scale(1.04);
 }
 
@@ -80,5 +88,30 @@
 @media (max-width: 640px) {
   .portfolio-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+.acciones-fotografo {
+  display: block;
+  margin-top: var(--space-3);
+}
+
+.nuevo {
+  display: inline-block;
+  margin-top: var(--space-3);
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    border-color var(--transition),
+    color var(--transition);
+
+  &:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
   }
 }

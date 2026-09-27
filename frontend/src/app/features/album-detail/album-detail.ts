@@ -1,12 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { AlbumService } from '../../core/services/album';
+import { AlbumAcciones } from '../../shared/album-acciones/album-acciones';
 import { Lightbox } from '../../shared/lightbox/lightbox';
 
 @Component({
-  imports: [RouterLink, Lightbox],
+  imports: [RouterLink, Lightbox, AlbumAcciones],
   selector: 'app-album-detail',
   styleUrl: './album-detail.scss',
   templateUrl: './album-detail.html',
@@ -14,8 +15,9 @@ import { Lightbox } from '../../shared/lightbox/lightbox';
 export class AlbumDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly albumService = inject(AlbumService);
+  private readonly router = inject(Router);
 
-  protected readonly fotografoSlug = toSignal(this.route.paramMap.pipe(map((params) => params.get('fotografo')!)));
+  protected readonly segmentoFotografo = toSignal(this.route.paramMap.pipe(map((params) => params.get('fotografo')!)));
 
   // undefined = cargando, null = álbum no encontrado en ese portfolio
   protected readonly album = toSignal(
@@ -36,5 +38,10 @@ export class AlbumDetail {
 
   protected closeLightbox(): void {
     this.lightboxIndex.set(null);
+  }
+
+  // Tras eliminar el álbum se vuelve a los álbumes de su portfolio.
+  protected alEliminar(portfolio: string): void {
+    this.router.navigate(['/', this.segmentoFotografo(), portfolio]);
   }
 }

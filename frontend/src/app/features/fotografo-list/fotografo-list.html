@@ -1,19 +1,21 @@
 <section class="hero">
   <h1>Fotógrafos</h1>
   <p>Elige un fotógrafo para ver sus álbumes.</p>
+  <a class="nuevo" routerLink="/admin/fotografos/nuevo">+ Nuevo fotógrafo</a>
 </section>
 
 <ul class="fotografo-list">
-  @for (fotografo of fotografos(); track fotografo.slug) {
-    <li>
-      <a class="fotografo-card" [routerLink]="['/', fotografo.slug]">
-        <h2>{{ fotografo.nombre }}</h2>
+  @for (fotografo of fotografos(); track fotografo.nombreInformalNormalizado) {
+    <li class="fotografo-card">
+      <a class="fotografo-card__enlace" [routerLink]="['/', fotografo.nombreInformalNormalizado]">
+        <h2>{{ nombreCompleto(fotografo) }}</h2>
         <p>{{ fotografo.descripcion }}</p>
         <span class="fotografo-card__meta">
           {{ fotografo.portfolioCount }} {{ fotografo.portfolioCount === 1 ? 'portfolio' : 'portfolios' }} ·
           {{ fotografo.albumCount }} {{ fotografo.albumCount === 1 ? 'álbum' : 'álbumes' }}
         </span>
       </a>
+      <app-fotografo-acciones class="fotografo-card__acciones" [fotografo]="fotografo" (eliminado)="cargar()" />
     </li>
   } @empty {
     <li class="empty-state">No hay fotógrafos disponibles todavía.</li>

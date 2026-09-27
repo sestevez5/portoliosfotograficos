@@ -1,0 +1,53 @@
+<section class="hero">
+  <a class="back-link" [routerLink]="volver">&larr; {{ editando ? 'Volver al portfolio' : 'Portfolios' }}</a>
+  <h1>{{ editando ? 'Editar portfolio' : 'Nuevo portfolio' }}</h1>
+  <p>Los campos marcados con * son obligatorios.</p>
+</section>
+
+<form class="formulario" [formGroup]="formulario" (ngSubmit)="enviar()" novalidate [attr.aria-busy]="cargando()">
+  @if (reglaIncumplida(); as regla) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">{{ editando ? 'No se han podido guardar los cambios' : 'No se ha podido crear el portfolio' }}</p>
+      @if (regla.operacion) {
+        <p><span class="aviso__etiqueta">Se intentaba:</span> {{ regla.operacion.descripcion }}</p>
+      }
+      <p><span class="aviso__etiqueta">Motivo:</span> {{ regla.regla.mensaje }}</p>
+    </div>
+  }
+  @if (errorGeneral(); as error) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">{{ editando ? 'No se han podido guardar los cambios' : 'No se ha podido crear el portfolio' }}</p>
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  <div class="campo">
+    <label for="nombre">Nombre *</label>
+    <input id="nombre" formControlName="nombre" />
+    <small class="ayuda">
+      P. ej. "Proyectos personales". Es también su dirección en la web.
+      @if (editando) {
+        Si lo cambias, su dirección cambiará con él.
+      }
+    </small>
+    @if (mostrarError('nombre', 'required')) {
+      <small class="error">Indica un nombre para el portfolio.</small>
+    }
+  </div>
+
+  <div class="campo">
+    <label for="descripcion">Descripción</label>
+    <textarea id="descripcion" formControlName="descripcion" rows="3"></textarea>
+  </div>
+
+  <div class="acciones">
+    <button type="submit" class="boton boton--principal" [disabled]="enviando() || cargando()">
+      @if (editando) {
+        {{ enviando() ? 'Guardando…' : 'Guardar cambios' }}
+      } @else {
+        {{ enviando() ? 'Creando…' : 'Crear portfolio' }}
+      }
+    </button>
+    <a class="boton" [routerLink]="volver">Cancelar</a>
+  </div>
+</form>

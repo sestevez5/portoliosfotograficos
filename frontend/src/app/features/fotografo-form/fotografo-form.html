@@ -1,0 +1,111 @@
+<section class="hero">
+  @if (editando) {
+    <a class="back-link" [routerLink]="['/', fotografoEditado]">&larr; Volver al fotógrafo</a>
+    <h1>Editar fotógrafo</h1>
+  } @else {
+    <a class="back-link" routerLink="/">&larr; Fotógrafos</a>
+    <h1>Nuevo fotógrafo</h1>
+  }
+  <p>Los campos marcados con * son obligatorios.</p>
+</section>
+
+<form class="formulario" [formGroup]="formulario" (ngSubmit)="enviar()" novalidate [attr.aria-busy]="cargando()">
+  @if (reglaIncumplida(); as regla) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">{{ editando ? 'No se han podido guardar los cambios' : 'No se ha podido crear el fotógrafo' }}</p>
+      @if (regla.operacion) {
+        <p><span class="aviso__etiqueta">Se intentaba:</span> {{ regla.operacion.descripcion }}</p>
+      }
+      <p><span class="aviso__etiqueta">Motivo:</span> {{ regla.regla.mensaje }}</p>
+    </div>
+  }
+  @if (errorGeneral(); as error) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">{{ editando ? 'No se han podido guardar los cambios' : 'No se ha podido crear el fotógrafo' }}</p>
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  <div class="campo">
+    <label for="nombreInformal">Nombre informal *</label>
+    <input id="nombreInformal" formControlName="nombreInformal" autocomplete="nickname" />
+    <small class="ayuda">
+      Cómo se te conoce, p. ej. "Santi Estévez". Es el texto de tu logo y de tu dirección en la web.
+      @if (editando) {
+        Si lo cambias, tu dirección cambiará con él.
+      }
+    </small>
+    @if (mostrarError('nombreInformal', 'required')) {
+      <small class="error">Indica un nombre informal.</small>
+    }
+  </div>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="nombre">Nombre *</label>
+      <input id="nombre" formControlName="nombre" autocomplete="given-name" />
+      @if (mostrarError('nombre', 'required')) {
+        <small class="error">Indica el nombre.</small>
+      }
+    </div>
+    <div class="campo">
+      <label for="primerApellido">Primer apellido *</label>
+      <input id="primerApellido" formControlName="primerApellido" autocomplete="family-name" />
+      @if (mostrarError('primerApellido', 'required')) {
+        <small class="error">Indica el primer apellido.</small>
+      }
+    </div>
+    <div class="campo">
+      <label for="segundoApellido">Segundo apellido</label>
+      <input id="segundoApellido" formControlName="segundoApellido" />
+    </div>
+  </div>
+
+  <div class="campo">
+    <label for="email">Correo electrónico</label>
+    <input id="email" type="email" formControlName="email" autocomplete="email" />
+    @if (mostrarError('email', 'email')) {
+      <small class="error">El correo no tiene un formato válido.</small>
+    }
+  </div>
+
+  <div class="campo">
+    <label for="descripcion">Descripción</label>
+    <textarea id="descripcion" formControlName="descripcion" rows="3"></textarea>
+    <small class="ayuda">Una línea sobre tu fotografía; aparece en tu página.</small>
+  </div>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="contrasenya">Contraseña</label>
+      <input id="contrasenya" type="password" formControlName="contrasenya" autocomplete="new-password" />
+      <small class="ayuda">
+        Al menos {{ longitudMinima }} caracteres.
+        @if (editando) {
+          {{ tieneContrasenya() ? 'Déjala vacía para mantener la actual.' : 'Ahora no tiene contraseña.' }}
+        }
+      </small>
+      @if (mostrarError('contrasenya', 'minlength')) {
+        <small class="error">La contraseña debe tener al menos {{ longitudMinima }} caracteres.</small>
+      }
+    </div>
+    <div class="campo">
+      <label for="repetirContrasenya">Repetir contraseña</label>
+      <input id="repetirContrasenya" type="password" formControlName="repetirContrasenya" autocomplete="new-password" />
+      @if (formulario.hasError('contrasenyasDistintas') && formulario.controls.repetirContrasenya.touched) {
+        <small class="error">Las contraseñas no coinciden.</small>
+      }
+    </div>
+  </div>
+
+  <div class="acciones">
+    <button type="submit" class="boton boton--principal" [disabled]="enviando() || cargando()">
+      @if (editando) {
+        {{ enviando() ? 'Guardando…' : 'Guardar cambios' }}
+      } @else {
+        {{ enviando() ? 'Creando…' : 'Crear fotógrafo' }}
+      }
+    </button>
+    <a class="boton" [routerLink]="editando ? ['/', fotografoEditado] : ['/']">Cancelar</a>
+  </div>
+</form>

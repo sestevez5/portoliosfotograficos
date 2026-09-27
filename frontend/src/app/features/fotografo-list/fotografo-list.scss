@@ -8,6 +8,26 @@
   }
 }
 
+.nuevo {
+  display: inline-block;
+  margin-top: var(--space-3);
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    border-color var(--transition),
+    color var(--transition);
+
+  &:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+  }
+}
+
 .fotografo-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
@@ -17,14 +37,22 @@
   list-style: none;
 }
 
+// La tarjeta contiene el enlace a la página del fotógrafo y, debajo, sus acciones (un botón no
+// puede ir dentro de un enlace).
 .fotografo-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   padding: var(--space-3);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
+  transition: border-color var(--transition);
+}
+
+.fotografo-card__enlace {
+  flex: 1;
   color: var(--color-text);
   text-decoration: none;
-  transition: border-color var(--transition);
 
   h2 {
     font-size: 1.5rem;
@@ -48,6 +76,11 @@
 
 .fotografo-card:hover {
   border-color: var(--color-text-muted);
+}
+
+.fotografo-card__acciones {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
 }
 
 .empty-state {
