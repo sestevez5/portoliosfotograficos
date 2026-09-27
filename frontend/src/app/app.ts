@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { catchError, filter, map, of, switchMap } from 'rxjs';
+import { nombreCompleto } from './core/models/album.model';
 import { AlbumService } from './core/services/album';
 
 @Component({
@@ -14,8 +15,10 @@ export class App {
   private readonly router = inject(Router);
   private readonly albumService = inject(AlbumService);
 
-  // Slug del fotógrafo presente en la ruta activa (null en la portada).
-  private readonly slug = toSignal(
+  protected readonly nombreCompleto = nombreCompleto;
+
+  // Segmento de URL del fotógrafo presente en la ruta activa (null en la portada).
+  private readonly segmentoFotografo = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
       map(() => {
@@ -30,9 +33,9 @@ export class App {
   );
 
   protected readonly fotografo = toSignal(
-    toObservable(this.slug).pipe(
-      switchMap((slug) =>
-        slug ? this.albumService.getFotografo(slug).pipe(catchError(() => of(null))) : of(null),
+    toObservable(this.segmentoFotografo).pipe(
+      switchMap((segmento) =>
+        segmento ? this.albumService.getFotografo(segmento).pipe(catchError(() => of(null))) : of(null),
       ),
     ),
     { initialValue: null },

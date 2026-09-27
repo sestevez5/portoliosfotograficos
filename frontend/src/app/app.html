@@ -2,8 +2,8 @@
   <header class="site-header">
     <a class="brand" routerLink="/">Portfolios<span>.</span></a>
     @if (fotografo(); as f) {
-      <a class="fotografo" [routerLink]="['/', f.slug]">
-        <img class="fotografo__logo" [src]="f.logoUrl" [alt]="f.nombre" />
+      <a class="fotografo" [routerLink]="['/', f.nombreInformalNormalizado]">
+        <img class="fotografo__logo" [src]="f.logoUrl" [alt]="nombreCompleto(f)" />
       </a>
     }
   </header>

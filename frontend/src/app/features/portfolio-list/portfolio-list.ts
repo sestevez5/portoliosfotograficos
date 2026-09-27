@@ -1,11 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, of, switchMap } from 'rxjs';
 import { AlbumService } from '../../core/services/album';
+import { FotografoAcciones } from '../../shared/fotografo-acciones/fotografo-acciones';
+import { PortfolioAcciones } from '../../shared/portfolio-acciones/portfolio-acciones';
 
 @Component({
-  imports: [RouterLink],
+  imports: [RouterLink, FotografoAcciones, PortfolioAcciones],
   selector: 'app-portfolio-list',
   styleUrl: './portfolio-list.scss',
   templateUrl: './portfolio-list.html',
@@ -22,12 +24,23 @@ export class PortfolioList {
     return navigation?.previousNavigation?.finalUrl?.toString() === '/';
   })();
 
+  // Se emite para volver a cargar el fotógrafo (tras eliminar uno de sus portfolios).
+  private readonly recarga = new BehaviorSubject<void>(undefined);
+
   // undefined = cargando, null = fotógrafo no encontrado
   protected readonly fotografo = toSignal(
-    this.route.paramMap.pipe(
-      switchMap((params) =>
+    combineLatest([this.route.paramMap, this.recarga]).pipe(
+      switchMap(([params]) =>
         this.albumService.getFotografo(params.get('fotografo')!).pipe(catchError(() => of(null))),
       ),
     ),
   );
+
+  protected alEliminar(): void {
+    this.router.navigate(['/']);
+  }
+
+  protected alEliminarPortfolio(): void {
+    this.recarga.next();
+  }
 }

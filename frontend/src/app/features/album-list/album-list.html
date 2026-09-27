@@ -1,29 +1,45 @@
 @if (portfolio(); as p) {
-  <section class="hero">
-    <a class="back-link" [routerLink]="['/', fotografoSlug()]">&larr; Portfolios</a>
-    <h1>{{ p.title }}</h1>
-    @if (p.description) {
-      <p>{{ p.description }}</p>
-    }
-  </section>
+  <a class="back-link" [routerLink]="['/', segmentoFotografo()]">&larr; Portfolios</a>
+
+  <!-- Cabecera del portfolio a todo el ancho: datos a la izquierda, mantenimiento a la derecha y
+       una línea separadora que la cierra antes de la colección de álbumes. -->
+  <header class="cabecera">
+    <div class="cabecera__datos">
+      <span class="cabecera__etiqueta">
+        Portfolio · {{ p.albumes.length }} {{ p.albumes.length === 1 ? 'álbum' : 'álbumes' }}
+      </span>
+      <h1>{{ p.nombre }}</h1>
+      @if (p.descripcion) {
+        <p class="cabecera__descripcion">{{ p.descripcion }}</p>
+      }
+    </div>
+    <app-portfolio-acciones class="cabecera__gestion" [fotografo]="segmentoFotografo()!" [portfolio]="p" (eliminado)="alEliminar()" />
+  </header>
+
+  <div class="cabecera-barra">
+    <a class="cabecera-barra__boton" [routerLink]="['/gestion', segmentoFotografo(), 'portfolios', p.nombreNormalizado, 'albumes', 'nuevo']">+ Nuevo álbum</a>
+  </div>
 
   <section class="album-grid">
-    @for (album of p.albumes; track album.id) {
-      <a class="album-card" [routerLink]="['/', fotografoSlug(), p.id, album.id]">
-        <div class="album-card__image">
-          <img [src]="album.coverPhotoUrl" [alt]="album.title" loading="lazy" />
-        </div>
-        <div class="album-card__info">
-          <h2>{{ album.title }}</h2>
-          @if (album.tags.length) {
-            <ul class="tags">
-              @for (tag of album.tags; track tag) {
-                <li>{{ tag }}</li>
-              }
-            </ul>
-          }
-        </div>
-      </a>
+    @for (album of p.albumes; track album.nombreNormalizado) {
+      <article class="album-card">
+        <a class="album-card__enlace" [routerLink]="['/', segmentoFotografo(), p.nombreNormalizado, album.nombreNormalizado]">
+          <div class="album-card__image">
+            @if (album.coverPhotoUrl) {
+              <img [src]="album.coverPhotoUrl" [alt]="album.nombre" loading="lazy" />
+            }
+          </div>
+          <div class="album-card__info">
+            <h2>{{ album.nombre }}</h2>
+          </div>
+        </a>
+        <app-album-acciones
+          [fotografo]="segmentoFotografo()!"
+          [portfolio]="p.nombreNormalizado"
+          [album]="album"
+          (eliminado)="alEliminarAlbum()"
+        />
+      </article>
     } @empty {
       <p class="empty-state">No hay álbumes disponibles todavía.</p>
     }
@@ -31,6 +47,6 @@
 } @else if (portfolio() === null) {
   <section class="hero">
     <h1>Portfolio no encontrado</h1>
-    <p><a [routerLink]="['/', fotografoSlug()]">Ver los portfolios del fotógrafo</a></p>
+    <p><a [routerLink]="['/', segmentoFotografo()]">Ver los portfolios del fotógrafo</a></p>
   </section>
 }

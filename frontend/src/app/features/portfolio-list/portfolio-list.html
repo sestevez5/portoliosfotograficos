@@ -5,24 +5,35 @@
     }
     <h1>Portfolios</h1>
     <p>{{ f.descripcion }}</p>
+    <app-fotografo-acciones class="acciones-fotografo" [fotografo]="f" (eliminado)="alEliminar()" />
+    <a class="nuevo" [routerLink]="['/gestion', f.nombreInformalNormalizado, 'portfolios', 'nuevo']">+ Nuevo portfolio</a>
   </section>
 
   <section class="portfolio-grid">
-    @for (portfolio of f.portfolios; track portfolio.id) {
-      <a class="portfolio-card" [routerLink]="['/', f.slug, portfolio.id]">
-        <div class="portfolio-card__image">
-          <img [src]="portfolio.coverPhotoUrl" [alt]="portfolio.title" loading="lazy" />
-        </div>
-        <div class="portfolio-card__info">
-          <h2>{{ portfolio.title }}</h2>
-          @if (portfolio.description) {
-            <p>{{ portfolio.description }}</p>
-          }
-          <span class="portfolio-card__meta">
-            {{ portfolio.albumCount }} {{ portfolio.albumCount === 1 ? 'álbum' : 'álbumes' }}
-          </span>
-        </div>
-      </a>
+    @for (portfolio of f.portfolios; track portfolio.nombreNormalizado) {
+      <article class="portfolio-card">
+        <a class="portfolio-card__enlace" [routerLink]="['/', f.nombreInformalNormalizado, portfolio.nombreNormalizado]">
+          <div class="portfolio-card__image">
+            @if (portfolio.coverPhotoUrl) {
+              <img [src]="portfolio.coverPhotoUrl" [alt]="portfolio.nombre" loading="lazy" />
+            }
+          </div>
+          <div class="portfolio-card__info">
+            <h2>{{ portfolio.nombre }}</h2>
+            @if (portfolio.descripcion) {
+              <p>{{ portfolio.descripcion }}</p>
+            }
+            <span class="portfolio-card__meta">
+              {{ portfolio.albumCount }} {{ portfolio.albumCount === 1 ? 'álbum' : 'álbumes' }}
+            </span>
+          </div>
+        </a>
+        <app-portfolio-acciones
+          [fotografo]="f.nombreInformalNormalizado"
+          [portfolio]="portfolio"
+          (eliminado)="alEliminarPortfolio()"
+        />
+      </article>
     } @empty {
       <p class="empty-state">No hay portfolios disponibles todavía.</p>
     }

@@ -5,3 +5,8 @@ dist/
 .DS_Store
 Thumbs.db
 .env
+
+# Base de datos SQLite (se genera desde organizacionFotos.json)
+*.db
+*.db-wal
+*.db-shm
