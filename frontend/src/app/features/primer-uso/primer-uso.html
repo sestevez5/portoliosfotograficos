@@ -1,0 +1,72 @@
+<section class="hero">
+  <h1>Bienvenido</h1>
+  <p>
+    Es la primera vez que se usa la aplicación. Identifícate como administrador para terminar de configurarla.
+    Las credenciales iniciales son usuario <strong>admin</strong> y contraseña <strong>admin</strong>.
+  </p>
+</section>
+
+<form class="formulario" [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+  @if (reglaIncumplida(); as regla) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">No se ha podido completar la configuración</p>
+      <p>{{ regla.regla.mensaje }}</p>
+    </div>
+  }
+  @if (errorGeneral(); as error) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">No se ha podido completar la configuración</p>
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  <div class="fila">
+    <div class="campo">
+      <label for="usuario">Usuario *</label>
+      <input id="usuario" formControlName="usuario" autocomplete="username" />
+      @if (mostrarError('usuario', 'required')) {
+        <small class="error">Indica el usuario.</small>
+      }
+    </div>
+    <div class="campo">
+      <label for="contrasenya">Contraseña *</label>
+      <input id="contrasenya" type="password" formControlName="contrasenya" autocomplete="current-password" />
+      @if (mostrarError('contrasenya', 'required')) {
+        <small class="error">Indica la contraseña.</small>
+      }
+    </div>
+  </div>
+
+  <label class="casilla">
+    <input type="checkbox" formControlName="cambiarContrasenya" />
+    Cambiar ahora la contraseña del administrador (recomendado)
+  </label>
+
+  @if (formulario.controls.cambiarContrasenya.value) {
+    <div class="fila">
+      <div class="campo">
+        <label for="contrasenyaNueva">Contraseña nueva *</label>
+        <input id="contrasenyaNueva" type="password" formControlName="contrasenyaNueva" autocomplete="new-password" />
+        <small class="ayuda">Al menos {{ longitudMinima }} caracteres.</small>
+        @if (mostrarErrorGrupo('contrasenyaCorta', 'contrasenyaNueva')) {
+          <small class="error">La contraseña debe tener al menos {{ longitudMinima }} caracteres.</small>
+        }
+      </div>
+      <div class="campo">
+        <label for="repetirContrasenya">Repetir contraseña nueva *</label>
+        <input id="repetirContrasenya" type="password" formControlName="repetirContrasenya" autocomplete="new-password" />
+        @if (mostrarErrorGrupo('contrasenyasDistintas', 'repetirContrasenya')) {
+          <small class="error">Las contraseñas no coinciden.</small>
+        }
+      </div>
+    </div>
+  } @else {
+    <p class="ayuda">Podrás cambiarla más adelante desde la portada ("Contraseña del administrador").</p>
+  }
+
+  <div class="acciones">
+    <button type="submit" class="boton boton--principal" [disabled]="enviando()">
+      {{ enviando() ? 'Configurando…' : 'Empezar' }}
+    </button>
+  </div>
+</form>

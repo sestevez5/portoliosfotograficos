@@ -11,10 +11,35 @@ Cambio incompatible: la próxima versión debe ser **2.0.0**.
 
 ### Cambiado
 
+- **Inicio de sesión y registro** (esquema 12): en la esquina superior aparece quién tiene la sesión iniciada y la
+  opción de cerrarla, o "Iniciar sesión", que abre un panel para entrar con el usuario (o el correo) y la contraseña y
+  ofrece registrarse. El registro pide usuario, correo y contraseña y los datos del fotógrafo, y deja la sesión
+  iniciada. La sesión va en una cookie `HttpOnly` (30 días) y la base de datos solo guarda el hash de su token. Nuevas
+  rutas `GET`/`POST`/`DELETE /api/sesion` y `POST /api/registro`. Todavía no restringe nada: solo identifica al
+  usuario. Los fotógrafos existentes sin contraseña no pueden entrar hasta que se les ponga una (editándolos).
+- Corregido: dar de alta un fotógrafo fallaba si aún no existía la carpeta `datos/fotos` (instalación nueva).
+- **Administrador de la aplicación** (esquema 11): usuario especial `admin`, con la contraseña inicial `admin`, que se
+  puede cambiar. La base de datos lo crea al instalarse y también al actualizar una existente. **Primer uso:** la
+  primera vez que se abre la web aparece una bienvenida que pide sus credenciales y ofrece cambiar la contraseña;
+  después se cambia desde "Contraseña del administrador" en la portada. Nuevas rutas `GET /api/estado`,
+  `POST /api/admin/primer-uso` y `PUT /api/admin/contrasenya`. Todavía no restringe nada: todo sigue abierto.
+  **Al desplegar en el NAS, entrar enseguida y cambiar la contraseña.**
+- **Nueva tabla `usuarios`** (esquema 10): el nombre de usuario, el correo y el hash de la contraseña salen de
+  `fotografos` a `usuarios`, y cada fotógrafo referencia a su usuario (`idUsuario`). Prepara la aplicación para que
+  en el futuro haya usuarios que no sean fotógrafos (empresas, academias…) con sus propios portfolios. La base de
+  datos se migra sola al arrancar conservando todos los datos (un usuario por fotógrafo). La API no cambia, salvo los
+  códigos de las reglas de la cuenta: `FOTOGRAFO_EMAIL_DUPLICADO`, `FOTOGRAFO_USUARIO_DUPLICADO`,
+  `FOTOGRAFO_EMAIL_NO_VALIDO` y `FOTOGRAFO_CONTRASENYA_CORTA` pasan a ser `USUARIO_EMAIL_DUPLICADO`,
+  `USUARIO_DUPLICADO`, `USUARIO_EMAIL_NO_VALIDO` y `USUARIO_CONTRASENYA_CORTA`. Eliminar un fotógrafo elimina también
+  su usuario.
 - **La carpeta `backend/datos` deja de versionarse** (está en `.gitignore`): el repositorio refleja siempre una base
   de datos vacía y las fotos y los logos viven solo en cada instalación. Un clon nuevo arranca con el catálogo vacío.
-- La base de datos pasa de `datos/estructura/portfolio.db` a **`datos/BD/portfolio.db`**. **Al desplegar hay que
-  renombrar en el NAS la carpeta `estructura` a `BD`, o copiar la carpeta `datos` completa (con el backend parado).**
+- La base de datos pasa de `datos/estructura/portfolio.db` a **`datos/BD/portfolio.db`**.
+- **Docker: solo se monta desde el NAS la carpeta de fotos.** La base de datos y los logos pasan a ser internos, en el
+  volumen de Docker `datos-internos`. En `.env`, `DATOS_PATH` se sustituye por **`FOTOS_PATH`** (obligatoria), que
+  apunta directamente a la carpeta de fotos. **Al desplegar:** ajustar `.env`, copiar la carpeta de fotos al NAS y
+  cargar la base de datos en el volumen (`docker compose stop backend`,
+  `docker compose cp portfolio.db backend:/app/datos/BD/portfolio.db`, `docker compose start backend`).
 - Se elimina `organizacionFotos.json` y la importación automática al arrancar con la base de datos vacía (el JSON
   estaba desfasado respecto a la base de datos y a las carpetas). `npm run db:importar` exige ahora la ruta del JSON
   (`npm run db:importar -- <fichero.json> [--reemplazar]`) y queda solo para cargas masivas puntuales.

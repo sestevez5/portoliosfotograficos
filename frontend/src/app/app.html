@@ -1,4 +1,9 @@
 <div class="site">
+  <!-- Franja superior estrecha, antes de la cabecera: la sesión del usuario. -->
+  <div class="barra-sesion">
+    <app-usuario-sesion />
+  </div>
+
   <header class="site-header">
     <a class="brand" routerLink="/">Portfolios<span>.</span></a>
     @if (fotografo(); as f) {

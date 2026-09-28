@@ -136,6 +136,27 @@ export interface FotografoAlta {
   contrasenya?: string;
 }
 
+// Cuerpo de POST /api/registro: el usuario elige su nombre de usuario; correo y contraseña son
+// obligatorios (con ellos inicia sesión). El resto, como el alta de un fotógrafo.
+export interface RegistroFotografo extends FotografoAlta {
+  usuario: string;
+}
+
+// Cuerpo de POST /api/sesion: nombre de usuario o correo, y contraseña.
+export interface Credenciales {
+  usuario: string;
+  contrasenya: string;
+}
+
+// Usuario con la sesión iniciada (GET /api/sesion). Solo se devuelve a él mismo: el nombre de
+// usuario de los demás nunca sale en la API.
+export interface UsuarioSesion {
+  usuario: string;
+  rol: 'usuario' | 'administrador';
+  // Su perfil de fotógrafo, si lo tiene (el administrador no).
+  fotografo?: { nombreInformal: string; nombreInformalNormalizado: string; logoUrl: string };
+}
+
 // Respuesta de GET /api/fotografos/:fotografo/edicion: los datos editables para rellenar el
 // formulario. Incluye el email; de la contraseña solo si existe (nunca el hash).
 export interface FotografoEdicionApi {

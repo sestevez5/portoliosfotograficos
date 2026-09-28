@@ -5,8 +5,9 @@
 //
 //   npm run db:importar -- ruta/al/fichero.json                -> solo si la base de datos está vacía
 //   npm run db:importar -- ruta/al/fichero.json --reemplazar   -> borra el catálogo actual antes
+//   npm run db:importar -- ruta/al/fichero.json --anyadir      -> lo añade al catálogo actual
 //
-// En el contenedor Docker: node dist/scripts/importar-json.js <ruta> [--reemplazar]
+// En el contenedor Docker: node dist/scripts/importar-json.js <ruta> [--reemplazar | --anyadir]
 import { dbPath } from '../config/rutas.js';
 import { abrirBaseDatos } from '../db/conexion.js';
 import { estaVacia, importarOrganizacion, leerOrganizacionJson } from '../db/importar.js';
@@ -14,15 +15,16 @@ import { ReglaNegocioIncumplida } from '../reglas/index.js';
 
 const args = process.argv.slice(2);
 const reemplazar = args.includes('--reemplazar');
+const anyadir = args.includes('--anyadir');
 const ruta = args.find((a) => !a.startsWith('--'));
 if (!ruta) {
-  console.error('Uso: npm run db:importar -- <ruta/al/fichero.json> [--reemplazar]');
+  console.error('Uso: npm run db:importar -- <ruta/al/fichero.json> [--reemplazar | --anyadir]');
   process.exit(1);
 }
 
 const db = abrirBaseDatos();
-if (!reemplazar && !estaVacia(db)) {
-  console.error(`La base de datos ${dbPath} ya tiene datos. Usa --reemplazar para sustituirlos.`);
+if (!reemplazar && !anyadir && !estaVacia(db)) {
+  console.error(`La base de datos ${dbPath} ya tiene datos. Usa --reemplazar para sustituirlos o --anyadir para añadir este catálogo.`);
   process.exit(1);
 }
 

@@ -102,6 +102,47 @@ export interface FotografoEdicion {
   tieneContrasenya: boolean;
 }
 
+// Registro (POST /api/registro): datos de acceso (usuario, correo y contraseña, obligatorios) y los
+// del fotógrafo, como en el alta.
+export interface RegistroFotografo extends FotografoAlta {
+  usuario: string;
+  email: string;
+  contrasenya: string;
+}
+
+// Inicio de sesión (POST /api/sesion): nombre de usuario o correo, y contraseña.
+export interface Credenciales {
+  usuario: string;
+  contrasenya: string;
+}
+
+// Usuario con la sesión iniciada (GET /api/sesion devuelve { usuario: UsuarioSesion | null }).
+export interface UsuarioSesion {
+  usuario: string;
+  rol: 'usuario' | 'administrador';
+  // Su perfil de fotógrafo, si lo tiene (el administrador no).
+  fotografo?: { nombreInformal: string; nombreInformalNormalizado: string; logoUrl: string };
+}
+
+// Estado de la aplicación (GET /api/estado): primerUso mientras el administrador no haya entrado nunca.
+export interface EstadoAplicacion {
+  primerUso: boolean;
+}
+
+// Primer uso (POST /api/admin/primer-uso): credenciales del administrador y, si se quiere cambiar,
+// su contraseña nueva.
+export interface PrimerUso {
+  usuario: string;
+  contrasenya: string;
+  contrasenyaNueva?: string;
+}
+
+// Cambio de la contraseña del administrador (PUT /api/admin/contrasenya).
+export interface CambioContrasenya {
+  contrasenyaActual: string;
+  contrasenyaNueva: string;
+}
+
 // Respuesta 422 del backend cuando se incumple una regla de negocio.
 export interface ReglaNegocioIncumplida {
   tipo: 'reglaNegocioIncumplida';

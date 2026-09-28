@@ -4,9 +4,10 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { catchError, filter, map, of, switchMap } from 'rxjs';
 import { nombreCompleto } from './core/models/album.model';
 import { AlbumService } from './core/services/album';
+import { UsuarioSesion } from './shared/usuario-sesion/usuario-sesion';
 
 @Component({
-  imports: [RouterLink, RouterOutlet],
+  imports: [RouterLink, RouterOutlet, UsuarioSesion],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',

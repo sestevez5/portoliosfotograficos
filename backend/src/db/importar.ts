@@ -22,13 +22,15 @@ export function importarOrganizacion(
   organizacion: OrganizacionFotos[],
   { reemplazar = false } = {},
 ) {
+  // Cada fotógrafo lleva su usuario (la contraseña no se importa: queda sin contraseña).
+  const insertarUsuario = db.prepare('INSERT INTO usuarios (usuario, email) VALUES (@usuario, @email)');
   const insertarFotografo = db.prepare(
-    `INSERT INTO fotografos (usuario, nombreInformal, nombreInformalNormalizado, nombre, primerApellido,
-       segundoApellido, email, descripcion)
-     VALUES (@usuario, @nombreInformal, @nombreInformalNormalizado, @nombre, @primerApellido,
-       @segundoApellido, @email, @descripcion)`,
+    `INSERT INTO fotografos (idUsuario, nombreInformal, nombreInformalNormalizado, nombre, primerApellido,
+       segundoApellido, descripcion)
+     VALUES (@idUsuario, @nombreInformal, @nombreInformalNormalizado, @nombre, @primerApellido,
+       @segundoApellido, @descripcion)`,
   );
-  const usuarioExiste = db.prepare('SELECT 1 FROM fotografos WHERE usuario = ?');
+  const usuarioExiste = db.prepare('SELECT 1 FROM usuarios WHERE usuario = ?');
   const validar = validadorCatalogo(db);
   const insertarPortfolio = db.prepare(
     `INSERT INTO portfolios (idFotografo, nombreNormalizado, nombre, descripcion, orden)
@@ -49,7 +51,9 @@ export function importarOrganizacion(
 
   db.transaction(() => {
     if (reemplazar) {
-      db.prepare('DELETE FROM fotografos').run();
+      // Borrar los usuarios borra en cascada sus fotógrafos y todo su catálogo. El administrador
+      // no es parte del catálogo y se conserva.
+      db.prepare("DELETE FROM usuarios WHERE rol <> 'administrador'").run();
     }
 
     organizacion.forEach(({ fotografo, portfolios }) => {
@@ -57,18 +61,19 @@ export function importarOrganizacion(
       const idFotografo = enOperacion('CREAR_FOTOGRAFO', { nombreInformal: nombreFotografo }, () => {
         // Se valida antes de generar el usuario (que necesita nombre y primer apellido). Si el
         // usuario viene en el JSON se comprueba que no esté repetido; si se genera, ya es único.
-        validar.fotografo({ ...fotografo, usuario: fotografo.usuario?.toLowerCase() });
+        validar.fotografo(fotografo);
+        validar.usuario({ usuario: fotografo.usuario?.toLowerCase(), email: fotografo.email });
         const usuario =
           fotografo.usuario?.toLowerCase() ??
           generarUsuario(fotografo.nombre, fotografo.primerApellido, (u) => usuarioExiste.get(u) !== undefined);
+        const idUsuario = insertarUsuario.run({ usuario, email: fotografo.email ?? null }).lastInsertRowid;
         return insertarFotografo.run({
-          usuario,
+          idUsuario,
           nombreInformal: fotografo.nombreInformal.trim(),
           nombreInformalNormalizado: normalizarNombre(fotografo.nombreInformal),
           nombre: fotografo.nombre,
           primerApellido: fotografo.primerApellido,
           segundoApellido: fotografo.segundoApellido ?? null,
-          email: fotografo.email ?? null,
           descripcion: fotografo.descripcion,
         }).lastInsertRowid;
       });

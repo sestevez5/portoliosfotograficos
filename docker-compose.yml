@@ -3,7 +3,11 @@ services:
     image: ghcr.io/sestevez5/portoliosfotograficos-backend:latest
     restart: unless-stopped
     volumes:
-      - ${DATOS_PATH}:/app/datos
+      # Fotos: lo único que se monta desde el host (NAS).
+      - ${FOTOS_PATH:?Falta FOTOS_PATH en .env (ruta de la carpeta de fotos en el host)}:/app/fotos
+      # Datos internos (base de datos y logos): volumen gestionado por Docker, no visible como
+      # carpeta del host. Sobrevive a "docker compose pull && docker compose up -d".
+      - datos-internos:/app/datos
     networks:
       - portfolio
     healthcheck:
@@ -26,3 +30,6 @@ services:
 
 networks:
   portfolio:
+
+volumes:
+  datos-internos:

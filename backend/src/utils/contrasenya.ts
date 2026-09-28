@@ -1,7 +1,7 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 
 // Las contraseñas nunca se guardan en claro: se guarda "scrypt$<sal>$<hash>" (hex) en
-// fotografos.passwordHash. scrypt está en node:crypto, sin dependencias externas.
+// usuarios.passwordHash. scrypt está en node:crypto, sin dependencias externas.
 const LONGITUD_HASH = 64;
 
 export function hashContrasenya(contrasenya: string): string {

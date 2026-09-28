@@ -3,9 +3,11 @@ import path from 'node:path';
 import { fotosDir } from '../config/rutas.js';
 import {
   actualizarFotografo,
-  eliminarFotografo as eliminarFotografoBD,
+  actualizarUsuario,
+  eliminarUsuario,
   enTransaccion,
   insertarFotografo,
+  insertarUsuario,
   numeroPortfolios,
   obtenerFotografo,
   obtenerFotografoEdicion,
@@ -16,7 +18,7 @@ import {
 } from '../db/catalogo.repository.js';
 import { RecursoNoEncontrado } from '../errores.js';
 import { enOperacion, type CodigoOperacion, type DatosRegla } from '../reglas/index.js';
-import type { FotografoAlta } from '../types/album.js';
+import type { FotografoAlta, RegistroFotografo } from '../types/album.js';
 import { hashContrasenya } from '../utils/contrasenya.js';
 import { apartarCarpeta, renombrarCarpeta, vaciarPapelera } from '../utils/carpetas.js';
 import { normalizarNombre } from '../utils/normalizar-nombre.js';
@@ -27,18 +29,23 @@ import { rutaLogo } from './logo.service.js';
 // de cada fotógrafo debe existir y llamarse siempre así: estas funciones la crean, la renombran y
 // la eliminan junto con la BD (dentro de la misma transacción). Todas validan antes las reglas de
 // negocio (reglas/) dentro de su operación, y lanzan RecursoNoEncontrado si el fotógrafo no existe.
+//
+// Cada fotógrafo tiene su usuario (tabla usuarios: usuario, email y hash de la contraseña). El
+// formulario del fotógrafo incluye el email y la contraseña, así que estas funciones mantienen
+// fotógrafo y usuario juntos: se crean, se modifican y se eliminan en la misma transacción.
 
 // Texto opcional del formulario: sin espacios sobrantes; vacío equivale a no indicado.
-const opcional = (texto: string | undefined) => texto?.trim() || null;
+const opcional = (texto: string | null | undefined) => texto?.trim() || null;
 
+// Datos del fotógrafo y email de su usuario, limpios.
 function limpiar(alta: FotografoAlta) {
   return {
     nombreInformal: alta.nombreInformal.trim(),
     nombre: alta.nombre.trim(),
     primerApellido: alta.primerApellido.trim(),
     segundoApellido: opcional(alta.segundoApellido),
-    email: opcional(alta.email),
     descripcion: alta.descripcion?.trim() ?? '',
+    email: opcional(alta.email),
   };
 }
 
@@ -50,26 +57,43 @@ function cargar(fotografo: string): FotografoEdicion {
   return actual;
 }
 
-// Alta desde la aplicación: calcula su usuario y su nombreInformalNormalizado (internos, no se
-// piden en el formulario), guarda solo el hash de la contraseña y crea su carpeta.
-export function crearFotografo(alta: FotografoAlta): FotografoFila {
-  const datos = limpiar(alta);
-  enOperacion('CREAR_FOTOGRAFO', { nombreInformal: datos.nombreInformal }, () =>
-    validar.altaFotografo({ ...datos, contrasenya: alta.contrasenya }),
-  );
-
+// Crea usuario, fotógrafo y carpeta en la misma transacción (ya validados). Sin nombre de usuario
+// se calcula uno (interno) a partir del nombre y el primer apellido.
+function guardarAlta(datos: Omit<ReturnType<typeof limpiar>, 'email'>, email: string | null, contrasenya: string | undefined, usuario?: string) {
   const nombreInformalNormalizado = normalizarNombre(datos.nombreInformal);
   enTransaccion(() => {
-    insertarFotografo({
-      ...datos,
-      usuario: generarUsuario(datos.nombre, datos.primerApellido, usuarioExiste),
-      nombreInformalNormalizado,
-      passwordHash: alta.contrasenya ? hashContrasenya(alta.contrasenya) : null,
+    const idUsuario = insertarUsuario({
+      usuario: usuario ?? generarUsuario(datos.nombre, datos.primerApellido, usuarioExiste),
+      email,
+      passwordHash: contrasenya ? hashContrasenya(contrasenya) : null,
     });
-    mkdirSync(path.join(fotosDir, nombreInformalNormalizado));
+    insertarFotografo({ ...datos, idUsuario, nombreInformalNormalizado });
+    // recursive: en una instalación nueva datos/fotos aún no existe (la del fotógrafo ya se ha
+    // comprobado que no existe en la validación).
+    mkdirSync(path.join(fotosDir, nombreInformalNormalizado), { recursive: true });
   });
-
   return obtenerFotografo(nombreInformalNormalizado)!;
+}
+
+// Alta desde la aplicación: crea su usuario (con el nombre de usuario calculado, que es interno, y
+// solo el hash de la contraseña), el fotógrafo (con su nombreInformalNormalizado) y su carpeta.
+export function crearFotografo(alta: FotografoAlta): FotografoFila {
+  const { email, ...datos } = limpiar(alta);
+  enOperacion('CREAR_FOTOGRAFO', { nombreInformal: datos.nombreInformal }, () =>
+    validar.altaFotografo({ ...datos, email, contrasenya: alta.contrasenya }),
+  );
+  return guardarAlta(datos, email, alta.contrasenya);
+}
+
+// Registro desde la web: igual que el alta, pero con el nombre de usuario que elige la persona (en
+// minúsculas) y con correo y contraseña obligatorios. Quien llama inicia después su sesión.
+export function registrarFotografo(registro: RegistroFotografo): FotografoFila {
+  const { email, ...datos } = limpiar(registro);
+  const usuario = registro.usuario.trim().toLowerCase();
+  enOperacion('REGISTRAR_USUARIO', { usuario }, () =>
+    validar.registro({ ...datos, email, usuario, contrasenya: registro.contrasenya }),
+  );
+  return guardarAlta(datos, email, registro.contrasenya, usuario);
 }
 
 // Aplica una modificación ya preparada: valida (dentro de la operación indicada), guarda y, si
@@ -82,17 +106,15 @@ function modificar(
   operacion: { codigo: CodigoOperacion; datos: DatosRegla },
 ): FotografoFila {
   enOperacion(operacion.codigo, operacion.datos, () =>
-    validar.edicionFotografo(actual.idFotografo, actual.nombreInformalNormalizado, { ...datos, contrasenya }),
+    validar.edicionFotografo(actual, actual.nombreInformalNormalizado, { ...datos, contrasenya }),
   );
 
-  const normalizado = normalizarNombre(datos.nombreInformal);
+  const { email, ...perfil } = datos;
+  const normalizado = normalizarNombre(perfil.nombreInformal);
 
   enTransaccion(() => {
-    actualizarFotografo(actual.idFotografo, {
-      ...datos,
-      nombreInformalNormalizado: normalizado,
-      passwordHash: contrasenya ? hashContrasenya(contrasenya) : null,
-    });
+    actualizarFotografo(actual.idFotografo, { ...perfil, nombreInformalNormalizado: normalizado });
+    actualizarUsuario(actual.idUsuario, { email, passwordHash: contrasenya ? hashContrasenya(contrasenya) : null });
     renombrarCarpeta(path.join(fotosDir, actual.nombreInformalNormalizado), path.join(fotosDir, normalizado));
   });
 
@@ -135,8 +157,9 @@ export function cambiarNombreInformal(fotografo: string, nuevoNombreInformal: st
   };
 }
 
-// Elimina un fotógrafo con todo su contenido: portfolios, álbumes y fotos (BD en cascada), su
-// carpeta de fotos y su logo. Si tiene portfolios exige confirmación (regla
+// Elimina un fotógrafo con todo su contenido: su usuario, portfolios, álbumes y fotos (se borra el
+// usuario y el resto va en cascada), su carpeta de fotos y su logo. Si tiene portfolios exige
+// confirmación (regla
 // FOTOGRAFO_ELIMINAR_CON_PORTFOLIOS). La carpeta se aparta a la papelera dentro de la transacción y
 // solo se borra de verdad cuando el borrado en la BD está confirmado (ver apartarCarpeta).
 export function eliminarFotografo(fotografo: string, confirmado: boolean): void {
@@ -146,7 +169,7 @@ export function eliminarFotografo(fotografo: string, confirmado: boolean): void 
   );
 
   const papelera = enTransaccion(() => {
-    eliminarFotografoBD(actual.idFotografo);
+    eliminarUsuario(actual.idUsuario);
     return apartarCarpeta(path.join(fotosDir, actual.nombreInformalNormalizado), fotosDir);
   });
 

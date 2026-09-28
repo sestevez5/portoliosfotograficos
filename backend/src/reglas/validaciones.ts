@@ -19,14 +19,24 @@ export interface DatosFotografo {
   nombre: string;
   primerApellido: string;
   nombreInformal: string;
-  email?: string | null;
+}
+
+// Datos de la cuenta (tabla usuarios). usuario solo se indica si viene dado (la importación puede
+// fijarlo); si se genera, ya es único.
+export interface DatosUsuario {
   usuario?: string;
+  email?: string | null;
+  contrasenya?: string;
 }
 
 // Primeros segmentos de URL que usa la propia aplicación (p. ej. /admin/fotografos/nuevo o
 // /gestion/<fotógrafo>/portfolios/nuevo): un fotógrafo no puede tener un nombreInformalNormalizado
 // igual, o su página quedaría tapada.
-export const SEGMENTOS_RESERVADOS = ['admin', 'api', 'gestion', 'photos'];
+export const SEGMENTOS_RESERVADOS = ['admin', 'api', 'gestion', 'photos', 'registro'];
+
+// Nombre de usuario elegido al registrarse (se guarda en minúsculas): 3 a 30 caracteres, letras
+// sin tildes, números, ".", "_" o "-", empezando por letra o número.
+const USUARIO = /^[a-z0-9][a-z0-9._-]{2,29}$/;
 
 export const LONGITUD_MINIMA_CONTRASENYA = 8;
 
@@ -41,8 +51,8 @@ function crearValidador(db: Database.Database) {
     fotografoPorNormalizado: db.prepare(
       'SELECT idFotografo, nombreInformal FROM fotografos WHERE nombreInformalNormalizado = ? AND idFotografo IS NOT ?',
     ),
-    emailExiste: db.prepare('SELECT 1 FROM fotografos WHERE email = ? AND idFotografo IS NOT ?'),
-    usuarioExiste: db.prepare('SELECT 1 FROM fotografos WHERE usuario = ? AND idFotografo IS NOT ?'),
+    emailExiste: db.prepare('SELECT 1 FROM usuarios WHERE email = ? AND idUsuario IS NOT ?'),
+    usuarioExiste: db.prepare('SELECT 1 FROM usuarios WHERE usuario = ? AND idUsuario IS NOT ?'),
     portfolioNombreExiste: db.prepare(
       'SELECT 1 FROM portfolios WHERE idFotografo = ? AND nombreNormalizado = ? AND idPortfolio IS NOT ?',
     ),
@@ -54,20 +64,29 @@ function crearValidador(db: Database.Database) {
   const existe = (consulta: Database.Statement, ...parametros: unknown[]) => consulta.get(...parametros) !== undefined;
 
   return {
-    // Alta o modificación de un fotógrafo.
+    // Alta o modificación de una cuenta de usuario (excluir: su idUsuario al modificarla). La
+    // contraseña, si se indica, debe tener una longitud mínima.
+    usuario(datos: DatosUsuario, excluir: number | null = null): void {
+      if (datos.usuario) {
+        exigir(USUARIO.test(datos.usuario), 'USUARIO_NO_VALIDO', { usuario: datos.usuario });
+        exigir(!existe(consultas.usuarioExiste, datos.usuario, excluir), 'USUARIO_DUPLICADO', { usuario: datos.usuario });
+      }
+      if (datos.email) {
+        exigir(EMAIL.test(datos.email), 'USUARIO_EMAIL_NO_VALIDO', { email: datos.email });
+        exigir(!existe(consultas.emailExiste, datos.email, excluir), 'USUARIO_EMAIL_DUPLICADO', { email: datos.email });
+      }
+      if (datos.contrasenya) {
+        exigir(datos.contrasenya.length >= LONGITUD_MINIMA_CONTRASENYA, 'USUARIO_CONTRASENYA_CORTA', {
+          minimo: LONGITUD_MINIMA_CONTRASENYA,
+        });
+      }
+    },
+
+    // Alta o modificación de los datos de un fotógrafo (excluir: su idFotografo al modificarlo).
     fotografo(datos: DatosFotografo, excluir: number | null = null): void {
       exigir(!vacio(datos.nombre), 'FOTOGRAFO_NOMBRE_OBLIGATORIO');
       exigir(!vacio(datos.primerApellido), 'FOTOGRAFO_PRIMER_APELLIDO_OBLIGATORIO');
       this.nombreInformal(datos.nombreInformal, excluir);
-      if (datos.email) {
-        exigir(EMAIL.test(datos.email), 'FOTOGRAFO_EMAIL_NO_VALIDO', { email: datos.email });
-        exigir(!existe(consultas.emailExiste, datos.email, excluir), 'FOTOGRAFO_EMAIL_DUPLICADO', { email: datos.email });
-      }
-      if (datos.usuario) {
-        exigir(!existe(consultas.usuarioExiste, datos.usuario, excluir), 'FOTOGRAFO_USUARIO_DUPLICADO', {
-          usuario: datos.usuario,
-        });
-      }
     },
 
     // El nombre informal es obligatorio y su forma normalizada debe servir como carpeta, no
@@ -84,37 +103,38 @@ function crearValidador(db: Database.Database) {
       exigir(!otro, 'FOTOGRAFO_NOMBRE_INFORMAL_DUPLICADO', { nombreInformal, otro: otro?.nombreInformal ?? '' });
     },
 
-    // Alta de un fotógrafo desde la aplicación: además de las reglas generales, su carpeta
-    // (datos/fotos/<nombreInformalNormalizado>) no puede existir ya, porque se va a crear, y la
-    // contraseña, si se indica, debe tener una longitud mínima.
-    altaFotografo(datos: DatosFotografo & { contrasenya?: string }): void {
+    // Alta de un fotógrafo desde la aplicación, con su usuario: además de las reglas generales, su
+    // carpeta (datos/fotos/<nombreInformalNormalizado>) no puede existir ya, porque se va a crear.
+    altaFotografo(datos: DatosFotografo & DatosUsuario): void {
       this.fotografo(datos);
+      this.usuario(datos);
       const carpeta = normalizarNombre(datos.nombreInformal);
       exigir(!existsSync(path.join(fotosDir, carpeta)), 'FOTOGRAFO_CARPETA_OCUPADA', {
         carpeta,
         nombreInformal: datos.nombreInformal,
       });
-      if (datos.contrasenya) {
-        exigir(datos.contrasenya.length >= LONGITUD_MINIMA_CONTRASENYA, 'FOTOGRAFO_CONTRASENYA_CORTA', {
-          minimo: LONGITUD_MINIMA_CONTRASENYA,
-        });
-      }
     },
 
-    // Modificación de un fotógrafo existente: las reglas generales (sin chocar consigo mismo), la
-    // carpeta de destino si cambia el nombre informal y la contraseña, si se indica una nueva.
+    // Registro desde la web: como el alta de un fotógrafo, pero el nombre de usuario lo elige la
+    // persona (en vez de calcularse) y el correo y la contraseña son obligatorios, porque con ellos
+    // se inicia sesión.
+    registro(datos: DatosFotografo & DatosUsuario): void {
+      exigir(!vacio(datos.usuario), 'USUARIO_OBLIGATORIO');
+      exigir(!vacio(datos.email), 'USUARIO_EMAIL_OBLIGATORIO');
+      exigir(!vacio(datos.contrasenya), 'USUARIO_CONTRASENYA_OBLIGATORIA');
+      this.altaFotografo(datos);
+    },
+
+    // Modificación de un fotógrafo existente y de su usuario: las reglas generales (sin chocar
+    // consigo mismos) y la carpeta de destino si cambia el nombre informal.
     edicionFotografo(
-      idFotografo: number,
+      ids: { idFotografo: number; idUsuario: number },
       carpetaActual: string,
-      datos: DatosFotografo & { contrasenya?: string },
+      datos: DatosFotografo & DatosUsuario,
     ): void {
-      this.fotografo(datos, idFotografo);
-      this.cambioNombreInformal(idFotografo, carpetaActual, datos.nombreInformal);
-      if (datos.contrasenya) {
-        exigir(datos.contrasenya.length >= LONGITUD_MINIMA_CONTRASENYA, 'FOTOGRAFO_CONTRASENYA_CORTA', {
-          minimo: LONGITUD_MINIMA_CONTRASENYA,
-        });
-      }
+      this.fotografo(datos, ids.idFotografo);
+      this.cambioNombreInformal(ids.idFotografo, carpetaActual, datos.nombreInformal);
+      this.usuario(datos, ids.idUsuario);
     },
 
     // Un fotógrafo con portfolios solo se elimina si se ha confirmado expresamente.

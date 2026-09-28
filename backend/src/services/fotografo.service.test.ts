@@ -30,15 +30,23 @@ after(() => {
   }
 });
 
+// El fotógrafo junto con su usuario (usuario, email y passwordHash están en usuarios).
 const fila = (normalizado: string) =>
   db
-    .prepare('SELECT usuario, segundoApellido, email, passwordHash FROM fotografos WHERE nombreInformalNormalizado = ?')
-    .get(normalizado) as { usuario: string; segundoApellido: string | null; email: string | null; passwordHash: string | null };
+    .prepare(
+      `SELECT u.idUsuario, u.usuario, f.segundoApellido, u.email, u.passwordHash
+       FROM fotografos f JOIN usuarios u ON u.idUsuario = f.idUsuario WHERE f.nombreInformalNormalizado = ?`,
+    )
+    .get(normalizado) as
+    | { idUsuario: number; usuario: string; segundoApellido: string | null; email: string | null; passwordHash: string | null }
+    | undefined;
+
+const numeroUsuarios = () => (db.prepare('SELECT count(*) AS n FROM usuarios').get() as { n: number }).n;
 
 const esRegla = (codigo: string) => (error: unknown) =>
   error instanceof ReglaNegocioIncumplida && error.codigo === codigo && error.operacion !== undefined;
 
-test('el alta crea el fotógrafo, su carpeta y guarda solo el hash de la contraseña', () => {
+test('el alta crea el fotógrafo, su usuario y su carpeta, y guarda solo el hash de la contraseña', () => {
   const creado = crearFotografo({
     nombreInformal: ' Ana Núñez ',
     nombre: 'Ana',
@@ -51,8 +59,10 @@ test('el alta crea el fotógrafo, su carpeta y guarda solo el hash de la contras
   assert.equal(creado.nombreInformalNormalizado, 'ana-nunyez');
   assert.ok(existsSync(path.join(datos, 'fotos', 'ana-nunyez')));
 
-  const guardado = fila('ana-nunyez');
+  const guardado = fila('ana-nunyez')!;
+  assert.equal(creado.idUsuario, guardado.idUsuario);
   assert.equal(guardado.usuario, 'anun');
+  assert.equal(guardado.email, 'ana@example.com');
   assert.equal(guardado.segundoApellido, null);
   assert.ok(guardado.passwordHash?.startsWith('scrypt$'));
   assert.ok(!guardado.passwordHash?.includes('secreta123'));
@@ -60,18 +70,20 @@ test('el alta crea el fotógrafo, su carpeta y guarda solo el hash de la contras
   assert.ok(!verificarContrasenya('otra', guardado.passwordHash!));
 });
 
-test('reglas del alta, con la operación CREAR_FOTOGRAFO', () => {
+test('reglas del alta (del fotógrafo y de su usuario), con la operación CREAR_FOTOGRAFO', () => {
+  const usuariosAntes = numeroUsuarios();
   const base = { nombre: 'Bea', primerApellido: 'Dos' };
   assert.throws(() => crearFotografo({ ...base, nombreInformal: 'ana  NUÑEZ' }), esRegla('FOTOGRAFO_NOMBRE_INFORMAL_DUPLICADO'));
-  assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Bea', email: 'ANA@example.com' }), esRegla('FOTOGRAFO_EMAIL_DUPLICADO'));
+  assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Bea', email: 'ANA@example.com' }), esRegla('USUARIO_EMAIL_DUPLICADO'));
   assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Admin' }), esRegla('FOTOGRAFO_NOMBRE_INFORMAL_RESERVADO'));
   assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Gestión' }), esRegla('FOTOGRAFO_NOMBRE_INFORMAL_RESERVADO'));
   assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Carpeta Ocupada' }), esRegla('FOTOGRAFO_CARPETA_OCUPADA'));
-  assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Bea', email: 'bea@@x' }), esRegla('FOTOGRAFO_EMAIL_NO_VALIDO'));
-  assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Bea', contrasenya: '123' }), esRegla('FOTOGRAFO_CONTRASENYA_CORTA'));
+  assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Bea', email: 'bea@@x' }), esRegla('USUARIO_EMAIL_NO_VALIDO'));
+  assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Bea', contrasenya: '123' }), esRegla('USUARIO_CONTRASENYA_CORTA'));
   assert.throws(() => crearFotografo({ ...base, nombreInformal: 'Bea', primerApellido: ' ' }), esRegla('FOTOGRAFO_PRIMER_APELLIDO_OBLIGATORIO'));
-  // Ninguno de los intentos fallidos ha creado nada.
+  // Ninguno de los intentos fallidos ha creado nada: ni fotógrafo, ni usuario, ni carpeta.
   assert.equal(fila('bea'), undefined);
+  assert.equal(numeroUsuarios(), usuariosAntes);
   assert.ok(!existsSync(path.join(datos, 'fotos', 'bea')));
 });
 
@@ -85,7 +97,7 @@ test('cambiar el nombre informal renombra la carpeta', () => {
 
 test('editar actualiza los datos, renombra la carpeta y conserva la contraseña si no se indica', () => {
   crearFotografo({ nombreInformal: 'Dani Cuatro', nombre: 'Dani', primerApellido: 'Cuatro', email: 'dani@example.com', contrasenya: 'original123' });
-  const hashAntes = fila('dani-cuatro').passwordHash;
+  const { passwordHash: hashAntes, idUsuario } = fila('dani-cuatro')!;
 
   // Mismo email que ya tiene: no choca consigo mismo.
   const editado = editarFotografo('dani-cuatro', {
@@ -101,11 +113,19 @@ test('editar actualiza los datos, renombra la carpeta y conserva la contraseña 
   assert.equal(editado.segundoApellido, 'Sanz');
   assert.ok(!existsSync(path.join(datos, 'fotos', 'dani-cuatro')));
   assert.ok(existsSync(path.join(datos, 'fotos', 'daniela-cuatro')));
-  assert.equal(fila('daniela-cuatro').passwordHash, hashAntes);
+  // Sigue siendo el mismo usuario, con la misma contraseña.
+  assert.equal(fila('daniela-cuatro')!.idUsuario, idUsuario);
+  assert.equal(fila('daniela-cuatro')!.passwordHash, hashAntes);
 
   editarFotografo('daniela-cuatro', { nombreInformal: 'Daniela Cuatro', nombre: 'Daniela', primerApellido: 'Cuatro', contrasenya: 'nueva12345' });
-  assert.ok(verificarContrasenya('nueva12345', fila('daniela-cuatro').passwordHash!));
-  assert.equal(fila('daniela-cuatro').email, null);
+  assert.ok(verificarContrasenya('nueva12345', fila('daniela-cuatro')!.passwordHash!));
+  assert.equal(fila('daniela-cuatro')!.email, null);
+
+  // El correo de otro usuario no se puede usar.
+  assert.throws(
+    () => editarFotografo('daniela-cuatro', { nombreInformal: 'Daniela Cuatro', nombre: 'D', primerApellido: 'C', email: 'ana@example.com' }),
+    esRegla('USUARIO_EMAIL_DUPLICADO'),
+  );
 
   assert.throws(
     () => editarFotografo('daniela-cuatro', { nombreInformal: 'Ana Núñez', nombre: 'D', primerApellido: 'C' }),
@@ -114,10 +134,11 @@ test('editar actualiza los datos, renombra la carpeta y conserva la contraseña 
   assert.throws(() => editarFotografo('nadie', { nombreInformal: 'X', nombre: 'X', primerApellido: 'X' }), RecursoNoEncontrado);
 });
 
-test('eliminar sin portfolios borra el fotógrafo y su carpeta', () => {
-  crearFotografo({ nombreInformal: 'Eva Cinco', nombre: 'Eva', primerApellido: 'Cinco' });
+test('eliminar sin portfolios borra el fotógrafo, su usuario y su carpeta', () => {
+  const { idUsuario } = crearFotografo({ nombreInformal: 'Eva Cinco', nombre: 'Eva', primerApellido: 'Cinco' });
   eliminarFotografo('eva-cinco', false);
   assert.equal(fila('eva-cinco'), undefined);
+  assert.equal(db.prepare('SELECT 1 FROM usuarios WHERE idUsuario = ?').get(idUsuario), undefined);
   assert.ok(!existsSync(path.join(datos, 'fotos', 'eva-cinco')));
 });
 

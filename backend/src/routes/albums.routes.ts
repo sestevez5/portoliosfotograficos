@@ -1,4 +1,4 @@
-import express, { Router, type Response } from 'express';
+import express, { Router, type Request, type Response } from 'express';
 import {
   listarAlbumes,
   listarFotografos,
@@ -15,7 +15,16 @@ import {
   type FotoFila,
   type PortfolioFila,
 } from '../db/catalogo.repository.js';
-import { crearFotografo, editarFotografo, eliminarFotografo } from '../services/fotografo.service.js';
+import { crearFotografo, editarFotografo, eliminarFotografo, registrarFotografo } from '../services/fotografo.service.js';
+import {
+  cerrarSesion,
+  COOKIE_SESION,
+  crearSesion,
+  DURACION_SESION_DIAS,
+  iniciarSesion,
+  usuarioDeSesion,
+} from '../services/sesion.service.js';
+import { cambiarContrasenyaAdministrador, completarPrimerUso, esPrimerUso } from '../services/administrador.service.js';
 import { crearAlbum, editarAlbum, eliminarAlbum } from '../services/album.service.js';
 import { crearPortfolio, editarPortfolio, eliminarPortfolio } from '../services/portfolio.service.js';
 import { RecursoNoEncontrado } from '../errores.js';
@@ -185,6 +194,105 @@ function leerAlbum(cuerpo: unknown): AlbumAlta | string {
   }
   return { ...textos, nombre: textos.nombre ?? '', ...(tags ? { tags } : {}) };
 }
+
+// ---------------- Administrador y primer uso ----------------
+// El administrador ("admin") es el gestor de la aplicación. Mientras no ha entrado nunca, la
+// aplicación está en su primer uso y la web muestra la pantalla de bienvenida. Todavía no hay
+// sesiones: cada operación comprueba las credenciales que recibe (422 si no son correctas).
+
+albumsRouter.get('/estado', (_req, res) => {
+  res.json({ primerUso: esPrimerUso() });
+});
+
+// Primer uso: credenciales del administrador y, opcionalmente, su contraseña nueva.
+albumsRouter.post('/admin/primer-uso', express.json({ limit: '5kb' }), (req, res) => {
+  const textos = leerTextos(req.body, ['usuario', 'contrasenya', 'contrasenyaNueva'] as const);
+  if (typeof textos === 'string') {
+    res.status(400).json({ message: textos });
+    return;
+  }
+  // Al completarlo, el administrador queda con la sesión iniciada.
+  const idUsuario = completarPrimerUso({ ...textos, usuario: textos.usuario ?? '', contrasenya: textos.contrasenya ?? '' });
+  enviarSesion(req, res, crearSesion(idUsuario));
+  res.status(204).end();
+});
+
+// ---------------- Sesión y registro ----------------
+// La sesión va en una cookie HttpOnly (el token; la BD solo guarda su hash, ver
+// services/sesion.service.ts). Todavía no se restringe nada según quién la tenga iniciada.
+
+function tokenDeSesion(req: Request): string | undefined {
+  for (const parte of (req.headers.cookie ?? '').split(';')) {
+    const [nombre, ...valor] = parte.trim().split('=');
+    if (nombre === COOKIE_SESION) {
+      return decodeURIComponent(valor.join('='));
+    }
+  }
+  return undefined;
+}
+
+// SameSite=Lax: la cookie viaja entre la web y la API aunque estén en puertos distintos del mismo
+// sitio (desarrollo: localhost:4200 y localhost:3000). Secure solo si la petición llega por HTTPS.
+function enviarSesion(req: Request, res: Response, token: string): void {
+  res.cookie(COOKIE_SESION, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: req.secure,
+    path: '/',
+    maxAge: DURACION_SESION_DIAS * 24 * 60 * 60 * 1000,
+  });
+}
+
+// Usuario con la sesión iniciada, o null.
+albumsRouter.get('/sesion', (req, res) => {
+  res.json({ usuario: usuarioDeSesion(tokenDeSesion(req)) });
+});
+
+// Iniciar sesión con el nombre de usuario (o el correo) y la contraseña. 422 si no son correctos.
+albumsRouter.post('/sesion', express.json({ limit: '5kb' }), (req, res) => {
+  const textos = leerTextos(req.body, ['usuario', 'contrasenya'] as const);
+  if (typeof textos === 'string') {
+    res.status(400).json({ message: textos });
+    return;
+  }
+  const token = iniciarSesion(textos.usuario ?? '', textos.contrasenya ?? '');
+  enviarSesion(req, res, token);
+  res.json({ usuario: usuarioDeSesion(token) });
+});
+
+albumsRouter.delete('/sesion', (req, res) => {
+  cerrarSesion(tokenDeSesion(req));
+  res.clearCookie(COOKIE_SESION, { path: '/' });
+  res.status(204).end();
+});
+
+// Registro de un usuario fotógrafo: sus datos de acceso (usuario, correo y contraseña,
+// obligatorios) y los del fotógrafo. Crea también su carpeta y deja la sesión iniciada.
+albumsRouter.post('/registro', express.json({ limit: '20kb' }), (req, res) => {
+  const alta = leerAlta(req.body);
+  const textos = leerTextos(req.body, ['usuario'] as const);
+  if (typeof alta === 'string' || typeof textos === 'string') {
+    res.status(400).json({ message: typeof alta === 'string' ? alta : textos });
+    return;
+  }
+  const fotografo = registrarFotografo({ ...alta, usuario: textos.usuario ?? '' });
+  const token = crearSesion(fotografo.idUsuario);
+  enviarSesion(req, res, token);
+  res.status(201).json({ usuario: usuarioDeSesion(token) });
+});
+
+albumsRouter.put('/admin/contrasenya', express.json({ limit: '5kb' }), (req, res) => {
+  const textos = leerTextos(req.body, ['contrasenyaActual', 'contrasenyaNueva'] as const);
+  if (typeof textos === 'string') {
+    res.status(400).json({ message: textos });
+    return;
+  }
+  cambiarContrasenyaAdministrador({
+    contrasenyaActual: textos.contrasenyaActual ?? '',
+    contrasenyaNueva: textos.contrasenyaNueva ?? '',
+  });
+  res.status(204).end();
+});
 
 // Alta de un fotógrafo. Crea también su carpeta en datos/fotos. Si se incumple una regla de
 // negocio responde 422 (ver gestionar-errores.ts).

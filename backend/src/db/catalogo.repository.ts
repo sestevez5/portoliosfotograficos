@@ -9,10 +9,11 @@ const db = abrirBaseDatos();
 // Validador de reglas de negocio sobre esta conexión (ver reglas/validaciones.ts).
 export const validar = validadorCatalogo(db);
 
-// Nunca incluye email ni passwordHash: las consultas públicas no los leen.
+// Datos del fotógrafo. Su cuenta (usuario, email, passwordHash) está en usuarios y las consultas
+// públicas no la leen.
 export interface FotografoFila {
   idFotografo: number;
-  usuario: string;
+  idUsuario: number;
   nombreInformal: string;
   nombreInformalNormalizado: string;
   nombre: string;
@@ -87,7 +88,7 @@ const PORTADA_ALBUM = `COALESCE(
 
 const TAGS_ALBUM = `(SELECT json_group_array(tag) FROM (SELECT tag FROM albumTags WHERE idAlbum = a.idAlbum ORDER BY orden))`;
 
-const FOTOGRAFO_COLUMNAS = `f.idFotografo, f.usuario, f.nombreInformal, f.nombreInformalNormalizado, f.nombre,
+const FOTOGRAFO_COLUMNAS = `f.idFotografo, f.idUsuario, f.nombreInformal, f.nombreInformalNormalizado, f.nombre,
   f.primerApellido, f.segundoApellido, f.descripcion`;
 
 // En las URL, fotógrafos, portfolios y álbumes se identifican por su nombre normalizado
@@ -160,31 +161,75 @@ const consultas = {
 
   tags: db.prepare(`SELECT DISTINCT tag FROM albumTags`),
 
-  insertarFotografo: db.prepare(
-    `INSERT INTO fotografos (usuario, nombreInformal, nombreInformalNormalizado, nombre, primerApellido,
-       segundoApellido, email, passwordHash, descripcion)
-     VALUES (@usuario, @nombreInformal, @nombreInformalNormalizado, @nombre, @primerApellido,
-       @segundoApellido, @email, @passwordHash, @descripcion)`,
-  ),
-
-  usuarioExiste: db.prepare('SELECT 1 FROM fotografos WHERE usuario = ?'),
-
-  // Para el formulario de edición: incluye el email, pero de la contraseña solo si existe.
-  fotografoEdicion: db.prepare(
-    `SELECT idFotografo, nombreInformal, nombreInformalNormalizado, nombre, primerApellido, segundoApellido,
-       email, descripcion, passwordHash IS NOT NULL AS tieneContrasenya
-     FROM fotografos WHERE nombreInformalNormalizado = ${COMO_SEGMENTO('?')}`,
+  insertarUsuario: db.prepare(
+    'INSERT INTO usuarios (usuario, email, passwordHash) VALUES (@usuario, @email, @passwordHash)',
   ),
 
   // passwordHash NULL = conservar la contraseña actual.
-  actualizarFotografo: db.prepare(
-    `UPDATE fotografos SET nombreInformal = @nombreInformal, nombreInformalNormalizado = @nombreInformalNormalizado,
-       nombre = @nombre, primerApellido = @primerApellido, segundoApellido = @segundoApellido, email = @email,
-       descripcion = @descripcion, passwordHash = COALESCE(@passwordHash, passwordHash)
-     WHERE idFotografo = @idFotografo`,
+  actualizarUsuario: db.prepare(
+    `UPDATE usuarios SET email = @email, passwordHash = COALESCE(@passwordHash, passwordHash)
+     WHERE idUsuario = @idUsuario`,
   ),
 
-  eliminarFotografo: db.prepare('DELETE FROM fotografos WHERE idFotografo = ?'),
+  // Borra también su fotógrafo (y con él sus portfolios, álbumes y fotos) en cascada.
+  eliminarUsuario: db.prepare('DELETE FROM usuarios WHERE idUsuario = ?'),
+
+  usuarioExiste: db.prepare('SELECT 1 FROM usuarios WHERE usuario = ?'),
+
+  administrador: db.prepare(
+    "SELECT idUsuario, usuario, passwordHash, fechaUltimoAcceso FROM usuarios WHERE rol = 'administrador'",
+  ),
+
+  cambiarContrasenya: db.prepare('UPDATE usuarios SET passwordHash = @passwordHash WHERE idUsuario = @idUsuario'),
+
+  // Para iniciar sesión con el nombre de usuario o con el correo (sin distinguir mayúsculas).
+  usuarioPorUsuario: db.prepare('SELECT idUsuario, passwordHash FROM usuarios WHERE usuario = ?'),
+  usuarioPorEmail: db.prepare('SELECT idUsuario, passwordHash FROM usuarios WHERE email = ?'),
+
+  // Lo que se muestra del usuario con la sesión iniciada (con su fotógrafo, si lo tiene).
+  usuarioSesion: db.prepare(
+    `SELECT u.idUsuario, u.usuario, u.rol, f.nombreInformal, f.nombreInformalNormalizado
+     FROM usuarios u LEFT JOIN fotografos f ON f.idUsuario = u.idUsuario
+     WHERE u.idUsuario = ?`,
+  ),
+
+  insertarSesion: db.prepare(
+    'INSERT INTO sesiones (idUsuario, tokenHash, fechaExpiracion) VALUES (@idUsuario, @tokenHash, @fechaExpiracion)',
+  ),
+  sesionVigente: db.prepare(
+    "SELECT idUsuario FROM sesiones WHERE tokenHash = ? AND fechaExpiracion > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+  ),
+  eliminarSesion: db.prepare('DELETE FROM sesiones WHERE tokenHash = ?'),
+  eliminarSesionesCaducadas: db.prepare(
+    "DELETE FROM sesiones WHERE fechaExpiracion <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+  ),
+
+  registrarAcceso: db.prepare(
+    "UPDATE usuarios SET fechaUltimoAcceso = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE idUsuario = ?",
+  ),
+
+  insertarFotografo: db.prepare(
+    `INSERT INTO fotografos (idUsuario, nombreInformal, nombreInformalNormalizado, nombre, primerApellido,
+       segundoApellido, descripcion)
+     VALUES (@idUsuario, @nombreInformal, @nombreInformalNormalizado, @nombre, @primerApellido,
+       @segundoApellido, @descripcion)`,
+  ),
+
+  // Para el formulario de edición: datos del fotógrafo y, de su usuario, el email y si tiene
+  // contraseña (nunca el hash).
+  fotografoEdicion: db.prepare(
+    `SELECT f.idFotografo, f.idUsuario, f.nombreInformal, f.nombreInformalNormalizado, f.nombre, f.primerApellido,
+       f.segundoApellido, u.email, f.descripcion, u.passwordHash IS NOT NULL AS tieneContrasenya
+     FROM fotografos f JOIN usuarios u ON u.idUsuario = f.idUsuario
+     WHERE f.nombreInformalNormalizado = ${COMO_SEGMENTO('?')}`,
+  ),
+
+  actualizarFotografo: db.prepare(
+    `UPDATE fotografos SET nombreInformal = @nombreInformal, nombreInformalNormalizado = @nombreInformalNormalizado,
+       nombre = @nombre, primerApellido = @primerApellido, segundoApellido = @segundoApellido,
+       descripcion = @descripcion
+     WHERE idFotografo = @idFotografo`,
+  ),
 
   // Los portfolios nuevos van al final de los del fotógrafo.
   insertarPortfolio: db.prepare(
@@ -286,30 +331,113 @@ export function enTransaccion<T>(fn: () => T): T {
   return db.transaction(fn)();
 }
 
-export interface NuevoFotografo {
+// ---------------- Usuarios ----------------
+// Solo para services/fotografo.service.ts, que valida antes las reglas de negocio y crea o elimina
+// el usuario junto con su fotógrafo en la misma transacción.
+
+export interface NuevoUsuario {
   usuario: string;
-  nombreInformal: string;
-  nombreInformalNormalizado: string;
-  nombre: string;
-  primerApellido: string;
-  segundoApellido: string | null;
   email: string | null;
   passwordHash: string | null;
-  descripcion: string;
 }
 
-// Solo para crearFotografo() (services/fotografo.service.ts), que valida antes las reglas de
-// negocio y crea la carpeta del fotógrafo en la misma transacción.
-export function insertarFotografo(fotografo: NuevoFotografo): number {
-  return Number(consultas.insertarFotografo.run(fotografo).lastInsertRowid);
+export function insertarUsuario(usuario: NuevoUsuario): number {
+  return Number(consultas.insertarUsuario.run(usuario).lastInsertRowid);
+}
+
+// passwordHash null = conservar la contraseña actual.
+export function actualizarUsuario(idUsuario: number, datos: { email: string | null; passwordHash: string | null }): void {
+  consultas.actualizarUsuario.run({ ...datos, idUsuario });
+}
+
+// Borra en cascada su fotógrafo, con sus portfolios, álbumes y fotos.
+export function eliminarUsuario(idUsuario: number): void {
+  consultas.eliminarUsuario.run(idUsuario);
 }
 
 export function usuarioExiste(usuario: string): boolean {
   return consultas.usuarioExiste.get(usuario) !== undefined;
 }
 
+// El administrador de la aplicación (siempre existe: lo crea la migración a la versión 11). Solo
+// para services/administrador.service.ts, que nunca devuelve el hash.
+export interface AdministradorFila {
+  idUsuario: number;
+  usuario: string;
+  passwordHash: string;
+  // null = todavía no ha entrado nunca (primer uso pendiente)
+  fechaUltimoAcceso: string | null;
+}
+
+export function obtenerAdministrador(): AdministradorFila {
+  return consultas.administrador.get() as AdministradorFila;
+}
+
+export function cambiarContrasenya(idUsuario: number, passwordHash: string): void {
+  consultas.cambiarContrasenya.run({ idUsuario, passwordHash });
+}
+
+export function registrarAcceso(idUsuario: number): void {
+  consultas.registrarAcceso.run(idUsuario);
+}
+
+// ---------------- Sesiones ----------------
+// Solo para services/sesion.service.ts. Se guarda el hash del token, nunca el token.
+
+// identificador: nombre de usuario o correo (si contiene "@").
+export function usuarioParaIniciarSesion(identificador: string): { idUsuario: number; passwordHash: string | null } | undefined {
+  const consulta = identificador.includes('@') ? consultas.usuarioPorEmail : consultas.usuarioPorUsuario;
+  return consulta.get(identificador) as { idUsuario: number; passwordHash: string | null } | undefined;
+}
+
+export interface UsuarioSesionFila {
+  idUsuario: number;
+  usuario: string;
+  rol: 'usuario' | 'administrador';
+  // null si el usuario no es fotógrafo (p. ej. el administrador)
+  nombreInformal: string | null;
+  nombreInformalNormalizado: string | null;
+}
+
+export function obtenerUsuarioSesion(idUsuario: number): UsuarioSesionFila | undefined {
+  return consultas.usuarioSesion.get(idUsuario) as UsuarioSesionFila | undefined;
+}
+
+export function insertarSesion(idUsuario: number, tokenHash: string, fechaExpiracion: string): void {
+  consultas.eliminarSesionesCaducadas.run();
+  consultas.insertarSesion.run({ idUsuario, tokenHash, fechaExpiracion });
+}
+
+export function idUsuarioDeSesion(tokenHash: string): number | undefined {
+  return (consultas.sesionVigente.get(tokenHash) as { idUsuario: number } | undefined)?.idUsuario;
+}
+
+export function eliminarSesion(tokenHash: string): void {
+  consultas.eliminarSesion.run(tokenHash);
+}
+
+// ---------------- Fotógrafos ----------------
+
+export interface NuevoFotografo {
+  idUsuario: number;
+  nombreInformal: string;
+  nombreInformalNormalizado: string;
+  nombre: string;
+  primerApellido: string;
+  segundoApellido: string | null;
+  descripcion: string;
+}
+
+// Solo para crearFotografo() (services/fotografo.service.ts), que valida antes las reglas de
+// negocio y crea el usuario y la carpeta del fotógrafo en la misma transacción.
+export function insertarFotografo(fotografo: NuevoFotografo): number {
+  return Number(consultas.insertarFotografo.run(fotografo).lastInsertRowid);
+}
+
+// Incluye, de su usuario, el email y si tiene contraseña.
 export interface FotografoEdicion {
   idFotografo: number;
+  idUsuario: number;
   nombreInformal: string;
   nombreInformalNormalizado: string;
   nombre: string;
@@ -331,20 +459,14 @@ export interface DatosActualizacionFotografo {
   nombre: string;
   primerApellido: string;
   segundoApellido: string | null;
-  email: string | null;
   descripcion: string;
-  // null = conservar la contraseña actual
-  passwordHash: string | null;
 }
 
-// Solo para editarFotografo()/eliminarFotografo() (services/fotografo.service.ts), que validan
-// las reglas de negocio y mantienen la carpeta del fotógrafo en la misma transacción.
+// Solo para editarFotografo() (services/fotografo.service.ts), que valida las reglas de negocio y
+// mantiene la carpeta del fotógrafo en la misma transacción. Los datos de su cuenta se guardan con
+// actualizarUsuario(). Para eliminar un fotógrafo se elimina su usuario (eliminarUsuario).
 export function actualizarFotografo(idFotografo: number, datos: DatosActualizacionFotografo): void {
   consultas.actualizarFotografo.run({ ...datos, idFotografo });
-}
-
-export function eliminarFotografo(idFotografo: number): void {
-  consultas.eliminarFotografo.run(idFotografo);
 }
 
 export function numeroPortfolios(idFotografo: number): number {

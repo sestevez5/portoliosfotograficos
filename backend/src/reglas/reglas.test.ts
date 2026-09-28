@@ -40,14 +40,27 @@ function esperaRegla(catalogo: OrganizacionFotos[], codigo: CodigoRegla) {
   );
   // La importación es una transacción: al incumplirse una regla no queda nada guardado.
   assert.equal((db.prepare('SELECT count(*) AS n FROM fotografos').get() as { n: number }).n, 0);
+  assert.equal((db.prepare("SELECT count(*) AS n FROM usuarios WHERE rol <> 'administrador'").get() as { n: number }).n, 0);
 }
 
-test('un catálogo válido se importa entero', () => {
-  const { totales } = importar([
-    fotografo('Ana Uno', [portfolio('Viajes', [album('Mar'), album('Montaña')]), portfolio('Retratos')]),
+test('un catálogo válido se importa entero, con un usuario por fotógrafo', () => {
+  const { db, totales } = importar([
+    fotografo('Ana Uno', [portfolio('Viajes', [album('Mar'), album('Montaña')]), portfolio('Retratos')], { email: 'ana@x.com' }),
     fotografo('Bea Dos', [portfolio('Viajes', [album('Mar')])]),
   ]);
   assert.deepEqual(totales, { fotografos: 2, portfolios: 3, albumes: 3, fotos: 3 });
+  assert.deepEqual(
+    db
+      .prepare(
+        `SELECT f.nombreInformal, u.usuario, u.email, u.passwordHash
+         FROM fotografos f JOIN usuarios u ON u.idUsuario = f.idUsuario ORDER BY f.idFotografo`,
+      )
+      .all(),
+    [
+      { nombreInformal: 'Ana Uno', usuario: 'aape', email: 'ana@x.com', passwordHash: null },
+      { nombreInformal: 'Bea Dos', usuario: 'bape', email: null, passwordHash: null },
+    ],
+  );
 });
 
 test('el mensaje se redacta con los datos de la regla', () => {
@@ -107,9 +120,9 @@ test('dos fotógrafos no pueden tener el mismo nombre informal normalizado', () 
   esperaRegla([fotografo('Íñigo Pérez'), fotografo('inyigo perez')], 'FOTOGRAFO_NOMBRE_INFORMAL_DUPLICADO');
 });
 
-test('el correo y el usuario no pueden repetirse', () => {
-  esperaRegla([fotografo('Ana Uno', [], { email: 'a@x.com' }), fotografo('Bea Dos', [], { email: 'A@X.COM' })], 'FOTOGRAFO_EMAIL_DUPLICADO');
-  esperaRegla([fotografo('Ana Uno', [], { usuario: 'ana' }), fotografo('Bea Dos', [], { usuario: 'ana' })], 'FOTOGRAFO_USUARIO_DUPLICADO');
+test('el correo y el nombre de usuario no pueden repetirse entre usuarios', () => {
+  esperaRegla([fotografo('Ana Uno', [], { email: 'a@x.com' }), fotografo('Bea Dos', [], { email: 'A@X.COM' })], 'USUARIO_EMAIL_DUPLICADO');
+  esperaRegla([fotografo('Ana Uno', [], { usuario: 'ana' }), fotografo('Bea Dos', [], { usuario: 'ana' })], 'USUARIO_DUPLICADO');
 });
 
 test('reglas de las fotos y los tags de un álbum', () => {

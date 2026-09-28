@@ -1,0 +1,59 @@
+<section class="hero">
+  <a class="back-link" routerLink="/">&larr; Fotógrafos</a>
+  <h1>Contraseña del administrador</h1>
+  <p>Cambia la contraseña del usuario <strong>admin</strong>, el gestor de la aplicación.</p>
+</section>
+
+<form class="formulario" [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+  @if (cambiada()) {
+    <p class="confirmacion" role="status">La contraseña se ha cambiado.</p>
+  }
+  @if (reglaIncumplida(); as regla) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">No se ha podido cambiar la contraseña</p>
+      <p>{{ regla.regla.mensaje }}</p>
+    </div>
+  }
+  @if (errorGeneral(); as error) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">No se ha podido cambiar la contraseña</p>
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  <div class="campo">
+    <label for="contrasenyaActual">Contraseña actual *</label>
+    <input id="contrasenyaActual" type="password" formControlName="contrasenyaActual" autocomplete="current-password" />
+    @if (mostrarError('contrasenyaActual', 'required')) {
+      <small class="error">Indica la contraseña actual.</small>
+    }
+  </div>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="contrasenyaNueva">Contraseña nueva *</label>
+      <input id="contrasenyaNueva" type="password" formControlName="contrasenyaNueva" autocomplete="new-password" />
+      <small class="ayuda">Al menos {{ longitudMinima }} caracteres.</small>
+      @if (mostrarError('contrasenyaNueva', 'required')) {
+        <small class="error">Indica la contraseña nueva.</small>
+      }
+      @if (mostrarError('contrasenyaNueva', 'minlength')) {
+        <small class="error">La contraseña debe tener al menos {{ longitudMinima }} caracteres.</small>
+      }
+    </div>
+    <div class="campo">
+      <label for="repetirContrasenya">Repetir contraseña nueva *</label>
+      <input id="repetirContrasenya" type="password" formControlName="repetirContrasenya" autocomplete="new-password" />
+      @if (formulario.hasError('contrasenyasDistintas') && formulario.controls.repetirContrasenya.touched) {
+        <small class="error">Las contraseñas no coinciden.</small>
+      }
+    </div>
+  </div>
+
+  <div class="acciones">
+    <button type="submit" class="boton boton--principal" [disabled]="enviando()">
+      {{ enviando() ? 'Guardando…' : 'Cambiar contraseña' }}
+    </button>
+    <a class="boton" routerLink="/">Volver</a>
+  </div>
+</form>

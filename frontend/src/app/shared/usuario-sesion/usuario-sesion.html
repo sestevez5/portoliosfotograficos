@@ -1,0 +1,44 @@
+@if (sesion.usuario(); as usuario) {
+  <div class="usuario">
+    <div class="usuario__datos">
+      @if (usuario.fotografo; as f) {
+        <a class="usuario__nombre" [routerLink]="['/', f.nombreInformalNormalizado]">{{ f.nombreInformal }}</a>
+      } @else {
+        <span class="usuario__nombre">{{ usuario.rol === 'administrador' ? 'Administrador' : usuario.usuario }}</span>
+      }
+      <span class="usuario__cuenta">{{ usuario.usuario }}</span>
+    </div>
+    <button type="button" class="enlace" (click)="salir()">Cerrar sesión</button>
+  </div>
+} @else {
+  <button type="button" class="entrar" (click)="abrirPanel()">Iniciar sesión</button>
+}
+
+<dialog #panel class="panel" aria-labelledby="panel-titulo" (cancel)="$event.preventDefault(); cerrarPanel()">
+  <p id="panel-titulo" class="panel__titulo">Iniciar sesión</p>
+
+  <form class="panel__formulario" [formGroup]="formulario" (ngSubmit)="entrar()" novalidate>
+    @if (error(); as mensaje) {
+      <p class="panel__error" role="alert">{{ mensaje }}</p>
+    }
+    <div class="campo">
+      <label for="sesion-usuario">Usuario o correo</label>
+      <input id="sesion-usuario" formControlName="usuario" autocomplete="username" />
+    </div>
+    <div class="campo">
+      <label for="sesion-contrasenya">Contraseña</label>
+      <input id="sesion-contrasenya" type="password" formControlName="contrasenya" autocomplete="current-password" />
+    </div>
+    <div class="panel__acciones">
+      <button type="submit" class="boton boton--principal" [disabled]="enviando()">
+        {{ enviando() ? 'Entrando…' : 'Entrar' }}
+      </button>
+      <button type="button" class="boton" (click)="cerrarPanel()">Cancelar</button>
+    </div>
+  </form>
+
+  <p class="panel__registro">
+    ¿No tienes cuenta?
+    <button type="button" class="enlace" (click)="registrarse()">Regístrate</button>
+  </p>
+</dialog>
