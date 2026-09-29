@@ -1,20 +1,21 @@
 import { Component, HostListener, input, output } from '@angular/core';
-import { Photo } from '../../core/models/album.model';
+import { Foto } from '../../core/models/catalogo.model';
+import { FotoReducida } from '../foto-reducida/foto-reducida';
 
 @Component({
-  imports: [],
+  imports: [FotoReducida],
   selector: 'app-lightbox',
   styleUrl: './lightbox.scss',
   templateUrl: './lightbox.html',
 })
 export class Lightbox {
-  readonly photos = input.required<Photo[]>();
+  readonly photos = input.required<Foto[]>();
   readonly index = input.required<number>();
 
   readonly closeRequested = output<void>();
   readonly indexChange = output<number>();
 
-  protected get current(): Photo {
+  protected get current(): Foto {
     return this.photos()[this.index()];
   }
 

@@ -1,0 +1,104 @@
+@use '../../shared/estilos/cabecera';
+
+.hero {
+  padding: var(--space-4) 0 var(--space-5);
+  max-width: 40rem;
+
+  h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    margin-bottom: var(--space-2);
+  }
+}
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+  gap: var(--space-4);
+  padding-bottom: var(--space-5);
+}
+
+// La tarjeta contiene el enlace al portfolio y, debajo, sus acciones (un botón no puede ir dentro
+// de un enlace).
+.portfolio-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.portfolio-card__enlace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.portfolio-card__image {
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition);
+  }
+}
+
+// En lugar de la portada: "Sin colecciones" o, si la colección de portada no tiene fotos, "Sin fotos".
+.portfolio-card__sin-portada {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portfolio-card__enlace:hover .portfolio-card__image img {
+  transform: scale(1.04);
+}
+
+.portfolio-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+
+  h2 {
+    font-size: 1.5rem;
+  }
+}
+
+.empty-state {
+  color: var(--color-text-muted);
+}
+
+.portfolio-card__meta {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 640px) {
+  .portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color var(--transition);
+
+  &:hover {
+    color: var(--color-text);
+  }
+}

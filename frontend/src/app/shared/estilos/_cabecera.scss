@@ -1,0 +1,109 @@
+// Cabecera de las páginas de fotógrafo, portfolio y colección: ocupa todo el ancho (datos a la
+// izquierda, botones de mantenimiento a la derecha) y se cierra con una línea fina que se
+// desvanece en los extremos, separándola de su contenido (portfolios, colecciones o fotos). Se incluye con
+// @use '../../shared/estilos/cabecera' en el SCSS de cada página (los estilos siguen siendo locales
+// al componente).
+.cabecera {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--color-border) 12%,
+      color-mix(in srgb, var(--color-text-muted) 45%, transparent) 50%,
+      var(--color-border) 88%,
+      transparent
+    );
+  }
+
+  h1 {
+    font-size: clamp(2.5rem, 5vw, 3.75rem);
+    line-height: 1.05;
+  }
+}
+
+// Ocupa todo el ancho libre hasta los botones de mantenimiento.
+.cabecera__datos {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.cabecera__etiqueta {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+// La descripción ocupa una sola línea, hasta los botones: si no cabe se corta con puntos
+// suspensivos y la directiva appTextoRecortado muestra el texto entero como tooltip.
+.cabecera__descripcion {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cabecera__gestion {
+  flex-shrink: 0;
+}
+
+// Bajo la línea separadora: acciones sobre el contenido de la página ("+ Nueva colección",
+// "Gestionar fotos").
+.cabecera-barra {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.cabecera-barra__boton {
+  display: inline-block;
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color var(--transition),
+    color var(--transition);
+
+  &:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+  }
+}
+
+@media (max-width: 720px) {
+  .cabecera {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .cabecera-barra {
+    justify-content: flex-start;
+  }
+}

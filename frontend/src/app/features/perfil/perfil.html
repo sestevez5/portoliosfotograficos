@@ -1,0 +1,62 @@
+<section class="hero cabecera-perfil">
+  @if (perfil(); as p) {
+    <app-avatar [nombre]="p.fotografo?.nombreInformal ?? (p.rol === 'administrador' ? 'Administrador' : p.usuario)" [fotoUrl]="p.fotoUrl" [tamanyo]="5.5" />
+  }
+  <h1>Mi perfil</h1>
+</section>
+
+@if (perfil(); as p) {
+  <div class="perfil">
+    <section class="bloque">
+      <h2 class="bloque__titulo">Cuenta</h2>
+      <dl class="datos">
+        <dt>Usuario</dt>
+        <dd>{{ p.usuario }}</dd>
+        <dt>Correo electrónico</dt>
+        <dd>{{ p.email ?? '—' }}</dd>
+        <dt>Rol</dt>
+        <dd>{{ p.rol === 'administrador' ? 'Administrador' : 'Usuario' }}</dd>
+        <dt>Contraseña</dt>
+        <dd>{{ p.tieneContrasenya ? 'Establecida' : 'Sin contraseña' }}</dd>
+        <dt>Tema preferido</dt>
+        <dd>{{ p.temaPreferido === 'claro' ? 'Claro' : p.temaPreferido === 'oscuro' ? 'Oscuro' : 'Sin preferencia' }}</dd>
+        <dt>Alta</dt>
+        <dd>{{ fecha(p.fechaCreacion) }}</dd>
+        <dt>Último acceso</dt>
+        <dd>{{ fecha(p.fechaUltimoAcceso) }}</dd>
+      </dl>
+      <div class="bloque__acciones">
+        <a class="boton" routerLink="/configuracion">Configuración</a>
+        @if (p.rol === 'administrador') {
+          <a class="boton" routerLink="/admin/contrasenya">Cambiar contraseña</a>
+        }
+      </div>
+    </section>
+
+    @if (p.fotografo; as f) {
+      <section class="bloque">
+        <h2 class="bloque__titulo">Fotógrafo</h2>
+        <dl class="datos">
+          <dt>Nombre informal</dt>
+          <dd>{{ f.nombreInformal }}</dd>
+          <dt>Nombre completo</dt>
+          <dd>{{ nombreCompleto(f) }}</dd>
+          <dt>Descripción</dt>
+          <dd class="descripcion-artistica">{{ f.descripcion || '—' }}</dd>
+          <dt>Portfolios</dt>
+          <dd>{{ f.portfolioCount }}</dd>
+          <dt>Colecciones</dt>
+          <dd>{{ f.collectionCount }}</dd>
+          <dt>Firma</dt>
+          <dd><img class="firma" [src]="f.logoUrl" [alt]="f.nombreInformal" /></dd>
+        </dl>
+        <div class="bloque__acciones">
+          <a class="boton" [routerLink]="['/', f.nombreInformalNormalizado]">Ver mi página</a>
+          <a class="boton boton--principal" [routerLink]="['/admin/fotografos', f.nombreInformalNormalizado, 'editar']">Editar mis datos y foto</a>
+        </div>
+      </section>
+    }
+  </div>
+} @else if (perfil() === null) {
+  <p class="aviso" role="alert">No se ha podido cargar tu perfil.</p>
+}

@@ -1,0 +1,154 @@
+:host {
+  display: block;
+}
+
+// ---------------- Con sesión: disparador y menú del usuario ----------------
+
+.menu-usuario {
+  position: relative;
+}
+
+.disparador {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem 0.25rem 0.125rem 0.125rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color var(--transition);
+
+  &:hover,
+  &[aria-expanded='true'] {
+    border-color: var(--color-border);
+  }
+}
+
+.disparador__flecha {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--color-text-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--transition);
+}
+
+.disparador__flecha--abierta {
+  transform: rotate(180deg);
+}
+
+// Menú desplegable, alineado a la derecha bajo el disparador.
+.menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 50;
+  width: 16rem;
+  padding: var(--space-1) 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  box-shadow: var(--sombra-menu);
+}
+
+.menu__cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2);
+  margin-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.menu__identidad {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.menu__nombre {
+  color: var(--color-text);
+  font-size: 0.9375rem;
+}
+
+.menu__correo {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu__opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 0.625rem var(--space-2);
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition);
+
+  &:hover {
+    background: var(--color-bg);
+  }
+
+  span {
+    flex: 1;
+  }
+
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.menu__chevron {
+  stroke: var(--color-text-muted) !important;
+}
+
+// "Salir", separado del resto por una línea fina.
+.menu__opcion--salir {
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--color-border);
+}
+
+// ---------------- Sin sesión: botón que abre el panel de autenticación ----------------
+
+.entrar {
+  padding: 0.3rem 0.875rem;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color var(--transition),
+    color var(--transition);
+
+  &:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+  }
+}

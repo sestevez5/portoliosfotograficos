@@ -1,0 +1,66 @@
+@if (fotografo(); as f) {
+  @if (desdeInicio) {
+    <a class="back-link" routerLink="/">&larr; Fotógrafos</a>
+  }
+
+  <!-- Misma cabecera que las páginas de portfolio y de colección: datos del fotógrafo a la izquierda,
+       mantenimiento a la derecha y una línea separadora que la cierra antes de sus portfolios. -->
+  <header class="cabecera">
+    <div class="cabecera__datos">
+      <span class="cabecera__etiqueta">
+        Fotógrafo · {{ f.portfolios.length }} {{ f.portfolios.length === 1 ? 'portfolio' : 'portfolios' }}
+      </span>
+      <h1>Portfolios de {{ nombreCompleto(f) }}</h1>
+      @if (f.descripcion) {
+        <p class="cabecera__descripcion descripcion-artistica" appTextoRecortado>{{ f.descripcion }}</p>
+      }
+    </div>
+    <app-fotografo-acciones class="cabecera__gestion" [fotografo]="f" (eliminado)="alEliminar()" />
+  </header>
+
+  <!-- Solo para quien puede gestionar lo de este fotógrafo (no se elimina: no se muestra). -->
+  @if (sesion.puedeGestionar(f.nombreInformalNormalizado)) {
+    <div class="cabecera-barra">
+      <a class="cabecera-barra__boton" [routerLink]="['/gestion', f.nombreInformalNormalizado, 'portfolios', 'ordenar']">Ordenar portfolios</a>
+      <a class="cabecera-barra__boton" [routerLink]="['/gestion', f.nombreInformalNormalizado, 'portfolios', 'nuevo']">+ Nuevo portfolio</a>
+    </div>
+  }
+
+  <section class="portfolio-grid">
+    @for (portfolio of f.portfolios; track portfolio.nombreNormalizado) {
+      <article class="portfolio-card">
+        <a class="portfolio-card__enlace" [routerLink]="['/', f.nombreInformalNormalizado, portfolio.nombreNormalizado]">
+          <div class="portfolio-card__image">
+            @if (portfolio.coverPhotoUrl) {
+              <img [appFotoReducida]="portfolio.coverPhotoUrl" tamanyos="(max-width: 40rem) 100vw, (max-width: 80rem) 50vw, 33vw" [alt]="portfolio.nombre" loading="lazy" />
+            } @else {
+              <span class="portfolio-card__sin-portada">{{ portfolio.collectionCount ? 'Sin fotos' : 'Sin colecciones' }}</span>
+            }
+          </div>
+          <div class="portfolio-card__info">
+            <h2>{{ portfolio.nombre }}</h2>
+            @if (portfolio.descripcion) {
+              <p>{{ portfolio.descripcion }}</p>
+            }
+            <span class="portfolio-card__meta">
+              {{ portfolio.collectionCount }} {{ portfolio.collectionCount === 1 ? 'colección' : 'colecciones' }}
+            </span>
+          </div>
+        </a>
+        <app-portfolio-acciones
+          class="en-tarjeta"
+          [fotografo]="f.nombreInformalNormalizado"
+          [portfolio]="portfolio"
+          (eliminado)="alEliminarPortfolio()"
+        />
+      </article>
+    } @empty {
+      <p class="empty-state">No hay portfolios disponibles todavía.</p>
+    }
+  </section>
+} @else if (fotografo() === null) {
+  <section class="hero">
+    <h1>Fotógrafo no encontrado</h1>
+    <p><a routerLink="/">Ver todos los fotógrafos</a></p>
+  </section>
+}

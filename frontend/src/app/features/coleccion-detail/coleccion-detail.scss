@@ -1,0 +1,43 @@
+@use '../../shared/estilos/cabecera';
+
+.back-link {
+  display: inline-block;
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color var(--transition);
+}
+
+.back-link:hover {
+  color: var(--color-text);
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  // Cada foto con su proporción original: si en una fila tienen alturas distintas, se centran
+  // verticalmente en ella.
+  align-items: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-5);
+}
+
+.photo-grid__item {
+  padding: 0;
+  border: none;
+  background: var(--color-surface);
+  cursor: pointer;
+  overflow: hidden;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: transform var(--transition);
+  }
+}
+
+.photo-grid__item:hover img {
+  transform: scale(1.04);
+}

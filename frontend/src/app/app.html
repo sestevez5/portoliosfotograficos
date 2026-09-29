@@ -1,12 +1,21 @@
 <div class="site">
-  <header class="site-header">
-    <a class="brand" routerLink="/">Portfolio<span>.</span></a>
-    @if (fotografo(); as f) {
-      <a class="fotografo" [routerLink]="['/', f.slug]">
-        <img class="fotografo__logo" [src]="f.logoUrl" [alt]="f.nombre" />
+  <!-- Franja superior estrecha: la marca a la izquierda; el tema y la sesión del usuario a la derecha. -->
+  <div class="barra-sesion">
+    <a class="brand" routerLink="/">Portfolios fotográficos<span>.</span></a>
+    <div class="barra-sesion__derecha">
+      <app-selector-tema />
+      <app-usuario-sesion />
+    </div>
+  </div>
+
+  <!-- Cabecera con el logo del fotógrafo de la página (solo si lo hay). -->
+  @if (fotografo(); as f) {
+    <header class="site-header">
+      <a class="fotografo" [routerLink]="['/', f.nombreInformalNormalizado]">
+        <img class="fotografo__logo" [src]="f.logoUrl" [alt]="nombreCompleto(f)" />
       </a>
-    }
-  </header>
+    </header>
+  }
 
   <main class="site-main">
     <router-outlet />

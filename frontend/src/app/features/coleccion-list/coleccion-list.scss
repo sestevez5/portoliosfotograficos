@@ -1,0 +1,91 @@
+@use '../../shared/estilos/cabecera';
+
+.hero {
+  padding: var(--space-4) 0 var(--space-5);
+  max-width: 40rem;
+
+  h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    margin-bottom: var(--space-2);
+  }
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color var(--transition);
+
+  &:hover {
+    color: var(--color-text);
+  }
+}
+
+.coleccion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: var(--space-4);
+  padding-bottom: var(--space-5);
+}
+
+// La tarjeta contiene el enlace a la colección y, debajo, sus acciones (un botón no puede ir dentro de un
+// enlace).
+.coleccion-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.coleccion-card__enlace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.coleccion-card__image {
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition);
+  }
+}
+
+// En lugar de la portada, si la colección aún no tiene fotos.
+.coleccion-card__sin-fotos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.coleccion-card__enlace:hover .coleccion-card__image img {
+  transform: scale(1.04);
+}
+
+.coleccion-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+
+  h2 {
+    font-size: 1.5rem;
+  }
+}
+
+.empty-state {
+  color: var(--color-text-muted);
+}

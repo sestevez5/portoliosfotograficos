@@ -2,20 +2,25 @@ import { Component, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { catchError, filter, map, of, switchMap } from 'rxjs';
-import { AlbumService } from './core/services/album';
+import { nombreCompleto } from './core/models/catalogo.model';
+import { CatalogoService } from './core/services/catalogo';
+import { SelectorTema } from './shared/selector-tema/selector-tema';
+import { UsuarioSesion } from './shared/usuario-sesion/usuario-sesion';
 
 @Component({
-  imports: [RouterLink, RouterOutlet],
+  imports: [RouterLink, RouterOutlet, SelectorTema, UsuarioSesion],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
 export class App {
   private readonly router = inject(Router);
-  private readonly albumService = inject(AlbumService);
+  private readonly catalogoService = inject(CatalogoService);
 
-  // Slug del fotógrafo presente en la ruta activa (null en la portada).
-  private readonly slug = toSignal(
+  protected readonly nombreCompleto = nombreCompleto;
+
+  // Segmento de URL del fotógrafo presente en la ruta activa (null en la portada).
+  private readonly segmentoFotografo = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
       map(() => {
@@ -30,9 +35,9 @@ export class App {
   );
 
   protected readonly fotografo = toSignal(
-    toObservable(this.slug).pipe(
-      switchMap((slug) =>
-        slug ? this.albumService.getFotografo(slug).pipe(catchError(() => of(null))) : of(null),
+    toObservable(this.segmentoFotografo).pipe(
+      switchMap((segmento) =>
+        segmento ? this.catalogoService.getFotografo(segmento).pipe(catchError(() => of(null))) : of(null),
       ),
     ),
     { initialValue: null },

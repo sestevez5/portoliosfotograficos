@@ -1,0 +1,59 @@
+@if (portfolio(); as p) {
+  <a class="back-link" [routerLink]="['/', segmentoFotografo()]">&larr; Portfolios</a>
+
+  <!-- Cabecera del portfolio a todo el ancho: datos a la izquierda, mantenimiento a la derecha y
+       una línea separadora que la cierra antes de la colección de colecciones. -->
+  <header class="cabecera">
+    <div class="cabecera__datos">
+      <span class="cabecera__etiqueta">
+        Portfolio · {{ p.colecciones.length }} {{ p.colecciones.length === 1 ? 'colección' : 'colecciones' }}
+      </span>
+      <h1>Portfolio: {{ p.nombre }}</h1>
+      @if (p.descripcion) {
+        <p class="cabecera__descripcion" appTextoRecortado>{{ p.descripcion }}</p>
+      }
+    </div>
+    <app-portfolio-acciones class="cabecera__gestion" [fotografo]="segmentoFotografo()!" [portfolio]="p" (eliminado)="alEliminar()" />
+  </header>
+
+  <!-- Solo para quien puede gestionar lo de este fotógrafo (no se elimina: no se muestra). -->
+  @if (sesion.puedeGestionar(segmentoFotografo())) {
+    <div class="cabecera-barra">
+      <a class="cabecera-barra__boton" [routerLink]="['/gestion', segmentoFotografo(), 'portfolios', p.nombreNormalizado, 'colecciones', 'gestionar']">Gestionar colecciones</a>
+      <a class="cabecera-barra__boton" [routerLink]="['/gestion', segmentoFotografo(), 'portfolios', p.nombreNormalizado, 'colecciones', 'nuevo']">+ Nueva colección</a>
+    </div>
+  }
+
+  <section class="coleccion-grid">
+    @for (coleccion of p.colecciones; track coleccion.nombreNormalizado) {
+      <article class="coleccion-card">
+        <a class="coleccion-card__enlace" [routerLink]="['/', segmentoFotografo(), p.nombreNormalizado, coleccion.nombreNormalizado]">
+          <div class="coleccion-card__image">
+            @if (coleccion.coverPhotoUrl) {
+              <img [appFotoReducida]="coleccion.coverPhotoUrl" tamanyos="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 25vw" [alt]="coleccion.nombre" loading="lazy" />
+            } @else {
+              <span class="coleccion-card__sin-fotos">Sin fotos</span>
+            }
+          </div>
+          <div class="coleccion-card__info">
+            <h2>{{ coleccion.nombre }}</h2>
+          </div>
+        </a>
+        <app-coleccion-acciones
+          class="en-tarjeta"
+          [fotografo]="segmentoFotografo()!"
+          [portfolio]="p.nombreNormalizado"
+          [coleccion]="coleccion"
+          (eliminado)="alEliminarColeccion()"
+        />
+      </article>
+    } @empty {
+      <p class="empty-state">No hay colecciones disponibles todavía.</p>
+    }
+  </section>
+} @else if (portfolio() === null) {
+  <section class="hero">
+    <h1>Portfolio no encontrado</h1>
+    <p><a [routerLink]="['/', segmentoFotografo()]">Ver los portfolios del fotógrafo</a></p>
+  </section>
+}

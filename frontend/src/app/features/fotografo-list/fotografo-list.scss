@@ -11,20 +11,30 @@
 .fotografo-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  // Todas las filas igual de altas (la de la tarjeta más alta), no solo las tarjetas de una misma fila.
+  grid-auto-rows: 1fr;
   gap: var(--space-4);
   margin: 0;
   padding: 0 0 var(--space-5);
   list-style: none;
 }
 
+// La tarjeta contiene el enlace a la página del fotógrafo y, debajo, sus acciones (un botón no
+// puede ir dentro de un enlace).
 .fotografo-card {
-  display: block;
-  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-1);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
+  transition: border-color var(--transition);
+}
+
+.fotografo-card__enlace {
+  flex: 1;
   color: var(--color-text);
   text-decoration: none;
-  transition: border-color var(--transition);
 
   h2 {
     font-size: 1.5rem;
@@ -35,6 +45,25 @@
     margin: 0;
     color: var(--color-text-muted);
   }
+}
+
+// Alto fijo de dos líneas (cabe una descripción de 70 caracteres); si fuera más larga, se corta.
+.fotografo-card__descripcion {
+  height: calc(2 * 1.45em);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.fotografo-card__meta {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
 .fotografo-card:hover {

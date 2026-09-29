@@ -1,0 +1,37 @@
+// Dos opciones unidas, discretas, del tamaño de los textos de la franja superior.
+.selector {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+}
+
+.selector__opcion {
+  padding: 0.25rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    color var(--transition);
+
+  & + & {
+    border-left: 1px solid var(--color-border);
+  }
+
+  &:hover {
+    color: var(--color-text);
+  }
+}
+
+.selector__opcion--activa {
+  background: var(--color-text);
+  color: var(--color-bg);
+
+  &:hover {
+    color: var(--color-bg);
+  }
+}
