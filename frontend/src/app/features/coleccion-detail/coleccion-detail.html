@@ -1,0 +1,60 @@
+@if (coleccion(); as a) {
+  <a class="back-link" [routerLink]="['/', segmentoFotografo(), a.portfolio.nombreNormalizado]">&larr; {{ a.portfolio.nombre }}</a>
+
+  <!-- Misma cabecera que la página del portfolio: datos a la izquierda, mantenimiento a la derecha
+       y una línea separadora que la cierra antes de las fotos. -->
+  <header class="cabecera">
+    <div class="cabecera__datos">
+      <span class="cabecera__etiqueta">
+        Colección · {{ a.fotos.length }} {{ a.fotos.length === 1 ? 'foto' : 'fotos' }}
+      </span>
+      <h1>Colección: "{{ a.nombre }}"</h1>
+      @if (a.descripcion) {
+        <p class="cabecera__descripcion" appTextoRecortado>{{ a.descripcion }}</p>
+      }
+    </div>
+    <app-coleccion-acciones
+      class="cabecera__gestion"
+      [fotografo]="segmentoFotografo()!"
+      [portfolio]="a.portfolio.nombreNormalizado"
+      [coleccion]="a"
+      (eliminado)="alEliminar(a.portfolio.nombreNormalizado)"
+    />
+  </header>
+
+  <!-- Gestión de las fotos dla colección (añadir y eliminar). Solo para quien puede gestionar lo
+       de este fotógrafo (no se elimina: no se muestra). -->
+  @if (sesion.puedeGestionar(segmentoFotografo())) {
+    <div class="cabecera-barra">
+      <a
+        class="cabecera-barra__boton"
+        [routerLink]="['/gestion', segmentoFotografo(), 'portfolios', a.portfolio.nombreNormalizado, 'colecciones', a.nombreNormalizado, 'fotos']"
+        >Gestionar fotos</a
+      >
+    </div>
+  }
+
+  <section class="photo-grid">
+    @for (foto of a.fotos; track foto.nombreFichero; let i = $index) {
+      <button class="photo-grid__item" type="button" (click)="openLightbox(i)">
+        <img [appFotoReducida]="foto.url" tamanyos="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 25vw" [alt]="foto.titulo ?? a.nombre" loading="lazy" />
+      </button>
+    }
+  </section>
+
+  @if (lightboxIndex() !== null) {
+    <app-lightbox
+      [photos]="a.fotos"
+      [index]="lightboxIndex()!"
+      (closeRequested)="closeLightbox()"
+      (indexChange)="lightboxIndex.set($event)"
+    />
+  }
+} @else if (coleccion() === null) {
+  <header class="cabecera">
+    <div class="cabecera__datos">
+      <h1>Colección no encontrada</h1>
+      <p><a [routerLink]="['/', segmentoFotografo()]">Ver los portfolios del fotógrafo</a></p>
+    </div>
+  </header>
+}

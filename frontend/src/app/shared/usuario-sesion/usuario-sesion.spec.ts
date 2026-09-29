@@ -5,10 +5,11 @@ import { provideRouter, Router } from '@angular/router';
 import { vi } from 'vitest';
 import { UsuarioSesion } from './usuario-sesion';
 
-const ANA = {
-  usuario: 'ana.uno',
+const SANTI = {
+  usuario: 'sest2',
+  email: 'santi@example.com',
   rol: 'usuario',
-  fotografo: { nombreInformal: 'Ana Uno', nombreInformalNormalizado: 'ana-uno', logoUrl: '/api/fotografos/ana-uno/logo' },
+  fotografo: { nombreInformal: 'Santi Estévez', nombreInformalNormalizado: 'santi-estevez', logoUrl: '/api/fotografos/santi-estevez/logo' },
 };
 
 describe('UsuarioSesion', () => {
@@ -16,12 +17,8 @@ describe('UsuarioSesion', () => {
   let http: HttpTestingController;
   let elemento: HTMLElement;
 
-  const boton = (texto: string) => [...elemento.querySelectorAll('button')].find((b) => b.textContent!.trim() === texto);
-  const rellenar = (campo: string, valor: string) => {
-    const control = elemento.querySelector<HTMLInputElement>(`#${campo}`)!;
-    control.value = valor;
-    control.dispatchEvent(new Event('input'));
-  };
+  const boton = (texto: string) =>
+    [...elemento.querySelectorAll('button')].find((b) => b.textContent!.replace(/\s+/g, ' ').trim().includes(texto));
   const sesionActual = (usuario: unknown) =>
     http.expectOne((r) => r.method === 'GET' && r.url.endsWith('/api/sesion')).flush({ usuario });
 
@@ -36,61 +33,65 @@ describe('UsuarioSesion', () => {
     await fixture.whenStable();
   });
 
-  it('con la sesión iniciada muestra al usuario, enlaza a su página y permite cerrarla', async () => {
-    sesionActual(ANA);
+  it('con sesión muestra las iniciales y el nombre informal; el menú tiene el correo y las opciones', async () => {
+    sesionActual(SANTI);
     await fixture.whenStable();
-    expect(elemento.textContent).toContain('Ana Uno');
-    expect(elemento.textContent).toContain('ana.uno');
-    expect(elemento.querySelector('a')!.getAttribute('href')).toBe('/ana-uno');
+    expect(elemento.querySelector('.avatar')!.textContent!.trim()).toBe('SE');
+    expect(elemento.querySelector('.disparador__nombre')!.textContent).toBe('Santi Estévez');
+    expect(elemento.querySelector('[role="menu"]')).toBeNull();
 
-    boton('Cerrar sesión')!.click();
+    boton('Santi Estévez')!.click();
+    await fixture.whenStable();
+    const menu = elemento.querySelector('[role="menu"]')!;
+    expect(menu.textContent).toContain('santi@example.com');
+    const enlaces = [...menu.querySelectorAll('a')].map((a) => [a.textContent!.trim(), a.getAttribute('href')]);
+    expect(enlaces).toEqual([
+      ['Mi perfil', '/perfil'],
+      ['Configuración', '/configuracion'],
+    ]);
+  });
+
+  it('el menú se cierra con Escape y al pulsar fuera', async () => {
+    sesionActual(SANTI);
+    await fixture.whenStable();
+    boton('Santi Estévez')!.click();
+    await fixture.whenStable();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await fixture.whenStable();
+    expect(elemento.querySelector('[role="menu"]')).toBeNull();
+
+    boton('Santi Estévez')!.click();
+    await fixture.whenStable();
+    document.body.click();
+    await fixture.whenStable();
+    expect(elemento.querySelector('[role="menu"]')).toBeNull();
+  });
+
+  it('"Salir" cierra la sesión y vuelve a la portada', async () => {
+    sesionActual(SANTI);
+    await fixture.whenStable();
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    boton('Santi Estévez')!.click();
+    await fixture.whenStable();
+    boton('Salir')!.click();
     http.expectOne((r) => r.method === 'DELETE' && r.url.endsWith('/api/sesion')).flush(null, { status: 204, statusText: 'No Content' });
     await fixture.whenStable();
+    expect(navegar).toHaveBeenCalledWith(['/']);
     expect(boton('Iniciar sesión')).toBeDefined();
   });
 
   it('el administrador aparece como tal', async () => {
     sesionActual({ usuario: 'admin', rol: 'administrador' });
     await fixture.whenStable();
-    expect(elemento.textContent).toContain('Administrador');
+    expect(elemento.querySelector('.disparador__nombre')!.textContent).toBe('Administrador');
+    expect(elemento.querySelector('.avatar')!.textContent!.trim()).toBe('A');
   });
 
-  it('sin sesión, el panel inicia sesión y muestra el error si las credenciales no son correctas', async () => {
+  it('sin sesión, "Iniciar sesión" abre el panel de autenticación', async () => {
     sesionActual(null);
     await fixture.whenStable();
     boton('Iniciar sesión')!.click();
     await fixture.whenStable();
     expect(elemento.querySelector('dialog')!.open).toBe(true);
-
-    rellenar('sesion-usuario', 'ana.uno');
-    rellenar('sesion-contrasenya', 'mal');
-    elemento.querySelector('form')!.dispatchEvent(new Event('submit'));
-    const fallida = http.expectOne((r) => r.method === 'POST' && r.url.endsWith('/api/sesion'));
-    expect(fallida.request.body).toEqual({ usuario: 'ana.uno', contrasenya: 'mal' });
-    fallida.flush(
-      { tipo: 'reglaNegocioIncumplida', regla: { codigo: 'USUARIO_CREDENCIALES_INCORRECTAS', mensaje: 'El usuario o la contraseña no son correctos.' }, message: '…' },
-      { status: 422, statusText: 'Unprocessable Content' },
-    );
-    await fixture.whenStable();
-    expect(elemento.querySelector('[role="alert"]')!.textContent).toContain('no son correctos');
-
-    rellenar('sesion-contrasenya', 'secreta123');
-    elemento.querySelector('form')!.dispatchEvent(new Event('submit'));
-    http.expectOne((r) => r.method === 'POST').flush({ usuario: ANA });
-    await fixture.whenStable();
-    expect(elemento.querySelector('dialog')!.open).toBe(false);
-    expect(elemento.textContent).toContain('Ana Uno');
-  });
-
-  it('desde el panel se puede ir al registro', async () => {
-    sesionActual(null);
-    await fixture.whenStable();
-    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
-    boton('Iniciar sesión')!.click();
-    await fixture.whenStable();
-    boton('Regístrate')!.click();
-    await fixture.whenStable();
-    expect(navegar).toHaveBeenCalledWith(['/registro']);
-    expect(elemento.querySelector('dialog')!.open).toBe(false);
   });
 });

@@ -30,12 +30,28 @@
 }
 
 .accion--peligro:hover {
-  border-color: #b5544a;
-  color: #e0877d;
+  border-color: var(--color-peligro);
+  color: var(--color-peligro-texto);
 }
 
 .error {
   margin-top: var(--space-1);
-  color: #e0877d;
+  color: var(--color-peligro-texto);
   font-size: 0.8125rem;
+}
+
+// En las tarjetas (host con la clase "en-tarjeta"): separados del contenido por una línea,
+// alineados a la derecha y más pequeños. La línea va en .acciones, así que sin permiso (sin
+// botones) tampoco se dibuja.
+:host(.en-tarjeta) {
+  .acciones {
+    justify-content: flex-end;
+    padding-top: var(--space-1);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .accion {
+    padding: 0.25rem 0.625rem;
+    font-size: 0.6875rem;
+  }
 }

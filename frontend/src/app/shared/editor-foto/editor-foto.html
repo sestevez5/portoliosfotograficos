@@ -1,0 +1,93 @@
+<dialog #dialogo class="editor" aria-labelledby="editor-titulo" (cancel)="$event.preventDefault(); cancelar()">
+  <p id="editor-titulo" class="editor__titulo">Foto de perfil</p>
+
+  @if (error(); as mensaje) {
+    <p class="editor__error" role="alert">{{ mensaje }}</p>
+  }
+
+  @switch (paso()) {
+    @case ('origen') {
+      <p class="editor__ayuda">Elige una imagen de tu equipo o hazte una foto con la cámara.</p>
+      <div class="origenes">
+        <label class="origen">
+          <input class="origen__archivo" type="file" accept="image/*" (change)="elegirArchivo($event)" />
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M17 8l-5-5-5 5" /><path d="M12 3v12" /></svg>
+          <span>Elegir un archivo</span>
+        </label>
+        <button type="button" class="origen" (click)="usarCamara()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+          <span>Usar la cámara</span>
+        </button>
+      </div>
+      <div class="editor__acciones">
+        <button type="button" class="boton" (click)="cancelar()">Cancelar</button>
+      </div>
+    }
+
+    @case ('camara') {
+      <div class="visor visor--camara" [style.width.px]="visor" [style.height.px]="visor">
+        <video #video class="camara" autoplay playsinline [muted]="true" (loadeddata)="alTenerImagen()"></video>
+        <span class="mascara" aria-hidden="true"></span>
+      </div>
+      @if (!camaraLista()) {
+        <p class="editor__ayuda editor__ayuda--centrada" role="status">Preparando la cámara…</p>
+      }
+      <div class="editor__acciones">
+        <button type="button" class="boton boton--principal" [disabled]="!camaraLista()" (click)="capturar()">Capturar</button>
+        <button type="button" class="boton" (click)="volverAlOrigen()">Volver</button>
+      </div>
+    }
+
+    @case ('encuadre') {
+      <p class="editor__ayuda">Arrastra la imagen para colocarla y amplíala para ajustar el círculo.</p>
+      <div
+        class="visor"
+        tabindex="0"
+        role="application"
+        aria-label="Encuadre de la foto: arrastra para mover, rueda o + y - para ampliar"
+        [style.width.px]="visor"
+        [style.height.px]="visor"
+        (pointerdown)="empezarArrastre($event)"
+        (pointermove)="arrastrar($event)"
+        (pointerup)="terminarArrastre()"
+        (pointercancel)="terminarArrastre()"
+        (wheel)="alGirarRueda($event)"
+        (keydown)="alPulsarTecla($event)"
+      >
+        @if (imagen(); as img) {
+          <img
+            class="visor__imagen"
+            [src]="img.src"
+            alt=""
+            draggable="false"
+            [style.left.px]="caja().izquierda"
+            [style.top.px]="caja().arriba"
+            [style.width.px]="caja().ancho"
+            [style.height.px]="caja().alto"
+          />
+        }
+        <span class="mascara" aria-hidden="true"></span>
+      </div>
+
+      <label class="zoom">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3M8 11h6" /></svg>
+        <input
+          type="range"
+          min="1"
+          [max]="zoomMaximo"
+          step="0.01"
+          aria-label="Ampliación"
+          [value]="zoom()"
+          (input)="cambiarZoom(+$any($event.target).value)"
+        />
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3M8 11h6M11 8v6" /></svg>
+      </label>
+
+      <div class="editor__acciones">
+        <button type="button" class="boton boton--principal" (click)="aceptar()">Aceptar</button>
+        <button type="button" class="boton" (click)="volverAlOrigen()">Elegir otra</button>
+        <button type="button" class="boton" (click)="cancelar()">Cancelar</button>
+      </div>
+    }
+  }
+</dialog>

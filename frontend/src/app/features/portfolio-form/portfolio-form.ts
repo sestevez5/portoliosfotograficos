@@ -3,8 +3,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
-import { PortfolioAlta, PortfolioDetalle, ReglaNegocioIncumplida } from '../../core/models/album.model';
-import { AlbumService } from '../../core/services/album';
+import { PortfolioAlta, PortfolioDetalle, ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
+import { CatalogoService } from '../../core/services/catalogo';
 
 // Alta y edición de un portfolio por su fotógrafo propietario
 // (/gestion/:fotografo/portfolios/nuevo y /gestion/:fotografo/portfolios/:portfolio/editar).
@@ -19,7 +19,7 @@ import { AlbumService } from '../../core/services/album';
 })
 export class PortfolioForm {
   private readonly fb = inject(NonNullableFormBuilder);
-  private readonly albumService = inject(AlbumService);
+  private readonly catalogoService = inject(CatalogoService);
   private readonly router = inject(Router);
   private readonly params = inject(ActivatedRoute).snapshot.paramMap;
 
@@ -40,7 +40,7 @@ export class PortfolioForm {
 
   constructor() {
     if (this.portfolioEditado) {
-      this.albumService.getPortfolio(this.fotografo, this.portfolioEditado).subscribe({
+      this.catalogoService.getPortfolio(this.fotografo, this.portfolioEditado).subscribe({
         next: ({ nombre, descripcion }) => {
           this.formulario.patchValue({ nombre, descripcion: descripcion ?? '' });
           this.cargando.set(false);
@@ -75,8 +75,8 @@ export class PortfolioForm {
     this.reglaIncumplida.set(null);
     this.errorGeneral.set(null);
     const peticion: Observable<PortfolioDetalle> = this.portfolioEditado
-      ? this.albumService.editarPortfolio(this.fotografo, this.portfolioEditado, alta)
-      : this.albumService.crearPortfolio(this.fotografo, alta);
+      ? this.catalogoService.editarPortfolio(this.fotografo, this.portfolioEditado, alta)
+      : this.catalogoService.crearPortfolio(this.fotografo, alta);
     peticion.subscribe({
       next: (portfolio) => this.router.navigate(['/', this.fotografo, portfolio.nombreNormalizado]),
       error: (respuesta: HttpErrorResponse) => {

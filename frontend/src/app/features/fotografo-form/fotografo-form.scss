@@ -1,1 +1,29 @@
 @use '../../shared/estilos/formulario';
+
+// Foto de perfil en el formulario del fotógrafo: el círculo y, al lado, sus acciones.
+.foto-perfil {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.foto-perfil__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.foto-perfil__titulo {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.foto-perfil__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: 0.25rem;
+}

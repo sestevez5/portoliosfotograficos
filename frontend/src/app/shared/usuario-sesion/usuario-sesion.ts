@@ -1,88 +1,60 @@
-import { Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, ElementRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { ReglaNegocioIncumplida } from '../../core/models/album.model';
 import { SesionService } from '../../core/services/sesion';
+import { Avatar } from '../avatar/avatar';
+import { PanelSesion } from '../panel-sesion/panel-sesion';
 
-// Esquina superior de la página: quién tiene la sesión iniciada (con enlace a su página si es
-// fotógrafo) y "Cerrar sesión"; o, sin sesión, "Iniciar sesión", que abre el panel de
-// autenticación. El panel pide usuario (o correo) y contraseña, y ofrece registrarse (/registro).
+// Esquina superior de la página. Con sesión: su foto de perfil (o sus iniciales), nombre (el nombre informal
+// del fotógrafo, o "Administrador") y un menú desplegable con "Mi perfil", "Configuración" y
+// "Salir"; se cierra al pulsar fuera, con Escape o al elegir una opción. Sin sesión: "Iniciar
+// sesión", que abre el panel de autenticación (usuario o correo y contraseña; ofrece registrarse).
 @Component({
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [RouterLink, Avatar, PanelSesion],
   selector: 'app-usuario-sesion',
   styleUrl: './usuario-sesion.scss',
   templateUrl: './usuario-sesion.html',
+  host: {
+    '(document:click)': 'alPulsarFuera($event)',
+    '(document:keydown.escape)': 'cerrarMenu()',
+  },
 })
 export class UsuarioSesion {
-  private readonly fb = inject(NonNullableFormBuilder);
   private readonly router = inject(Router);
+  private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly sesion = inject(SesionService);
 
-  protected readonly panelAbierto = signal(false);
-  protected readonly enviando = signal(false);
-  protected readonly error = signal<string | null>(null);
+  protected readonly menuAbierto = signal(false);
 
-  protected readonly formulario = this.fb.group({
-    usuario: ['', Validators.required],
-    contrasenya: ['', Validators.required],
+  protected readonly nombre = computed(() => {
+    const usuario = this.sesion.usuario();
+    if (!usuario) return '';
+    return usuario.fotografo?.nombreInformal ?? (usuario.rol === 'administrador' ? 'Administrador' : usuario.usuario);
   });
 
-  private readonly panel = viewChild.required<ElementRef<HTMLDialogElement>>('panel');
+  protected alternarMenu(): void {
+    this.menuAbierto.update((abierto) => !abierto);
+  }
+
+  protected cerrarMenu(): void {
+    this.menuAbierto.set(false);
+  }
+
+  protected alPulsarFuera(evento: Event): void {
+    if (this.menuAbierto() && !this.elemento.nativeElement.contains(evento.target as Node)) {
+      this.menuAbierto.set(false);
+    }
+  }
+
+  // Panel de autenticación (sin sesión).
+  protected readonly panelAbierto = signal(false);
 
   constructor() {
     this.sesion.cargar();
-
-    // showModal()/close() pueden no existir fuera de un navegador real (p. ej. en los tests).
-    effect(() => {
-      const panel = this.panel().nativeElement;
-      if (this.panelAbierto() && !panel.open) {
-        if (typeof panel.showModal === 'function') panel.showModal();
-        else panel.setAttribute('open', '');
-      } else if (!this.panelAbierto() && panel.open) {
-        if (typeof panel.close === 'function') panel.close();
-        else panel.removeAttribute('open');
-      }
-    });
   }
 
-  protected abrirPanel(): void {
-    this.formulario.reset();
-    this.error.set(null);
-    this.panelAbierto.set(true);
-  }
-
-  protected cerrarPanel(): void {
-    this.panelAbierto.set(false);
-  }
-
-  // Ir al registro cierra el panel.
-  protected registrarse(): void {
-    this.panelAbierto.set(false);
-    this.router.navigate(['/registro']);
-  }
-
-  protected entrar(): void {
-    this.formulario.markAllAsTouched();
-    if (this.formulario.invalid || this.enviando()) {
-      return;
-    }
-    this.enviando.set(true);
-    this.error.set(null);
-    this.sesion.iniciar(this.formulario.getRawValue()).subscribe({
-      next: () => {
-        this.enviando.set(false);
-        this.panelAbierto.set(false);
-      },
-      error: (respuesta: HttpErrorResponse) => {
-        this.enviando.set(false);
-        const regla = respuesta.status === 422 ? (respuesta.error as ReglaNegocioIncumplida) : null;
-        this.error.set(regla?.regla?.mensaje ?? 'No se ha podido conectar con el servidor.');
-      },
-    });
-  }
-
+  // Cierra la sesión y vuelve a la portada (por si estaba en una página del usuario).
   protected salir(): void {
-    this.sesion.cerrar().subscribe();
+    this.menuAbierto.set(false);
+    this.sesion.cerrar().subscribe(() => this.router.navigate(['/']));
   }
 }

@@ -1,0 +1,55 @@
+<section class="hero">
+  <a class="back-link" [routerLink]="volver">&larr; Volver a los portfolios</a>
+  <h1>Ordenar portfolios</h1>
+  @if (fotografo(); as f) {
+    <p>{{ nombreCompleto(f) }} · {{ portfolios().length }} {{ portfolios().length === 1 ? 'portfolio' : 'portfolios' }}</p>
+    @if (portfolios().length > 1) {
+      <p>Arrastra cada portfolio al lugar que quieres que ocupe. El orden se guarda al soltarlo.</p>
+    }
+  }
+</section>
+
+@if (fotografo() === null) {
+  <div class="aviso" role="alert">
+    <p class="aviso__titulo">Fotógrafo no encontrado</p>
+    <p><a routerLink="/">Ver todos los fotógrafos</a></p>
+  </div>
+} @else if (fotografo()) {
+  @if (aviso(); as mensaje) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">No se ha podido guardar el nuevo orden</p>
+      <p>{{ mensaje }}</p>
+    </div>
+  }
+
+  <section class="rejilla" [class.rejilla--guardando]="guardando()" [attr.aria-busy]="guardando()">
+    @for (portfolio of portfolios(); track portfolio.nombreNormalizado; let i = $index) {
+      <figure
+        class="tarjeta"
+        [class.tarjeta--arrastrada]="orden.arrastrado() === portfolio.nombreNormalizado"
+        [class.tarjeta--ordenable]="puedeOrdenar()"
+        [attr.draggable]="puedeOrdenar()"
+        (dragstart)="orden.empezar($event, portfolio, puedeOrdenar())"
+        (dragover)="orden.pasarSobre($event, portfolio)"
+        (dragend)="orden.terminar($event)"
+      >
+        <span class="tarjeta__posicion">{{ i + 1 }}</span>
+        <div class="tarjeta__imagen">
+          @if (portfolio.coverPhotoUrl) {
+            <img [appFotoReducida]="portfolio.coverPhotoUrl" tamanyos="(max-width: 40rem) 50vw, 20vw" [alt]="portfolio.nombre" loading="lazy" draggable="false" />
+          } @else {
+            <span class="tarjeta__sin-portada">{{ portfolio.collectionCount ? 'Sin fotos' : 'Sin colecciones' }}</span>
+          }
+        </div>
+        <figcaption class="tarjeta__pie">
+          <span class="tarjeta__nombre" [title]="portfolio.nombre">{{ portfolio.nombre }}</span>
+          <span class="tarjeta__meta">
+            {{ portfolio.collectionCount }} {{ portfolio.collectionCount === 1 ? 'colección' : 'colecciones' }}
+          </span>
+        </figcaption>
+      </figure>
+    } @empty {
+      <p class="vacio">Este fotógrafo aún no tiene portfolios.</p>
+    }
+  </section>
+}

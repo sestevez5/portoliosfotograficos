@@ -1,17 +1,21 @@
 <div class="site">
-  <!-- Franja superior estrecha, antes de la cabecera: la sesión del usuario. -->
+  <!-- Franja superior estrecha: la marca a la izquierda; el tema y la sesión del usuario a la derecha. -->
   <div class="barra-sesion">
-    <app-usuario-sesion />
+    <a class="brand" routerLink="/">Portfolios fotográficos<span>.</span></a>
+    <div class="barra-sesion__derecha">
+      <app-selector-tema />
+      <app-usuario-sesion />
+    </div>
   </div>
 
-  <header class="site-header">
-    <a class="brand" routerLink="/">Portfolios<span>.</span></a>
-    @if (fotografo(); as f) {
+  <!-- Cabecera con el logo del fotógrafo de la página (solo si lo hay). -->
+  @if (fotografo(); as f) {
+    <header class="site-header">
       <a class="fotografo" [routerLink]="['/', f.nombreInformalNormalizado]">
         <img class="fotografo__logo" [src]="f.logoUrl" [alt]="nombreCompleto(f)" />
       </a>
-    }
-  </header>
+    </header>
+  }
 
   <main class="site-main">
     <router-outlet />

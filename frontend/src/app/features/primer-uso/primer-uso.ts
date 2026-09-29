@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { PrimerUso as DatosPrimerUso, ReglaNegocioIncumplida } from '../../core/models/album.model';
+import { PrimerUso as DatosPrimerUso, ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
 import { AdministracionService } from '../../core/services/administracion';
 
 // Debe coincidir con LONGITUD_MINIMA_CONTRASENYA del backend (reglas/validaciones.ts).

@@ -46,6 +46,29 @@
     <p class="seccion">Datos de fotógrafo</p>
   }
 
+  <div class="foto-perfil">
+    <app-avatar [nombre]="nombreParaAvatar() || '?'" [fotoUrl]="fotoUrl()" [tamanyo]="5.5" />
+    <div class="foto-perfil__datos">
+      <span class="foto-perfil__titulo">Foto de perfil</span>
+      <small class="ayuda">Desde un archivo o con la cámara; eliges la parte que se verá en el círculo. No es obligatoria.</small>
+      @if (errorFoto(); as mensaje) {
+        <small class="error" role="alert">{{ mensaje }}</small>
+      }
+      <div class="foto-perfil__acciones">
+        <button type="button" class="boton" [disabled]="guardandoFoto() || cargando()" (click)="editorAbierto.set(true)">
+          {{ fotoUrl() ? 'Cambiar foto' : 'Añadir foto' }}
+        </button>
+        @if (fotoUrl()) {
+          <button type="button" class="boton" [disabled]="guardandoFoto()" (click)="quitarFoto()">Quitar</button>
+        }
+        @if (guardandoFoto()) {
+          <small class="ayuda">Guardando…</small>
+        }
+      </div>
+    </div>
+  </div>
+  <app-editor-foto [(abierto)]="editorAbierto" (aceptada)="fotoAceptada($event)" />
+
   <div class="campo">
     <label for="nombreInformal">Nombre informal *</label>
     <input id="nombreInformal" formControlName="nombreInformal" autocomplete="nickname" />
@@ -95,7 +118,7 @@
   <div class="campo">
     <label for="descripcion">Descripción</label>
     <textarea id="descripcion" formControlName="descripcion" rows="3"></textarea>
-    <small class="ayuda">Una línea sobre tu fotografía; aparece en tu página.</small>
+    <small class="ayuda">Una línea sobre tu fotografía; será un texto que acompañará a tu nombre en tu página. No es obligatorio.</small>
   </div>
 
   <div class="fila">

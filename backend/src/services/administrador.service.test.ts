@@ -15,12 +15,12 @@ const { cambiarContrasenyaAdministrador, completarPrimerUso, esPrimerUso } = awa
 const { ReglaNegocioIncumplida } = await import('../reglas/index.js');
 const { verificarContrasenya } = await import('../utils/contrasenya.js');
 const { abrirBaseDatos } = await import('../db/conexion.js');
-const { albumsRouter } = await import('../routes/albums.routes.js');
+const { catalogoRouter } = await import('../routes/catalogo.routes.js');
 const { gestionarErrores } = await import('../gestionar-errores.js');
 
 const db = abrirBaseDatos();
 const app = express();
-app.use('/api', albumsRouter);
+app.use('/api', catalogoRouter);
 app.use(gestionarErrores);
 const servidor = app.listen(0);
 const api = `http://localhost:${(servidor.address() as AddressInfo).port}/api`;
@@ -81,9 +81,28 @@ test('cambiar la contraseña exige la actual y una nueva válida y distinta', as
     esRegla('USUARIO_CONTRASENYA_REPETIDA'),
   );
 
-  const incorrecta = await fetch(`${api}/admin/contrasenya`, {
+  // Por la API hace falta la sesión del administrador.
+  const cambio = { contrasenyaActual: 'nueva-clave-1', contrasenyaNueva: 'otra-clave-2' };
+  const sinSesion = await fetch(`${api}/admin/contrasenya`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cambio),
+  });
+  assert.equal(sinSesion.status, 401);
+  const cookie = (
+    await fetch(`${api}/sesion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario: 'admin', contrasenya: 'nueva-clave-1' }),
+    })
+  ).headers
+    .get('set-cookie')!
+    .split(';')[0];
+  const conSesion = { 'Content-Type': 'application/json', Cookie: cookie };
+
+  const incorrecta = await fetch(`${api}/admin/contrasenya`, {
+    method: 'PUT',
+    headers: conSesion,
     body: JSON.stringify({ contrasenyaActual: 'mal', contrasenyaNueva: 'otra-clave-2' }),
   });
   assert.equal(incorrecta.status, 422);
@@ -91,8 +110,8 @@ test('cambiar la contraseña exige la actual y una nueva válida y distinta', as
 
   const correcta = await fetch(`${api}/admin/contrasenya`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contrasenyaActual: 'nueva-clave-1', contrasenyaNueva: 'otra-clave-2' }),
+    headers: conSesion,
+    body: JSON.stringify(cambio),
   });
   assert.equal(correcta.status, 204);
   assert.ok(verificarContrasenya('otra-clave-2', hashAdministrador()));

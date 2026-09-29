@@ -9,65 +9,57 @@
   min-height: 100dvh;
 }
 
-.site-header {
+// Franja superior estrecha: la marca a la izquierda; el tema y la sesión del usuario a la derecha.
+// Una línea fina la separa del resto de la página.
+.barra-sesion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  padding: var(--space-1) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.barra-sesion__derecha {
   display: flex;
   align-items: center;
-  padding: var(--space-4) var(--space-5);
+  gap: var(--space-3);
 }
 
 .brand {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text);
   text-decoration: none;
+  white-space: nowrap;
 
   span {
     color: var(--color-text-muted);
   }
 }
 
-// Franja superior estrecha con la sesión del usuario, alineada a la derecha y separada de la
-// cabecera por una línea fina.
-.barra-sesion {
+// Cabecera con el logo del fotógrafo: estrecha, ya sin la marca.
+.site-header {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  min-height: 2.75rem;
-  padding: var(--space-1) var(--space-5);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-5);
 }
 
 .fotografo {
   margin-left: auto;
-  font-size: 0.875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
   text-decoration: none;
-  transition: color var(--transition);
-}
-
-.fotografo:hover {
-  color: var(--color-text);
 }
 
 .fotografo__logo {
   display: block;
-  height: 4.5rem;
+  // La firma es de tinta clara: en el tema claro se invierte (ver --filtro-logo en styles.scss).
+  filter: var(--filtro-logo);
+  height: 3.75rem;
   width: auto;
-}
-
-@media (max-width: 640px) {
-  .fotografo__logo {
-    height: 3rem;
-  }
-
-  .barra-sesion {
-    padding: var(--space-1) var(--space-3);
-  }
 }
 
 .site-main {
@@ -76,8 +68,25 @@
 }
 
 @media (max-width: 640px) {
+  .barra-sesion {
+    padding: var(--space-1) var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .barra-sesion__derecha {
+    gap: var(--space-2);
+  }
+
+  .brand {
+    font-size: 1rem;
+  }
+
   .site-header {
-    padding: var(--space-3) var(--space-3);
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .fotografo__logo {
+    height: 2.75rem;
   }
 
   .site-main {

@@ -8,52 +8,11 @@
   }
 }
 
-.acciones-portada {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-}
-
-// Enlace discreto a la gestión de la aplicación (el administrador).
-.enlace-admin {
-  color: var(--color-text-muted);
-  font-size: 0.8125rem;
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition:
-    color var(--transition),
-    border-color var(--transition);
-
-  &:hover {
-    color: var(--color-text);
-    border-bottom-color: var(--color-text-muted);
-  }
-}
-
-.nuevo {
-  display: inline-block;
-  padding: 0.625rem 1.25rem;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition:
-    border-color var(--transition),
-    color var(--transition);
-
-  &:hover {
-    border-color: var(--color-text-muted);
-    color: var(--color-text);
-  }
-}
-
 .fotografo-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  // Todas las filas igual de altas (la de la tarjeta más alta), no solo las tarjetas de una misma fila.
+  grid-auto-rows: 1fr;
   gap: var(--space-4);
   margin: 0;
   padding: 0 0 var(--space-5);
@@ -66,7 +25,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-1);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   transition: border-color var(--transition);
@@ -88,6 +47,16 @@
   }
 }
 
+// Alto fijo de dos líneas (cabe una descripción de 70 caracteres); si fuera más larga, se corta.
+.fotografo-card__descripcion {
+  height: calc(2 * 1.45em);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
 .fotografo-card__meta {
   display: block;
   margin-top: var(--space-2);
@@ -99,11 +68,6 @@
 
 .fotografo-card:hover {
   border-color: var(--color-text-muted);
-}
-
-.fotografo-card__acciones {
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--color-border);
 }
 
 .empty-state {

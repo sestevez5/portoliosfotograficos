@@ -5,8 +5,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  // Casi opaco: la página de detrás apenas se intuye.
-  background: rgba(0, 0, 0, 0.97);
+  // Casi opaco, del color de fondo del tema: la página de detrás apenas se intuye.
+  background: var(--color-visor-fondo);
   padding: var(--space-2);
 }
 

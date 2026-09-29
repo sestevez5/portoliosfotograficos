@@ -2,10 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
+import { SesionService } from '../../core/services/sesion';
 import { FotografoAcciones } from './fotografo-acciones';
 
 const ADVERTENCIA =
-  'El usuario que intenta eliminar tiene portfolios creados. Si lo elimina, se perderán de forma permanente sus portfolios, álbumes y fotos. ¿Desea continuar?';
+  'El usuario que intenta eliminar tiene portfolios creados. Si lo elimina, se perderán de forma permanente sus portfolios, colecciones y fotos. ¿Desea continuar?';
 
 describe('FotografoAcciones', () => {
   let fixture: ComponentFixture<FotografoAcciones>;
@@ -23,6 +24,8 @@ describe('FotografoAcciones', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(FotografoAcciones);
+    // Los botones solo se muestran a quien puede gestionarlo: aquí, el administrador.
+    TestBed.inject(SesionService).usuario.set({ usuario: 'admin', rol: 'administrador' });
     fixture.componentRef.setInput('fotografo', { nombreInformal: 'Santi Estévez', nombreInformalNormalizado: 'santi-estevez' });
     eliminado = false;
     fixture.componentInstance.eliminado.subscribe(() => (eliminado = true));
@@ -79,5 +82,25 @@ describe('FotografoAcciones', () => {
       statusText: 'No Content',
     });
     expect(eliminado).toBe(true);
+  });
+
+  describe('permisos', () => {
+    const sesion = () => TestBed.inject(SesionService);
+    const hayBotones = async () => {
+      await fixture.whenStable();
+      return elemento.querySelector('.acciones') !== null;
+    };
+
+    it('sin sesión no se muestran los botones', async () => {
+      sesion().usuario.set(null);
+      expect(await hayBotones()).toBe(false);
+    });
+
+    it('el dueño los ve; otro usuario, no', async () => {
+      sesion().usuario.set({ usuario: 'ana', rol: 'usuario', fotografo: { nombreInformal: 'Santi Estévez', nombreInformalNormalizado: 'santi-estevez', logoUrl: '' } });
+      expect(await hayBotones()).toBe(true);
+      sesion().usuario.set({ usuario: 'bea', rol: 'usuario', fotografo: { nombreInformal: 'Bea', nombreInformalNormalizado: 'bea', logoUrl: '' } });
+      expect(await hayBotones()).toBe(false);
+    });
   });
 });

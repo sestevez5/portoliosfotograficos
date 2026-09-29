@@ -1,4 +1,4 @@
-// Importa un catálogo en JSON (forma OrganizacionFotos[], ver types/album.ts) en la base de datos
+// Importa un catálogo en JSON (forma OrganizacionFotos[], ver types/catalogo.ts) en la base de datos
 // SQLite. La BD es la única fuente de verdad: esto solo sirve para cargas masivas puntuales (p. ej.
 // fotos, mientras no se puedan subir desde la web). Las carpetas de datos/fotos ya deben existir
 // con los nombres normalizados.
@@ -40,6 +40,6 @@ try {
 }
 console.log(
   `Importado ${ruta} en ${dbPath}: ${totales.fotografos} fotógrafos, ${totales.portfolios} portfolios, ` +
-    `${totales.albumes} álbumes, ${totales.fotos} fotos.`,
+    `${totales.colecciones} colecciones, ${totales.fotos} fotos.`,
 );
 db.close();

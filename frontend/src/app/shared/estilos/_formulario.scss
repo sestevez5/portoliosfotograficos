@@ -1,4 +1,4 @@
-// Estilos comunes de los formularios (alta y edición de fotógrafos, portfolios y álbumes, primer
+// Estilos comunes de los formularios (alta y edición de fotógrafos, portfolios y colecciones, primer
 // uso y contraseña del administrador). Cada formulario los incluye con
 // @use '../../shared/estilos/formulario' en su SCSS (siguen siendo locales al componente).
 
@@ -66,7 +66,7 @@
     }
 
     &.ng-invalid.ng-touched {
-      border-color: #b5544a;
+      border-color: var(--color-peligro);
     }
   }
 
@@ -81,15 +81,15 @@
 }
 
 .error {
-  color: #e0877d;
+  color: var(--color-peligro-texto);
   font-size: 0.8125rem;
 }
 
 .aviso {
   padding: var(--space-2) var(--space-3);
-  border: 1px solid #b5544a;
+  border: 1px solid var(--color-peligro);
   border-left-width: 3px;
-  background: rgba(181, 84, 74, 0.08);
+  background: var(--color-peligro-fondo);
 
   p {
     color: var(--color-text);

@@ -1,9 +1,9 @@
 {
   "name": "portfolio-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "API sencilla que sirve el catálogo de álbumes/fotos y las imágenes estáticas del portfolio fotográfico.",
+  "description": "API sencilla que sirve el catálogo de colecciones/fotos y las imágenes estáticas del portfolio fotográfico.",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -13,14 +13,15 @@
     "db:importar": "tsx src/scripts/importar-json.ts",
     "fotografo:renombrar": "tsx src/scripts/renombrar-fotografo.ts",
     "portfolio:renombrar": "tsx src/scripts/renombrar-portfolio.ts",
-    "album:renombrar": "tsx src/scripts/renombrar-portfolio.ts --album",
+    "coleccion:renombrar": "tsx src/scripts/renombrar-portfolio.ts --coleccion",
     "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "opentype.js": "^1.3.4"
+    "opentype.js": "^1.3.4",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",

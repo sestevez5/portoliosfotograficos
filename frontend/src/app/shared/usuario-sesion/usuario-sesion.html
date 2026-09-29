@@ -1,44 +1,54 @@
 @if (sesion.usuario(); as usuario) {
-  <div class="usuario">
-    <div class="usuario__datos">
-      @if (usuario.fotografo; as f) {
-        <a class="usuario__nombre" [routerLink]="['/', f.nombreInformalNormalizado]">{{ f.nombreInformal }}</a>
-      } @else {
-        <span class="usuario__nombre">{{ usuario.rol === 'administrador' ? 'Administrador' : usuario.usuario }}</span>
-      }
-      <span class="usuario__cuenta">{{ usuario.usuario }}</span>
-    </div>
-    <button type="button" class="enlace" (click)="salir()">Cerrar sesión</button>
+  <!-- Con sesión: círculo con las iniciales, nombre y ▾; al pulsar, el menú del usuario. -->
+  <div class="menu-usuario">
+    <button
+      type="button"
+      class="disparador"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="menuAbierto()"
+      (click)="alternarMenu()"
+    >
+      <app-avatar [nombre]="nombre()" [fotoUrl]="usuario.fotoUrl" />
+      <span class="disparador__nombre">{{ nombre() }}</span>
+      <svg class="disparador__flecha" [class.disparador__flecha--abierta]="menuAbierto()" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </button>
+
+    @if (menuAbierto()) {
+      <div class="menu" role="menu">
+        <div class="menu__cabecera">
+          <app-avatar [nombre]="nombre()" [fotoUrl]="usuario.fotoUrl" [tamanyo]="3" />
+          <div class="menu__identidad">
+            <span class="menu__nombre">{{ nombre() }}</span>
+            <span class="menu__correo">{{ usuario.email ?? usuario.usuario }}</span>
+          </div>
+        </div>
+
+        <a class="menu__opcion" role="menuitem" routerLink="/perfil" (click)="cerrarMenu()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" /></svg>
+          <span>Mi perfil</span>
+          <svg class="menu__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </a>
+        <a class="menu__opcion" role="menuitem" routerLink="/configuracion" (click)="cerrarMenu()">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
+            />
+          </svg>
+          <span>Configuración</span>
+          <svg class="menu__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </a>
+        <button type="button" class="menu__opcion menu__opcion--salir" role="menuitem" (click)="salir()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg>
+          <span>Salir</span>
+        </button>
+      </div>
+    }
   </div>
 } @else {
-  <button type="button" class="entrar" (click)="abrirPanel()">Iniciar sesión</button>
+  <button type="button" class="entrar" (click)="panelAbierto.set(true)">Iniciar sesión</button>
 }
 
-<dialog #panel class="panel" aria-labelledby="panel-titulo" (cancel)="$event.preventDefault(); cerrarPanel()">
-  <p id="panel-titulo" class="panel__titulo">Iniciar sesión</p>
-
-  <form class="panel__formulario" [formGroup]="formulario" (ngSubmit)="entrar()" novalidate>
-    @if (error(); as mensaje) {
-      <p class="panel__error" role="alert">{{ mensaje }}</p>
-    }
-    <div class="campo">
-      <label for="sesion-usuario">Usuario o correo</label>
-      <input id="sesion-usuario" formControlName="usuario" autocomplete="username" />
-    </div>
-    <div class="campo">
-      <label for="sesion-contrasenya">Contraseña</label>
-      <input id="sesion-contrasenya" type="password" formControlName="contrasenya" autocomplete="current-password" />
-    </div>
-    <div class="panel__acciones">
-      <button type="submit" class="boton boton--principal" [disabled]="enviando()">
-        {{ enviando() ? 'Entrando…' : 'Entrar' }}
-      </button>
-      <button type="button" class="boton" (click)="cerrarPanel()">Cancelar</button>
-    </div>
-  </form>
-
-  <p class="panel__registro">
-    ¿No tienes cuenta?
-    <button type="button" class="enlace" (click)="registrarse()">Regístrate</button>
-  </p>
-</dialog>
+<app-panel-sesion [(abierto)]="panelAbierto" />

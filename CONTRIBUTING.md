@@ -10,9 +10,9 @@ La aplicación tiene dos partes independientes: `backend/` (API en Node.js + Exp
 
 ```
 backend/datos/
-├── BD/portfolio.db          base de datos (fotógrafos, portfolios, álbumes, fotos, tags)
+├── BD/portfolio.db          base de datos (fotógrafos, portfolios, colecciones, fotos, tags)
 ├── logos/                   logos de los fotógrafos (se generan solos)
-└── fotos/<fotógrafo>/<portfolio>/<álbum>/<fichero>.jpg
+└── fotos/<fotógrafo>/<portfolio>/<colección>/<fichero>.jpg
 ```
 
 **La carpeta `backend/datos` no está en el repositorio** (está en `.gitignore`). Cada entorno tiene sus propios
@@ -20,7 +20,7 @@ datos y nunca se suben a git. Al clonar, no tendrás ni fotos ni base de datos: 
 primera vez que arranca el backend.
 
 Los nombres de las carpetas no se eligen a mano: son la forma "normalizada" del nombre del fotógrafo, portfolio o
-álbum (minúsculas, sin tildes, "ñ" → "ny", espacios → guiones). Por ejemplo, el álbum "Montaña" de "Irene Castaño"
+colección (minúsculas, sin tildes, "ñ" → "ny", espacios → guiones). Por ejemplo, la colección "Montaña" de "Irene Castaño"
 está en `fotos/irene-castanyo/<portfolio>/montanya/`. Si creas o renombras desde la web, la aplicación crea y
 renombra las carpetas por ti.
 
@@ -60,15 +60,15 @@ npm start
 ```
 
 Abre http://localhost:4200. La primera vez aparece la **bienvenida del primer uso**: identifícate como administrador
-con usuario `admin` y contraseña `admin` (puedes cambiarla ahí mismo o más tarde desde "Contraseña del administrador"
-en la portada). Después la aplicación estará vacía: la base de datos se acaba de crear en
+con usuario `admin` y contraseña `admin` (puedes cambiarla ahí mismo o más tarde en
+http://localhost:4200/admin/contrasenya). Después la aplicación estará vacía: la base de datos se acaba de crear en
 `backend/datos/BD/portfolio.db`.
 
 ### Cargar datos de prueba
 
 Tienes dos opciones:
 
-**a) Desde la web.** Crea un fotógrafo con "+ Nuevo fotógrafo" y, en su página, portfolios y álbumes. La aplicación
+**a) Desde la web.** Crea un fotógrafo registrándote ("Iniciar sesión" → "Regístrate") y, en su página, portfolios y colecciones. La aplicación
 crea las carpetas. Todavía no se pueden subir fotos desde la web ("Gestionar fotos" aún no funciona).
 
 **b) Con un catálogo en JSON (incluye fotos).** Coloca las imágenes en carpetas con los nombres normalizados:
@@ -93,7 +93,7 @@ web):
     "portfolios": [
       {
         "nombre": "Viajes",
-        "albumes": [
+        "colecciones": [
           {
             "nombre": "Mar",
             "tags": ["costa"],
@@ -252,7 +252,7 @@ git checkout -b feature/descripcion-corta
 ```
 
 - Haz commits pequeños con mensajes en español, en presente y describiendo el cambio ("Añade el formulario de
-  álbumes", "Corrige el orden de las fotos").
+  colecciones", "Corrige el orden de las fotos").
 - Cuando esté listo y pasen las comprobaciones, sube la rama y abre un pull request **contra `develop`**.
 - Si tu cambio es visible para el usuario, añade una línea en `CHANGELOG.md`, sección "Sin publicar".
 - Nunca subas datos: ni fotos, ni bases de datos, ni ficheros `.env`/`.env.pre`.

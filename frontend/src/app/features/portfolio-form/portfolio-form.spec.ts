@@ -49,7 +49,7 @@ describe('PortfolioForm', () => {
 
     const peticion = http.expectOne((r) => r.method === 'POST' && r.url.endsWith('/api/fotografos/ana-uno/portfolios'));
     expect(peticion.request.body).toEqual({ nombre: 'Bodas en Galicia' });
-    peticion.flush({ nombre: 'Bodas en Galicia', nombreNormalizado: 'bodas-en-galicia', albumes: [] });
+    peticion.flush({ nombre: 'Bodas en Galicia', nombreNormalizado: 'bodas-en-galicia', colecciones: [] });
     expect(navegar).toHaveBeenCalledWith(['/', 'ana-uno', 'bodas-en-galicia']);
   });
 
@@ -57,7 +57,7 @@ describe('PortfolioForm', () => {
     const fixture = await crear({ fotografo: 'ana-uno', portfolio: 'viajes' });
     http
       .expectOne((r) => r.method === 'GET' && r.url.endsWith('/portfolios/viajes'))
-      .flush({ nombre: 'Viajes', nombreNormalizado: 'viajes', descripcion: 'Por el mundo', albumes: [] });
+      .flush({ nombre: 'Viajes', nombreNormalizado: 'viajes', descripcion: 'Por el mundo', colecciones: [] });
     await fixture.whenStable();
     expect(elemento.querySelector<HTMLInputElement>('#nombre')!.value).toBe('Viajes');
 

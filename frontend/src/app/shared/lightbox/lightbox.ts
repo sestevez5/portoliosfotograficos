@@ -1,8 +1,9 @@
 import { Component, HostListener, input, output } from '@angular/core';
-import { Foto } from '../../core/models/album.model';
+import { Foto } from '../../core/models/catalogo.model';
+import { FotoReducida } from '../foto-reducida/foto-reducida';
 
 @Component({
-  imports: [],
+  imports: [FotoReducida],
   selector: 'app-lightbox',
   styleUrl: './lightbox.scss',
   templateUrl: './lightbox.html',

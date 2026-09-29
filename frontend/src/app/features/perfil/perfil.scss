@@ -1,0 +1,69 @@
+@use '../../shared/estilos/formulario';
+
+// Su foto (o sus iniciales) junto al título.
+.cabecera-perfil {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  h1 {
+    margin-bottom: 0;
+  }
+}
+
+// Dos bloques (cuenta y fotógrafo) uno al lado del otro si caben.
+.perfil {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: var(--space-4);
+  padding-bottom: var(--space-5);
+}
+
+.bloque {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.bloque__titulo {
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 1.5rem;
+}
+
+// Pares etiqueta / valor.
+.datos {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+
+  dt {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding-top: 0.2rem;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--color-text);
+    overflow-wrap: anywhere;
+  }
+}
+
+// El logo es de tinta clara: en el tema claro se invierte (ver --filtro-logo en styles.scss).
+.firma {
+  height: 3rem;
+  width: auto;
+  filter: var(--filtro-logo);
+}
+
+.bloque__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}

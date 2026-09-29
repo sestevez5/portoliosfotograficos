@@ -1,0 +1,28 @@
+<dialog #panel class="panel" aria-labelledby="panel-titulo" (cancel)="$event.preventDefault(); cerrar()">
+  <p id="panel-titulo" class="panel__titulo">Iniciar sesión</p>
+
+  <form class="panel__formulario" [formGroup]="formulario" (ngSubmit)="entrar()" novalidate>
+    @if (error(); as mensaje) {
+      <p class="panel__error" role="alert">{{ mensaje }}</p>
+    }
+    <div class="campo">
+      <label for="sesion-usuario">Usuario o correo</label>
+      <input id="sesion-usuario" formControlName="usuario" autocomplete="username" />
+    </div>
+    <div class="campo">
+      <label for="sesion-contrasenya">Contraseña</label>
+      <input id="sesion-contrasenya" type="password" formControlName="contrasenya" autocomplete="current-password" />
+    </div>
+    <div class="panel__acciones">
+      <button type="submit" class="boton boton--principal" [disabled]="enviando()">
+        {{ enviando() ? 'Entrando…' : 'Entrar' }}
+      </button>
+      <button type="button" class="boton" (click)="cerrar()">Cancelar</button>
+    </div>
+  </form>
+
+  <p class="panel__registro">
+    ¿No tienes cuenta?
+    <button type="button" class="enlace" (click)="registrarse()">Regístrate</button>
+  </p>
+</dialog>

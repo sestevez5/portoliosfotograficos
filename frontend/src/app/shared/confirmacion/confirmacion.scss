@@ -6,7 +6,7 @@
   color: var(--color-text);
 
   &::backdrop {
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--color-velo);
   }
 }
 
@@ -50,12 +50,12 @@
 }
 
 .boton--peligro {
-  border-color: #b5544a;
-  color: #e0877d;
+  border-color: var(--color-peligro);
+  color: var(--color-peligro-texto);
 
   &:hover {
-    background: #b5544a;
-    border-color: #b5544a;
-    color: var(--color-text);
+    background: var(--color-peligro);
+    border-color: var(--color-peligro);
+    color: var(--color-sobre-peligro);
   }
 }

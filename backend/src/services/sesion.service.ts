@@ -1,15 +1,19 @@
 import { createHash, randomBytes } from 'node:crypto';
+import { SinSesion } from '../errores.js';
 import {
   eliminarSesion,
+  guardarTemaPreferido,
   idUsuarioDeSesion,
   insertarSesion,
+  obtenerPerfil,
   obtenerUsuarioSesion,
   registrarAcceso,
   usuarioParaIniciarSesion,
 } from '../db/catalogo.repository.js';
 import { enOperacion, exigir } from '../reglas/index.js';
-import type { UsuarioSesion } from '../types/album.js';
+import type { Perfil, Preferencias, UsuarioSesion } from '../types/catalogo.js';
 import { verificarContrasenya } from '../utils/contrasenya.js';
+import { urlFotoPerfil } from './foto-perfil.service.js';
 
 // Sesiones: al iniciar sesión se genera un token aleatorio que el navegador guarda en una cookie
 // HttpOnly (el JavaScript de la página no puede leerlo) y la BD guarda solo su hash (tabla
@@ -53,7 +57,11 @@ export function usuarioDeSesion(token: string | undefined): UsuarioSesion | null
   }
   return {
     usuario: fila.usuario,
+    ...(fila.email !== null && { email: fila.email }),
     rol: fila.rol,
+    ...(fila.temaPreferido !== null && { temaPreferido: fila.temaPreferido }),
+    ...(fila.nombreInformalNormalizado !== null &&
+      fila.fotoActualizada !== null && { fotoUrl: urlFotoPerfil(fila.nombreInformalNormalizado, fila.fotoActualizada) }),
     ...(fila.nombreInformal !== null &&
       fila.nombreInformalNormalizado !== null && {
         fotografo: {
@@ -69,4 +77,49 @@ export function cerrarSesion(token: string | undefined): void {
   if (token) {
     eliminarSesion(hashToken(token));
   }
+}
+
+// Para lo que solo tiene sentido con la sesión iniciada ("Mi perfil", "Configuración"): el
+// idUsuario de la sesión, o SinSesion (401) si no hay.
+function exigirSesion(token: string | undefined): number {
+  const idUsuario = token ? idUsuarioDeSesion(hashToken(token)) : undefined;
+  if (idUsuario === undefined) {
+    throw new SinSesion();
+  }
+  return idUsuario;
+}
+
+// "Mi perfil": todo lo del usuario de la sesión y, si lo es, de su fotógrafo.
+export function perfilDeSesion(token: string | undefined): Perfil {
+  const fila = obtenerPerfil(exigirSesion(token))!;
+  const sinNulos = <K extends string, V>(clave: K, valor: V | null) => (valor === null ? {} : { [clave]: valor });
+  return {
+    usuario: fila.usuario,
+    ...sinNulos('email', fila.email),
+    rol: fila.rol,
+    ...sinNulos('temaPreferido', fila.temaPreferido),
+    ...(fila.nombreInformalNormalizado !== null &&
+      fila.fotoActualizada !== null && { fotoUrl: urlFotoPerfil(fila.nombreInformalNormalizado, fila.fotoActualizada) }),
+    fechaCreacion: fila.fechaCreacion,
+    ...sinNulos('fechaUltimoAcceso', fila.fechaUltimoAcceso),
+    tieneContrasenya: fila.tieneContrasenya === 1,
+    ...(fila.idFotografo !== null && {
+      fotografo: {
+        nombreInformal: fila.nombreInformal!,
+        nombreInformalNormalizado: fila.nombreInformalNormalizado!,
+        nombre: fila.nombre!,
+        primerApellido: fila.primerApellido!,
+        ...sinNulos('segundoApellido', fila.segundoApellido),
+        descripcion: fila.descripcion ?? '',
+        logoUrl: `/api/fotografos/${fila.nombreInformalNormalizado}/logo`,
+        portfolioCount: fila.portfolioCount,
+        collectionCount: fila.collectionCount,
+      },
+    }),
+  } as Perfil;
+}
+
+// "Configuración": el tema que prefiere el usuario de la sesión (null = sin preferencia).
+export function guardarPreferencias(token: string | undefined, preferencias: Preferencias): void {
+  guardarTemaPreferido(exigirSesion(token), preferencias.temaPreferido);
 }

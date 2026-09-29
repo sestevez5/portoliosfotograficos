@@ -11,7 +11,7 @@ process.env.DATOS_DIR = datos;
 const fotos = path.join(datos, 'fotos');
 
 const { crearPortfolio, editarPortfolio, eliminarPortfolio, renombrarPortfolio } = await import('./portfolio.service.js');
-const { renombrarAlbum } = await import('./album.service.js');
+const { renombrarColeccion } = await import('./coleccion.service.js');
 const { ReglaNegocioIncumplida } = await import('../reglas/index.js');
 const { RecursoNoEncontrado } = await import('../errores.js');
 const { abrirBaseDatos } = await import('../db/conexion.js');
@@ -24,12 +24,12 @@ importarOrganizacion(db, [
     portfolios: [
       {
         nombre: 'Viajes',
-        albumes: [
+        colecciones: [
           { nombre: 'Mar', tags: [], fotos: [{ nombreFichero: '01.jpg', orden: 1 }] },
           { nombre: 'Costa', tags: [], fotos: [] },
         ],
       },
-      { nombre: 'Retratos', albumes: [] },
+      { nombre: 'Retratos', colecciones: [] },
     ],
   },
 ]);
@@ -60,11 +60,11 @@ test('renombrar un portfolio recalcula su nombre normalizado y renombra su carpe
   renombrarPortfolio('ana-uno', 'viajes-por-espanya', 'Viajes');
 });
 
-test('renombrar un álbum renombra su carpeta dentro de la del portfolio', () => {
-  const resultado = renombrarAlbum('ana-uno', 'Viajes', 'Mar', 'Mar del Norte');
+test('renombrar una colección renombra su carpeta dentro de la del portfolio', () => {
+  const resultado = renombrarColeccion('ana-uno', 'Viajes', 'Mar', 'Mar del Norte');
   assert.equal(resultado.despues.nombreNormalizado, 'mar-del-norte');
   assert.ok(existsSync(path.join(fotos, 'ana-uno', 'viajes', 'mar-del-norte', '01.jpg')));
-  assert.deepEqual(db.prepare("SELECT nombre, nombreNormalizado FROM albumes WHERE nombre LIKE 'Mar%'").get(), {
+  assert.deepEqual(db.prepare("SELECT nombre, nombreNormalizado FROM colecciones WHERE nombre LIKE 'Mar%'").get(), {
     nombre: 'Mar del Norte',
     nombreNormalizado: 'mar-del-norte',
   });
@@ -76,9 +76,9 @@ test('si solo cambian mayúsculas o espacios, la carpeta no cambia', () => {
   assert.ok(existsSync(path.join(fotos, 'ana-uno', 'retratos')));
 });
 
-test('no se puede renombrar a un nombre que ya usa otro portfolio o álbum', () => {
+test('no se puede renombrar a un nombre que ya usa otro portfolio o colección', () => {
   assert.throws(() => renombrarPortfolio('ana-uno', 'viajes', 'retratos'), esRegla('PORTFOLIO_NOMBRE_DUPLICADO'));
-  assert.throws(() => renombrarAlbum('ana-uno', 'viajes', 'costa', 'Mar del norte'), esRegla('ALBUM_NOMBRE_DUPLICADO'));
+  assert.throws(() => renombrarColeccion('ana-uno', 'viajes', 'costa', 'Mar del norte'), esRegla('COLECCION_NOMBRE_DUPLICADO'));
 });
 
 test('no se puede renombrar a una carpeta que ya existe, y entonces no cambia nada', () => {
@@ -88,12 +88,12 @@ test('no se puede renombrar a una carpeta que ya existe, y entonces no cambia na
 });
 
 test('los nombres que no sirven como carpeta no se admiten', () => {
-  assert.throws(() => renombrarAlbum('ana-uno', 'viajes', 'costa', '../fuera'), esRegla('NOMBRE_NO_VALIDO'));
+  assert.throws(() => renombrarColeccion('ana-uno', 'viajes', 'costa', '../fuera'), esRegla('NOMBRE_NO_VALIDO'));
 });
 
-test('portfolio o álbum inexistente', () => {
+test('portfolio o colección inexistente', () => {
   assert.throws(() => renombrarPortfolio('ana-uno', 'nada', 'X'), RecursoNoEncontrado);
-  assert.throws(() => renombrarAlbum('ana-uno', 'viajes', 'nada', 'X'), RecursoNoEncontrado);
+  assert.throws(() => renombrarColeccion('ana-uno', 'viajes', 'nada', 'X'), RecursoNoEncontrado);
 });
 
 const portfolio = (nombreNormalizado: string) =>
@@ -131,19 +131,19 @@ test('editar cambia nombre y descripción y renombra la carpeta', () => {
   assert.throws(() => editarPortfolio('ana-uno', 'paisaje-nocturno', { nombre: 'Retratos' }), esRegla('PORTFOLIO_NOMBRE_DUPLICADO'));
 });
 
-test('eliminar un portfolio sin álbumes lo borra con su carpeta', () => {
+test('eliminar un portfolio sin colecciones lo borra con su carpeta', () => {
   crearPortfolio('ana-uno', { nombre: 'Vacío' });
   eliminarPortfolio('ana-uno', 'vacio', false);
   assert.equal(portfolio('vacio'), undefined);
   assert.ok(!existsSync(path.join(fotos, 'ana-uno', 'vacio')));
 });
 
-test('eliminar un portfolio con álbumes exige confirmación y después lo borra todo', () => {
+test('eliminar un portfolio con colecciones exige confirmación y después lo borra todo', () => {
   assert.throws(() => eliminarPortfolio('ana-uno', 'viajes', false), (error: unknown) => {
     assert.ok(error instanceof ReglaNegocioIncumplida);
-    assert.equal(error.codigo, 'PORTFOLIO_ELIMINAR_CON_ALBUMES');
+    assert.equal(error.codigo, 'PORTFOLIO_ELIMINAR_CON_COLECCIONES');
     assert.equal(error.operacion?.descripcion, 'Eliminar el portfolio "Viajes" del fotógrafo "Ana Uno"');
-    assert.match(error.mensajeRegla, /contiene álbumes.*¿Desea continuar?/);
+    assert.match(error.mensajeRegla, /contiene colecciones.*¿Desea continuar?/);
     return true;
   });
   assert.ok(portfolio('viajes'));
@@ -151,7 +151,7 @@ test('eliminar un portfolio con álbumes exige confirmación y después lo borra
 
   eliminarPortfolio('ana-uno', 'viajes', true);
   assert.equal(portfolio('viajes'), undefined);
-  assert.equal((db.prepare('SELECT count(*) AS n FROM albumes').get() as { n: number }).n, 0);
+  assert.equal((db.prepare('SELECT count(*) AS n FROM colecciones').get() as { n: number }).n, 0);
   assert.equal((db.prepare('SELECT count(*) AS n FROM fotos').get() as { n: number }).n, 0);
   assert.ok(!existsSync(path.join(fotos, 'ana-uno', 'viajes')));
   assert.ok(existsSync(path.join(fotos, 'ana-uno', 'retratos')));

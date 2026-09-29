@@ -1,0 +1,73 @@
+<section class="hero">
+  <a class="back-link" [routerLink]="volver">&larr; Volver al portfolio</a>
+  <h1>Gestionar colecciones</h1>
+  @if (portfolio(); as p) {
+    <p>{{ p.nombre }} · {{ colecciones().length }} {{ colecciones().length === 1 ? 'colección' : 'colecciones' }}</p>
+    @if (colecciones().length && !portada()) {
+      <p>Marca con la estrella la colección cuya portada será la del portfolio. Mientras no elijas ninguna, es la primera.</p>
+    }
+    @if (colecciones().length > 1) {
+      <p>Arrastra cada colección al lugar que quieres que ocupe. El orden se guarda al soltarla.</p>
+    }
+  }
+</section>
+
+@if (portfolio() === null) {
+  <div class="aviso" role="alert">
+    <p class="aviso__titulo">Portfolio no encontrado</p>
+    <p><a [routerLink]="['/', fotografo]">Ver los portfolios del fotógrafo</a></p>
+  </div>
+} @else if (portfolio()) {
+  @if (aviso(); as a) {
+    <div class="aviso" role="alert">
+      <p class="aviso__titulo">{{ a.titulo }}</p>
+      <p>{{ a.mensaje }}</p>
+    </div>
+  }
+
+  <section class="rejilla" [class.rejilla--guardando]="guardando()" [attr.aria-busy]="guardando()">
+    @for (coleccion of colecciones(); track coleccion.nombreNormalizado; let i = $index) {
+      <figure
+        class="tarjeta"
+        [class.tarjeta--arrastrada]="orden.arrastrado() === coleccion.nombreNormalizado"
+        [class.tarjeta--ordenable]="puedeOrdenar()"
+        [attr.draggable]="puedeOrdenar()"
+        (dragstart)="orden.empezar($event, coleccion, puedeOrdenar())"
+        (dragover)="orden.pasarSobre($event, coleccion)"
+        (dragend)="orden.terminar($event)"
+      >
+        <span class="tarjeta__posicion">{{ i + 1 }}</span>
+        <div class="tarjeta__imagen">
+          @if (coleccion.coverPhotoUrl) {
+            <img [appFotoReducida]="coleccion.coverPhotoUrl" tamanyos="(max-width: 40rem) 50vw, 20vw" [alt]="coleccion.nombre" loading="lazy" draggable="false" />
+          } @else {
+            <span class="tarjeta__sin-portada">Sin fotos</span>
+          }
+        </div>
+        <figcaption class="tarjeta__pie tarjeta__pie--con-portada">
+          <!-- Estrella: rellena si da su portada al portfolio; pulsarla la elige o, si ya lo es, la quita. -->
+          <button
+            type="button"
+            class="tarjeta__portada"
+            [class.tarjeta__portada--elegida]="portada() === coleccion.nombreNormalizado"
+            [attr.aria-pressed]="portada() === coleccion.nombreNormalizado"
+            [attr.aria-label]="'Portada del portfolio: ' + coleccion.nombre"
+            [title]="portada() === coleccion.nombreNormalizado ? 'Da su portada al portfolio (pulsa para quitarla)' : 'Usar su portada para el portfolio'"
+            [disabled]="cambiandoPortada()"
+            (click)="alternarPortada(coleccion)"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
+            </svg>
+          </button>
+          <span class="tarjeta__textos">
+            <span class="tarjeta__nombre" [title]="coleccion.nombre">{{ coleccion.nombre }}</span>
+            <span class="tarjeta__meta">{{ coleccion.photoCount }} {{ coleccion.photoCount === 1 ? 'foto' : 'fotos' }}</span>
+          </span>
+        </figcaption>
+      </figure>
+    } @empty {
+      <p class="vacio">Este portfolio aún no tiene colecciones.</p>
+    }
+  </section>
+}

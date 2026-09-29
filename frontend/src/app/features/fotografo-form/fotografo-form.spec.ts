@@ -49,6 +49,29 @@ describe('FotografoForm', () => {
     expect(navegar).toHaveBeenCalledWith(['/', 'ana-nunyez']);
   });
 
+  it('en el alta, la foto elegida se sube al crear el fotógrafo, antes de ir a su página', () => {
+    // jsdom no tiene URL.createObjectURL (la vista previa de la foto pendiente).
+    Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:vista-previa'), revokeObjectURL: vi.fn() });
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const foto = new Blob(['jpeg'], { type: 'image/jpeg' });
+    (fixture.componentInstance as unknown as { fotoAceptada(f: Blob): void }).fotoAceptada(foto);
+    fixture.detectChanges();
+    expect(elemento.querySelector<HTMLImageElement>('.avatar__foto')!.src).toBe('blob:vista-previa');
+
+    rellenar('nombreInformal', 'Ana Núñez');
+    rellenar('nombre', 'Ana');
+    rellenar('primerApellido', 'Núñez');
+    enviar();
+    http.expectOne((r) => r.method === 'POST').flush({ nombreInformalNormalizado: 'ana-nunyez' }, { status: 201, statusText: 'Created' });
+    expect(navegar).not.toHaveBeenCalled();
+
+    const subida = http.expectOne((r) => r.method === 'PUT' && r.url.endsWith('/api/fotografos/ana-nunyez/foto'));
+    expect(subida.request.body).toBe(foto);
+    expect(subida.request.headers.get('Content-Type')).toBe('image/jpeg');
+    subida.flush({ fotoUrl: '/api/fotografos/ana-nunyez/foto?v=1' });
+    expect(navegar).toHaveBeenCalledWith(['/', 'ana-nunyez']);
+  });
+
   it('muestra la operación intentada y la regla incumplida si el backend responde 422', () => {
     rellenar('nombreInformal', 'Santi Estévez');
     rellenar('nombre', 'Santi');

@@ -3,10 +3,14 @@ import path from 'node:path';
 import { fotosDir } from '../config/rutas.js';
 import {
   actualizarPortfolio,
+  cambiarColeccionPortada,
+  cambiarOrdenPortfolio,
   eliminarPortfolio as eliminarPortfolioBD,
   enTransaccion,
   insertarPortfolio,
-  numeroAlbumes,
+  listarColecciones,
+  listarPortfolios,
+  numeroColecciones,
   obtenerFotografo,
   obtenerPortfolio,
   validar,
@@ -15,11 +19,12 @@ import {
 } from '../db/catalogo.repository.js';
 import { RecursoNoEncontrado } from '../errores.js';
 import { enOperacion, type CodigoOperacion, type DatosRegla } from '../reglas/index.js';
-import type { PortfolioAlta } from '../types/album.js';
+import type { PortfolioAlta } from '../types/catalogo.js';
 import { apartarCarpeta, renombrarCarpeta, vaciarPapelera } from '../utils/carpetas.js';
 import { normalizarNombre } from '../utils/normalizar-nombre.js';
+import { borrarMiniaturas } from './miniatura.service.js';
 
-// Alta, edición, eliminación y cambio de nombre de portfolios (los álbumes, en album.service.ts). Su
+// Alta, edición, eliminación y cambio de nombre de portfolios (las colecciones, en coleccion.service.ts). Su
 // nombreNormalizado se calcula a partir del nombre y es el nombre de su carpeta en datos/fotos:
 // estas funciones crean, renombran y eliminan la carpeta en la misma transacción que la BD (si la
 // operación con la carpeta falla, la BD no cambia). Los parámetros fotografo y portfolio son
@@ -91,6 +96,9 @@ function modificarPortfolio(
     actualizarPortfolio(actual.idPortfolio, { nombre, nombreNormalizado: normalizado, descripcion });
     return renombrarCarpeta(path.join(carpetaFotografo, actual.nombreNormalizado), path.join(carpetaFotografo, normalizado));
   });
+  if (carpetaRenombrada) {
+    borrarMiniaturas(path.join(f.nombreInformalNormalizado, actual.nombreNormalizado));
+  }
 
   return {
     antes: { nombre: actual.nombre, nombreNormalizado: actual.nombreNormalizado },
@@ -118,13 +126,49 @@ export function renombrarPortfolio(fotografo: string, portfolio: string, nuevoNo
   });
 }
 
-// Elimina un portfolio con sus álbumes y fotos (BD en cascada) y su carpeta. Si tiene álbumes exige
-// confirmación (regla PORTFOLIO_ELIMINAR_CON_ALBUMES). La carpeta se aparta a la papelera dentro de
+// Cambia el orden de los portfolios de un fotógrafo: nuevoOrden son los nombreNormalizado de todos
+// sus portfolios en el orden en que deben quedar (0, 1, 2…). Si no son exactamente sus portfolios
+// (p. ej. porque entretanto se ha creado o eliminado alguno) no cambia nada (regla
+// PORTFOLIO_ORDEN_NO_VALIDO).
+export function ordenarPortfolios(fotografo: string, nuevoOrden: string[]): void {
+  const f = cargarFotografo(fotografo);
+  const portfolios = listarPortfolios(f.idFotografo);
+  enOperacion('ORDENAR_PORTFOLIOS', { fotografo: f.nombreInformal }, () =>
+    validar.ordenPortfolios(
+      f.nombreInformal,
+      portfolios.map((p) => p.nombreNormalizado),
+      nuevoOrden,
+    ),
+  );
+
+  const idPorNombre = new Map(portfolios.map((p) => [p.nombreNormalizado, p.idPortfolio]));
+  enTransaccion(() => nuevoOrden.forEach((nombre, orden) => cambiarOrdenPortfolio(idPorNombre.get(nombre)!, orden)));
+}
+
+// Elimina un portfolio con sus colecciones y fotos (BD en cascada) y su carpeta. Si tiene colecciones exige
+// confirmación (regla PORTFOLIO_ELIMINAR_CON_COLECCIONES). La carpeta se aparta a la papelera dentro de
 // la transacción y se borra cuando el borrado en la BD está confirmado (ver apartarCarpeta).
+// Elige la colección cuya portada será la del portfolio, por su nombreNormalizado (o su nombre), o
+// ninguna (null: la portada es la de la primera colección). Debe ser una de sus colecciones (regla
+// PORTFOLIO_COLECCION_PORTADA_INEXISTENTE). Si se elimina esa colección, vuelve a ser la primera.
+export function cambiarPortadaPortfolio(fotografo: string, portfolio: string, coleccion: string | null): void {
+  const { f, actual } = cargarPortfolio(fotografo, portfolio);
+  const colecciones = listarColecciones({ idPortfolio: actual.idPortfolio });
+  enOperacion('CAMBIAR_PORTADA_PORTFOLIO', { portfolio: actual.nombre, fotografo: f.nombreInformal }, () =>
+    validar.coleccionPortada(
+      actual.nombre,
+      coleccion ?? undefined,
+      colecciones.map((c) => c.nombreNormalizado),
+    ),
+  );
+  const elegida = coleccion === null ? undefined : colecciones.find((c) => c.nombreNormalizado === normalizarNombre(coleccion));
+  cambiarColeccionPortada(actual.idPortfolio, elegida?.idColeccion ?? null);
+}
+
 export function eliminarPortfolio(fotografo: string, portfolio: string, confirmado: boolean): void {
   const { f, actual } = cargarPortfolio(fotografo, portfolio);
   enOperacion('ELIMINAR_PORTFOLIO', { nombre: actual.nombre, fotografo: f.nombreInformal }, () =>
-    validar.eliminacionPortfolio(numeroAlbumes(actual.idPortfolio), confirmado),
+    validar.eliminacionPortfolio(numeroColecciones(actual.idPortfolio), confirmado),
   );
 
   const papelera = enTransaccion(() => {
@@ -132,4 +176,5 @@ export function eliminarPortfolio(fotografo: string, portfolio: string, confirma
     return apartarCarpeta(path.join(fotosDir, f.nombreInformalNormalizado, actual.nombreNormalizado), fotosDir);
   });
   vaciarPapelera(papelera);
+  borrarMiniaturas(path.join(f.nombreInformalNormalizado, actual.nombreNormalizado));
 }

@@ -1,3 +1,5 @@
+@use '../../shared/estilos/cabecera';
+
 .hero {
   padding: var(--space-4) 0 var(--space-5);
   max-width: 40rem;
@@ -5,21 +7,6 @@
   h1 {
     font-size: clamp(2.5rem, 5vw, 3.5rem);
     margin-bottom: var(--space-2);
-  }
-}
-
-.volver {
-  display: inline-block;
-  margin-bottom: var(--space-3);
-  font-size: 0.875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  text-decoration: none;
-  transition: color var(--transition);
-
-  &:hover {
-    color: var(--color-text);
   }
 }
 
@@ -60,6 +47,18 @@
   }
 }
 
+// En lugar de la portada: "Sin colecciones" o, si la colección de portada no tiene fotos, "Sin fotos".
+.portfolio-card__sin-portada {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .portfolio-card__enlace:hover .portfolio-card__image img {
   transform: scale(1.04);
 }
@@ -91,27 +90,15 @@
   }
 }
 
-.acciones-fotografo {
-  display: block;
-  margin-top: var(--space-3);
-}
-
-.nuevo {
+.back-link {
   display: inline-block;
-  margin-top: var(--space-3);
-  padding: 0.625rem 1.25rem;
-  border: 1px solid var(--color-border);
+  margin-top: var(--space-4);
   color: var(--color-text-muted);
-  font-size: 0.875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   text-decoration: none;
-  transition:
-    border-color var(--transition),
-    color var(--transition);
+  font-size: 0.875rem;
+  transition: color var(--transition);
 
   &:hover {
-    border-color: var(--color-text-muted);
     color: var(--color-text);
   }
 }

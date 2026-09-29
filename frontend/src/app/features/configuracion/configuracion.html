@@ -1,0 +1,39 @@
+<section class="hero">
+  <h1>Configuración</h1>
+</section>
+
+<div class="formulario">
+  @if (guardado()) {
+    <p class="confirmacion" role="status">Configuración guardada. Se aplicará cada vez que inicies sesión.</p>
+  }
+  @if (error(); as mensaje) {
+    <div class="aviso" role="alert"><p>{{ mensaje }}</p></div>
+  }
+
+  <p class="seccion">Tema por defecto</p>
+  <div class="temas" role="radiogroup" aria-label="Tema por defecto">
+    @for (opcion of opciones; track opcion.valor) {
+      <button
+        type="button"
+        role="radio"
+        class="tema"
+        [class.tema--elegido]="elegido() === opcion.valor"
+        [attr.aria-checked]="elegido() === opcion.valor"
+        (click)="elegir(opcion.valor)"
+      >
+        <!-- Muestra de los colores del tema. -->
+        <span class="tema__muestra" [attr.data-tema-muestra]="opcion.valor" aria-hidden="true">
+          <span class="tema__muestra-texto">Aa</span>
+        </span>
+        <span class="tema__texto">{{ opcion.texto }}</span>
+        <span class="tema__descripcion">{{ opcion.descripcion }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="acciones">
+    <button type="button" class="boton boton--principal" [disabled]="guardando()" (click)="guardar()">
+      {{ guardando() ? 'Guardando…' : 'Guardar' }}
+    </button>
+  </div>
+</div>

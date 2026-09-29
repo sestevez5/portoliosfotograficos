@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import type Database from 'better-sqlite3';
 import { enOperacion, validadorCatalogo } from '../reglas/index.js';
-import type { OrganizacionFotos } from '../types/album.js';
+import type { OrganizacionFotos } from '../types/catalogo.js';
 import { normalizarNombre } from '../utils/normalizar-nombre.js';
 import { generarUsuario } from '../utils/usuario.js';
 
@@ -36,18 +36,19 @@ export function importarOrganizacion(
     `INSERT INTO portfolios (idFotografo, nombreNormalizado, nombre, descripcion, orden)
      VALUES (@idFotografo, @nombreNormalizado, @nombre, @descripcion, @orden)`,
   );
-  const insertarAlbum = db.prepare(
-    `INSERT INTO albumes (idPortfolio, nombreNormalizado, nombre, descripcion, orden)
+  const insertarColeccion = db.prepare(
+    `INSERT INTO colecciones (idPortfolio, nombreNormalizado, nombre, descripcion, orden)
      VALUES (@idPortfolio, @nombreNormalizado, @nombre, @descripcion, @orden)`,
   );
-  const fijarPortada = db.prepare('UPDATE albumes SET idFotoPortada = ? WHERE idAlbum = ?');
-  const insertarTag = db.prepare('INSERT INTO albumTags (idAlbum, tag, orden) VALUES (?, ?, ?)');
+  const fijarPortada = db.prepare('UPDATE colecciones SET idFotoPortada = ? WHERE idColeccion = ?');
+  const fijarColeccionPortada = db.prepare('UPDATE portfolios SET idColeccionPortada = ? WHERE idPortfolio = ?');
+  const insertarTag = db.prepare('INSERT INTO coleccionTags (idColeccion, tag, orden) VALUES (?, ?, ?)');
   const insertarFoto = db.prepare(
-    `INSERT INTO fotos (idAlbum, nombreFichero, titulo, orden, ancho, alto)
-     VALUES (@idAlbum, @nombreFichero, @titulo, @orden, @ancho, @alto)`,
+    `INSERT INTO fotos (idColeccion, nombreFichero, titulo, orden, ancho, alto)
+     VALUES (@idColeccion, @nombreFichero, @titulo, @orden, @ancho, @alto)`,
   );
 
-  const totales = { fotografos: 0, portfolios: 0, albumes: 0, fotos: 0 };
+  const totales = { fotografos: 0, portfolios: 0, colecciones: 0, fotos: 0 };
 
   db.transaction(() => {
     if (reemplazar) {
@@ -82,6 +83,11 @@ export function importarOrganizacion(
       portfolios.forEach((portfolio, j) => {
         const idPortfolio = enOperacion('CREAR_PORTFOLIO', { nombre: portfolio.nombre, fotografo: nombreFotografo }, () => {
           validar.portfolio(idFotografo, portfolio.nombre);
+          validar.coleccionPortada(
+            portfolio.nombre,
+            portfolio.coleccionPortada,
+            portfolio.colecciones.map((coleccion) => normalizarNombre(coleccion.nombre)),
+          );
           return insertarPortfolio.run({
             idFotografo,
             nombreNormalizado: normalizarNombre(portfolio.nombre),
@@ -92,46 +98,50 @@ export function importarOrganizacion(
         });
         totales.portfolios++;
 
-        portfolio.albumes.forEach((album, k) => {
-          const datosAlbum = { nombre: album.nombre, portfolio: portfolio.nombre, fotografo: nombreFotografo };
-          const idAlbum = enOperacion('CREAR_ALBUM', datosAlbum, () => {
-            validar.album(idPortfolio, album.nombre);
-            validar.tags(album.nombre, album.tags);
+        portfolio.colecciones.forEach((coleccion, k) => {
+          const datosColeccion = { nombre: coleccion.nombre, portfolio: portfolio.nombre, fotografo: nombreFotografo };
+          const idColeccion = enOperacion('CREAR_COLECCION', datosColeccion, () => {
+            validar.coleccion(idPortfolio, coleccion.nombre);
+            validar.tags(coleccion.nombre, coleccion.tags);
             validar.fotoPortada(
-              album.nombre,
-              album.fotoPortada,
-              album.fotos.map((foto) => foto.nombreFichero),
+              coleccion.nombre,
+              coleccion.fotoPortada,
+              coleccion.fotos.map((foto) => foto.nombreFichero),
             );
-            const id = insertarAlbum.run({
+            const id = insertarColeccion.run({
               idPortfolio,
-              nombreNormalizado: normalizarNombre(album.nombre),
-              nombre: album.nombre.trim(),
-              descripcion: album.descripcion ?? null,
+              nombreNormalizado: normalizarNombre(coleccion.nombre),
+              nombre: coleccion.nombre.trim(),
+              descripcion: coleccion.descripcion ?? null,
               orden: k,
             }).lastInsertRowid;
-            album.tags.forEach((tag, t) => insertarTag.run(id, tag, t));
+            coleccion.tags.forEach((tag, t) => insertarTag.run(id, tag, t));
             return id;
           });
 
-          album.fotos.forEach((foto) => {
-            const datosFoto = { nombreFichero: foto.nombreFichero, album: album.nombre, portfolio: portfolio.nombre };
+          coleccion.fotos.forEach((foto) => {
+            const datosFoto = { nombreFichero: foto.nombreFichero, coleccion: coleccion.nombre, portfolio: portfolio.nombre };
             enOperacion('ANYADIR_FOTO', datosFoto, () => {
-              validar.foto(idAlbum, foto.nombreFichero);
+              validar.foto(idColeccion, foto.nombreFichero);
+              validar.tituloFoto(foto.titulo);
               const idFoto = insertarFoto.run({
-                idAlbum,
+                idColeccion,
                 nombreFichero: foto.nombreFichero,
                 titulo: foto.titulo ?? null,
                 orden: foto.orden,
                 ancho: foto.ancho ?? null,
                 alto: foto.alto ?? null,
               }).lastInsertRowid;
-              if (foto.nombreFichero === album.fotoPortada) {
-                fijarPortada.run(idFoto, idAlbum);
+              if (foto.nombreFichero === coleccion.fotoPortada) {
+                fijarPortada.run(idFoto, idColeccion);
               }
             });
           });
-          totales.albumes++;
-          totales.fotos += album.fotos.length;
+          totales.colecciones++;
+          totales.fotos += coleccion.fotos.length;
+          if (portfolio.coleccionPortada !== undefined && normalizarNombre(portfolio.coleccionPortada) === normalizarNombre(coleccion.nombre)) {
+            fijarColeccionPortada.run(idColeccion, idPortfolio);
+          }
         });
       });
     });

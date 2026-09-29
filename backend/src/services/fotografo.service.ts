@@ -18,12 +18,14 @@ import {
 } from '../db/catalogo.repository.js';
 import { RecursoNoEncontrado } from '../errores.js';
 import { enOperacion, type CodigoOperacion, type DatosRegla } from '../reglas/index.js';
-import type { FotografoAlta, RegistroFotografo } from '../types/album.js';
+import type { FotografoAlta, RegistroFotografo } from '../types/catalogo.js';
 import { hashContrasenya } from '../utils/contrasenya.js';
 import { apartarCarpeta, renombrarCarpeta, vaciarPapelera } from '../utils/carpetas.js';
 import { normalizarNombre } from '../utils/normalizar-nombre.js';
 import { generarUsuario } from '../utils/usuario.js';
+import { rutaFotoPerfil } from './foto-perfil.service.js';
 import { rutaLogo } from './logo.service.js';
+import { borrarMiniaturas } from './miniatura.service.js';
 
 // Alta, edición y eliminación de fotógrafos. La carpeta datos/fotos/<nombreInformalNormalizado>
 // de cada fotógrafo debe existir y llamarse siempre así: estas funciones la crean, la renombran y
@@ -121,6 +123,9 @@ function modificar(
   if (datos.nombreInformal !== actual.nombreInformal) {
     rmSync(rutaLogo(actual.nombreInformalNormalizado), { force: true });
   }
+  if (normalizado !== actual.nombreInformalNormalizado) {
+    borrarMiniaturas(actual.nombreInformalNormalizado);
+  }
   return obtenerFotografo(normalizado)!;
 }
 
@@ -157,8 +162,8 @@ export function cambiarNombreInformal(fotografo: string, nuevoNombreInformal: st
   };
 }
 
-// Elimina un fotógrafo con todo su contenido: su usuario, portfolios, álbumes y fotos (se borra el
-// usuario y el resto va en cascada), su carpeta de fotos y su logo. Si tiene portfolios exige
+// Elimina un fotógrafo con todo su contenido: su usuario, portfolios, colecciones y fotos (se borra el
+// usuario y el resto va en cascada), su carpeta de fotos, su logo y su foto de perfil. Si tiene portfolios exige
 // confirmación (regla
 // FOTOGRAFO_ELIMINAR_CON_PORTFOLIOS). La carpeta se aparta a la papelera dentro de la transacción y
 // solo se borra de verdad cuando el borrado en la BD está confirmado (ver apartarCarpeta).
@@ -174,5 +179,7 @@ export function eliminarFotografo(fotografo: string, confirmado: boolean): void 
   });
 
   rmSync(rutaLogo(actual.nombreInformalNormalizado), { force: true });
+  rmSync(rutaFotoPerfil(actual.idUsuario), { force: true });
   vaciarPapelera(papelera);
+  borrarMiniaturas(actual.nombreInformalNormalizado);
 }

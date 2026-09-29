@@ -11,13 +11,13 @@ import express from 'express';
 const datos = mkdtempSync(path.join(tmpdir(), 'portfolio-datos-'));
 process.env.DATOS_DIR = datos;
 
-const { albumsRouter } = await import('./albums.routes.js');
+const { catalogoRouter } = await import('./catalogo.routes.js');
 const { gestionarErrores } = await import('../gestionar-errores.js');
 const { abrirBaseDatos } = await import('../db/conexion.js');
 
 const db = abrirBaseDatos();
 const app = express();
-app.use('/api', albumsRouter);
+app.use('/api', catalogoRouter);
 app.use(gestionarErrores);
 const servidor = app.listen(0);
 const api = `http://localhost:${(servidor.address() as AddressInfo).port}/api`;
@@ -66,6 +66,7 @@ test('el registro crea usuario, fotógrafo y carpeta, y deja la sesión iniciada
 
   const esperado = {
     usuario: 'ana.uno',
+    email: 'ana@example.com',
     rol: 'usuario',
     fotografo: { nombreInformal: 'Ana Uno', nombreInformalNormalizado: 'ana-uno', logoUrl: '/api/fotografos/ana-uno/logo' },
   };
@@ -121,4 +122,44 @@ test('una sesión caducada no vale', async () => {
   const cookie = cookieDe(await json('POST', `${api}/sesion`, { usuario: 'ana.uno', contrasenya: 'secreta123' }))!;
   db.prepare("UPDATE sesiones SET fechaExpiracion = '2000-01-01T00:00:00.000Z'").run();
   assert.equal(await sesion(cookie), null);
+});
+
+test('"Mi perfil" devuelve los datos del usuario y de su fotógrafo; sin sesión, 401', async () => {
+  assert.equal((await fetch(`${api}/perfil`)).status, 401);
+
+  const cookie = cookieDe(await json('POST', `${api}/sesion`, { usuario: 'ana.uno', contrasenya: 'secreta123' }))!;
+  const perfil = await (await fetch(`${api}/perfil`, { headers: { Cookie: cookie } })).json();
+  assert.equal(perfil.usuario, 'ana.uno');
+  assert.equal(perfil.email, 'ana@example.com');
+  assert.equal(perfil.rol, 'usuario');
+  assert.equal(perfil.tieneContrasenya, true);
+  assert.ok(perfil.fechaCreacion && perfil.fechaUltimoAcceso);
+  assert.equal(perfil.passwordHash, undefined);
+  assert.deepEqual(perfil.fotografo, {
+    nombreInformal: 'Ana Uno',
+    nombreInformalNormalizado: 'ana-uno',
+    nombre: 'Ana',
+    primerApellido: 'Uno',
+    descripcion: '',
+    logoUrl: '/api/fotografos/ana-uno/logo',
+    portfolioCount: 0,
+    collectionCount: 0,
+  });
+
+  // El administrador no tiene fotógrafo.
+  const admin = cookieDe(await json('POST', `${api}/sesion`, { usuario: 'admin', contrasenya: 'admin' }))!;
+  assert.equal((await (await fetch(`${api}/perfil`, { headers: { Cookie: admin } })).json()).fotografo, undefined);
+});
+
+test('"Configuración": el tema preferido se guarda en el usuario y sale en la sesión', async () => {
+  assert.equal((await json('PUT', `${api}/perfil/preferencias`, { temaPreferido: 'claro' })).status, 401);
+
+  const cookie = cookieDe(await json('POST', `${api}/sesion`, { usuario: 'ana.uno', contrasenya: 'secreta123' }))!;
+  assert.equal((await json('PUT', `${api}/perfil/preferencias`, { temaPreferido: 'azul' }, cookie)).status, 400);
+  assert.equal((await json('PUT', `${api}/perfil/preferencias`, { temaPreferido: 'claro' }, cookie)).status, 204);
+  assert.equal((await sesion(cookie)).temaPreferido, 'claro');
+
+  // null = sin preferencia.
+  assert.equal((await json('PUT', `${api}/perfil/preferencias`, { temaPreferido: null }, cookie)).status, 204);
+  assert.equal((await sesion(cookie)).temaPreferido, undefined);
 });

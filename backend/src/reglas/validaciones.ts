@@ -32,7 +32,7 @@ export interface DatosUsuario {
 // Primeros segmentos de URL que usa la propia aplicación (p. ej. /admin/fotografos/nuevo o
 // /gestion/<fotógrafo>/portfolios/nuevo): un fotógrafo no puede tener un nombreInformalNormalizado
 // igual, o su página quedaría tapada.
-export const SEGMENTOS_RESERVADOS = ['admin', 'api', 'gestion', 'photos', 'registro'];
+export const SEGMENTOS_RESERVADOS = ['admin', 'api', 'configuracion', 'gestion', 'perfil', 'photos', 'registro'];
 
 // Nombre de usuario elegido al registrarse (se guarda en minúsculas): 3 a 30 caracteres, letras
 // sin tildes, números, ".", "_" o "-", empezando por letra o número.
@@ -43,6 +43,27 @@ export const LONGITUD_MINIMA_CONTRASENYA = 8;
 // Comprobación de formato básica (algo@algo.algo, sin espacios); la verificación real sería
 // enviar un correo.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export const LONGITUD_MAXIMA_NOMBRE_FICHERO = 200;
+
+// El título de una foto tiene siempre menos de estos caracteres (la web limita el cuadro de texto a
+// LIMITE_TITULO_FOTO - 1).
+export const LIMITE_TITULO_FOTO = 20;
+
+// Como los nombres de carpeta (esNombreNormalizadoValido), pero sin normalizar: el nombre de
+// fichero de una foto se guarda tal cual lo trae.
+const esNombreFicheroValido = (nombre: string) =>
+  nombre.trim() === nombre &&
+  nombre.length > 0 &&
+  nombre.length <= LONGITUD_MAXIMA_NOMBRE_FICHERO &&
+  !/[/\\]/.test(nombre) &&
+  !nombre.startsWith('.');
+
+// Un orden nuevo es válido si nombra exactamente los elementos actuales, cada uno una vez.
+function esOrdenCompleto(actuales: string[], nuevo: string[]): boolean {
+  const conjunto = new Set(nuevo);
+  return nuevo.length === actuales.length && conjunto.size === nuevo.length && actuales.every((e) => conjunto.has(e));
+}
 
 const vacio = (texto: string | null | undefined) => !texto || !texto.trim();
 
@@ -56,10 +77,10 @@ function crearValidador(db: Database.Database) {
     portfolioNombreExiste: db.prepare(
       'SELECT 1 FROM portfolios WHERE idFotografo = ? AND nombreNormalizado = ? AND idPortfolio IS NOT ?',
     ),
-    albumNombreExiste: db.prepare(
-      'SELECT 1 FROM albumes WHERE idPortfolio = ? AND nombreNormalizado = ? AND idAlbum IS NOT ?',
+    coleccionNombreExiste: db.prepare(
+      'SELECT 1 FROM colecciones WHERE idPortfolio = ? AND nombreNormalizado = ? AND idColeccion IS NOT ?',
     ),
-    fotoExiste: db.prepare('SELECT 1 FROM fotos WHERE idAlbum = ? AND nombreFichero = ? AND idFoto IS NOT ?'),
+    fotoExiste: db.prepare('SELECT 1 FROM fotos WHERE idColeccion = ? AND nombreFichero = ? AND idFoto IS NOT ?'),
   };
   const existe = (consulta: Database.Statement, ...parametros: unknown[]) => consulta.get(...parametros) !== undefined;
 
@@ -175,9 +196,9 @@ function crearValidador(db: Database.Database) {
       exigir(!existsSync(path.join(fotosDir, carpetaFotografo, carpeta)), 'PORTFOLIO_CARPETA_OCUPADA', { carpeta, nombre });
     },
 
-    // Un portfolio con álbumes solo se elimina si se ha confirmado expresamente.
-    eliminacionPortfolio(numeroAlbumes: number, confirmado: boolean): void {
-      exigir(numeroAlbumes === 0 || confirmado, 'PORTFOLIO_ELIMINAR_CON_ALBUMES');
+    // Un portfolio con colecciones solo se elimina si se ha confirmado expresamente.
+    eliminacionPortfolio(numeroColecciones: number, confirmado: boolean): void {
+      exigir(numeroColecciones === 0 || confirmado, 'PORTFOLIO_ELIMINAR_CON_COLECCIONES');
     },
 
     // Al cambiar el nombre de un portfolio su carpeta se renombra: la de destino (dentro de la
@@ -194,56 +215,107 @@ function crearValidador(db: Database.Database) {
     },
 
     // Igual que el portfolio, dentro de su portfolio.
-    album(idPortfolio: number | bigint, nombre: string, excluir: number | null = null): void {
-      exigir(!vacio(nombre), 'ALBUM_NOMBRE_OBLIGATORIO');
+    coleccion(idPortfolio: number | bigint, nombre: string, excluir: number | null = null): void {
+      exigir(!vacio(nombre), 'COLECCION_NOMBRE_OBLIGATORIO');
       exigir(esNombreNormalizadoValido(normalizarNombre(nombre)), 'NOMBRE_NO_VALIDO', { nombre });
       exigir(
-        !existe(consultas.albumNombreExiste, idPortfolio, normalizarNombre(nombre), excluir),
-        'ALBUM_NOMBRE_DUPLICADO',
+        !existe(consultas.coleccionNombreExiste, idPortfolio, normalizarNombre(nombre), excluir),
+        'COLECCION_NOMBRE_DUPLICADO',
         { nombre },
       );
     },
 
-    // Alta de un álbum: además de las reglas generales, su carpeta (dentro de la del portfolio,
+    // Alta de una colección: además de las reglas generales, su carpeta (dentro de la del portfolio,
     // carpetaPortfolio, relativa a datos/fotos) no puede existir ya, porque se va a crear.
-    altaAlbum(idPortfolio: number, carpetaPortfolio: string, nombre: string): void {
-      this.album(idPortfolio, nombre);
+    altaColeccion(idPortfolio: number, carpetaPortfolio: string, nombre: string): void {
+      this.coleccion(idPortfolio, nombre);
       const carpeta = normalizarNombre(nombre);
-      exigir(!existsSync(path.join(fotosDir, carpetaPortfolio, carpeta)), 'ALBUM_CARPETA_OCUPADA', { carpeta, nombre });
+      exigir(!existsSync(path.join(fotosDir, carpetaPortfolio, carpeta)), 'COLECCION_CARPETA_OCUPADA', { carpeta, nombre });
     },
 
-    // Un álbum con fotos solo se elimina si se ha confirmado expresamente.
-    eliminacionAlbum(numeroFotos: number, confirmado: boolean): void {
-      exigir(numeroFotos === 0 || confirmado, 'ALBUM_ELIMINAR_CON_FOTOS');
+    // Una colección con fotos solo se elimina si se ha confirmado expresamente.
+    eliminacionColeccion(numeroFotos: number, confirmado: boolean): void {
+      exigir(numeroFotos === 0 || confirmado, 'COLECCION_ELIMINAR_CON_FOTOS');
     },
 
     // carpetaPortfolio: ruta de la carpeta del portfolio relativa a datos/fotos.
-    renombreAlbum(idPortfolio: number, idAlbum: number, carpetaPortfolio: string, carpetaActual: string, nombre: string): void {
-      this.album(idPortfolio, nombre, idAlbum);
+    renombreColeccion(idPortfolio: number, idColeccion: number, carpetaPortfolio: string, carpetaActual: string, nombre: string): void {
+      this.coleccion(idPortfolio, nombre, idColeccion);
       const carpeta = normalizarNombre(nombre);
       exigir(
         carpeta === carpetaActual ||
           !carpetaOcupada(path.join(fotosDir, carpetaPortfolio, carpetaActual), path.join(fotosDir, carpetaPortfolio, carpeta)),
-        'ALBUM_CARPETA_OCUPADA',
+        'COLECCION_CARPETA_OCUPADA',
         { carpeta, nombre },
       );
     },
 
-    foto(idAlbum: number | bigint, nombreFichero: string, excluir: number | null = null): void {
-      exigir(!existe(consultas.fotoExiste, idAlbum, nombreFichero, excluir), 'FOTO_FICHERO_DUPLICADO', {
+    foto(idColeccion: number | bigint, nombreFichero: string, excluir: number | null = null): void {
+      exigir(!existe(consultas.fotoExiste, idColeccion, nombreFichero, excluir), 'FOTO_FICHERO_DUPLICADO', {
         nombreFichero,
       });
     },
 
-    // Un álbum no puede repetir un tag.
-    tags(album: string, tags: string[]): void {
-      tags.forEach((tag, i) => exigir(tags.indexOf(tag) === i, 'ALBUM_TAG_DUPLICADO', { album, tag }));
+    // Foto subida desde la web: además de no repetirse en la colección, su nombre de fichero debe
+    // servir como fichero dentro de la carpeta dla colección (carpetaColeccion, relativa a
+    // datos/fotos), que tampoco puede tenerlo ya, y debe ser una imagen de un formato admitido.
+    altaFoto(idColeccion: number, carpetaColeccion: string, nombreFichero: string, esImagen: boolean, maximoMB: number): void {
+      exigir(esNombreFicheroValido(nombreFichero), 'FOTO_NOMBRE_FICHERO_NO_VALIDO', {
+        nombreFichero,
+        maximo: LONGITUD_MAXIMA_NOMBRE_FICHERO,
+      });
+      this.foto(idColeccion, nombreFichero);
+      exigir(!existsSync(path.join(fotosDir, carpetaColeccion, nombreFichero)), 'FOTO_FICHERO_DUPLICADO', { nombreFichero });
+      exigir(esImagen, 'FOTO_FORMATO_NO_VALIDO', { nombreFichero, maximo: maximoMB });
     },
 
-    // La foto de portada, si se indica, debe ser una de las fotos del álbum.
-    fotoPortada(album: string, fotoPortada: string | undefined, ficheros: string[]): void {
+    // El título de una foto (opcional: sin título es null) debe tener menos de LIMITE_TITULO_FOTO
+    // caracteres.
+    tituloFoto(titulo: string | null | undefined): void {
+      if (titulo) {
+        exigir(titulo.length < LIMITE_TITULO_FOTO, 'FOTO_TITULO_DEMASIADO_LARGO', {
+          titulo,
+          longitud: titulo.length,
+          limite: LIMITE_TITULO_FOTO,
+        });
+      }
+    },
+
+    // Un nuevo orden de las fotos de una colección nombra todas sus fotos (actuales), cada una una vez.
+    ordenFotos(coleccion: string, actuales: string[], nuevo: string[]): void {
+      exigir(esOrdenCompleto(actuales, nuevo), 'FOTO_ORDEN_NO_VALIDO', { coleccion });
+    },
+
+    // Igual para los portfolios de un fotógrafo (por su nombreNormalizado).
+    ordenPortfolios(fotografo: string, actuales: string[], nuevo: string[]): void {
+      exigir(esOrdenCompleto(actuales, nuevo), 'PORTFOLIO_ORDEN_NO_VALIDO', { fotografo });
+    },
+
+    // Igual para las colecciones de un portfolio (por su nombreNormalizado).
+    ordenColecciones(portfolio: string, actuales: string[], nuevo: string[]): void {
+      exigir(esOrdenCompleto(actuales, nuevo), 'COLECCION_ORDEN_NO_VALIDO', { portfolio });
+    },
+
+    // Una colección no puede repetir un tag.
+    tags(coleccion: string, tags: string[]): void {
+      tags.forEach((tag, i) => exigir(tags.indexOf(tag) === i, 'COLECCION_TAG_DUPLICADO', { coleccion, tag }));
+    },
+
+    // La colección de portada, si se indica (por su nombre o su nombreNormalizado), debe ser una de las
+    // colecciones del portfolio (nombresNormalizados).
+    coleccionPortada(portfolio: string, coleccionPortada: string | undefined, nombresNormalizados: string[]): void {
+      if (coleccionPortada !== undefined) {
+        exigir(nombresNormalizados.includes(normalizarNombre(coleccionPortada)), 'PORTFOLIO_COLECCION_PORTADA_INEXISTENTE', {
+          coleccionPortada,
+          portfolio,
+        });
+      }
+    },
+
+    // La foto de portada, si se indica, debe ser una de las fotos dla colección.
+    fotoPortada(coleccion: string, fotoPortada: string | undefined, ficheros: string[]): void {
       if (fotoPortada !== undefined) {
-        exigir(ficheros.includes(fotoPortada), 'ALBUM_FOTO_PORTADA_INEXISTENTE', { fotoPortada, album });
+        exigir(ficheros.includes(fotoPortada), 'COLECCION_FOTO_PORTADA_INEXISTENTE', { fotoPortada, coleccion });
       }
     },
   };

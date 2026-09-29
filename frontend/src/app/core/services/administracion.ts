@@ -2,7 +2,7 @@ import { Service, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { CambioContrasenya, EstadoAplicacion, PrimerUso } from '../models/album.model';
+import { CambioContrasenya, EstadoAplicacion, PrimerUso } from '../models/catalogo.model';
 import { SesionService } from './sesion';
 
 // Administrador de la aplicación ("admin") y primer uso. Mientras el administrador no ha entrado

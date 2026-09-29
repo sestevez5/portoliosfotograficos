@@ -24,7 +24,7 @@ export interface FotografoFila {
 
 export interface FotografoConTotales extends FotografoFila {
   portfolioCount: number;
-  albumCount: number;
+  collectionCount: number;
 }
 
 export interface PortfolioFila {
@@ -32,19 +32,23 @@ export interface PortfolioFila {
   nombreNormalizado: string;
   nombre: string;
   descripcion: string | null;
+  idColeccionPortada: number | null;
+  // nombreNormalizado de la colección de portada (idColeccionPortada), o null si no hay.
+  coleccionPortada: string | null;
 }
 
 export interface PortfolioConPortada extends PortfolioFila {
-  albumCount: number;
-  // Portada del primer álbum del portfolio (nombreNormalizado del álbum, que es su carpeta, + archivo)
-  coverCarpetaAlbum: string | null;
+  collectionCount: number;
+  // Portada de la colección de portada del portfolio o, si no hay, de la primera (nombreNormalizado
+  // de la colección, que es su carpeta, + archivo).
+  coverCarpetaColeccion: string | null;
   coverFilename: string | null;
 }
 
 // carpetaFotografo, carpetaPortfolio y nombreNormalizado (las carpetas) sirven para construir la
 // ruta de las fotos.
-export interface AlbumResumenFila {
-  idAlbum: number;
+export interface ColeccionResumenFila {
+  idColeccion: number;
   carpetaFotografo: string;
   nombreInformal: string;
   nombrePortfolio: string;
@@ -57,8 +61,8 @@ export interface AlbumResumenFila {
   photoCount: number;
 }
 
-export interface AlbumFila {
-  idAlbum: number;
+export interface ColeccionFila {
+  idColeccion: number;
   carpetaFotografo: string;
   idPortfolio: number;
   nombrePortfolio: string;
@@ -79,27 +83,30 @@ export interface FotoFila {
   alto: number | null;
 }
 
-// Nombre de archivo de la portada de un álbum: la foto idFotoPortada o, si no hay, la
-// primera por orden. "a" es el alias de la tabla albumes en la consulta que lo usa.
-const PORTADA_ALBUM = `COALESCE(
+// Nombre de archivo de la portada de una colección: la foto idFotoPortada o, si no hay, la
+// primera por orden. "a" es el alias de la tabla colecciones en la consulta que lo usa.
+const PORTADA_COLECCION = `COALESCE(
   (SELECT nombreFichero FROM fotos WHERE idFoto = a.idFotoPortada),
-  (SELECT nombreFichero FROM fotos WHERE idAlbum = a.idAlbum ORDER BY orden LIMIT 1)
+  (SELECT nombreFichero FROM fotos WHERE idColeccion = a.idColeccion ORDER BY orden LIMIT 1)
 )`;
 
-const TAGS_ALBUM = `(SELECT json_group_array(tag) FROM (SELECT tag FROM albumTags WHERE idAlbum = a.idAlbum ORDER BY orden))`;
+// nombreNormalizado de la colección de portada de un portfolio ("p"), si la tiene elegida.
+const COLECCION_PORTADA = `(SELECT nombreNormalizado FROM colecciones WHERE idColeccion = p.idColeccionPortada)`;
+
+const TAGS_COLECCION = `(SELECT json_group_array(tag) FROM (SELECT tag FROM coleccionTags WHERE idColeccion = a.idColeccion ORDER BY orden))`;
 
 const FOTOGRAFO_COLUMNAS = `f.idFotografo, f.idUsuario, f.nombreInformal, f.nombreInformalNormalizado, f.nombre,
   f.primerApellido, f.segundoApellido, f.descripcion`;
 
-// En las URL, fotógrafos, portfolios y álbumes se identifican por su nombre normalizado
+// En las URL, fotógrafos, portfolios y colecciones se identifican por su nombre normalizado
 // ("Proyectos personales" -> "proyectos-personales"). El segmento que llega se normaliza con la
 // función SQL normalizarNombre registrada en la conexión antes de compararlo con la columna, así
 // que también se aceptan el nombre con espacios, tildes o mayúsculas.
 const COMO_SEGMENTO = (expr: string) => `normalizarNombre(${expr})`;
 
-// Álbum con su portfolio y fotógrafo (para construir rutas de fotos y filtrar).
-const ALBUM_FROM = `
-  FROM albumes a
+// Colección con su portfolio y fotógrafo (para construir rutas de fotos y filtrar).
+const COLECCION_FROM = `
+  FROM colecciones a
   JOIN portfolios p ON p.idPortfolio = a.idPortfolio
   JOIN fotografos f ON f.idFotografo = p.idFotografo`;
 
@@ -107,8 +114,8 @@ const consultas = {
   fotografos: db.prepare(`
     SELECT ${FOTOGRAFO_COLUMNAS},
       (SELECT count(*) FROM portfolios p WHERE p.idFotografo = f.idFotografo) AS portfolioCount,
-      (SELECT count(*) FROM albumes a JOIN portfolios p ON p.idPortfolio = a.idPortfolio
-        WHERE p.idFotografo = f.idFotografo) AS albumCount
+      (SELECT count(*) FROM colecciones a JOIN portfolios p ON p.idPortfolio = a.idPortfolio
+        WHERE p.idFotografo = f.idFotografo) AS collectionCount
     FROM fotografos f
     ORDER BY f.idFotografo`),
 
@@ -117,49 +124,50 @@ const consultas = {
   ),
 
   portfoliosDeFotografo: db.prepare(`
-    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion,
-      (SELECT count(*) FROM albumes a WHERE a.idPortfolio = p.idPortfolio) AS albumCount,
-      primero.nombreNormalizado AS coverCarpetaAlbum,
-      (SELECT ${PORTADA_ALBUM} FROM albumes a WHERE a.idAlbum = primero.idAlbum) AS coverFilename
+    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, ${COLECCION_PORTADA} AS coleccionPortada,
+      (SELECT count(*) FROM colecciones a WHERE a.idPortfolio = p.idPortfolio) AS collectionCount,
+      primero.nombreNormalizado AS coverCarpetaColeccion,
+      (SELECT ${PORTADA_COLECCION} FROM colecciones a WHERE a.idColeccion = primero.idColeccion) AS coverFilename
     FROM portfolios p
     JOIN fotografos f ON f.idFotografo = p.idFotografo
-    LEFT JOIN albumes primero ON primero.idAlbum = (
-      SELECT idAlbum FROM albumes WHERE idPortfolio = p.idPortfolio ORDER BY orden LIMIT 1
+    LEFT JOIN colecciones primero ON primero.idColeccion = COALESCE(
+      p.idColeccionPortada,
+      (SELECT idColeccion FROM colecciones WHERE idPortfolio = p.idPortfolio ORDER BY orden LIMIT 1)
     )
     WHERE p.idFotografo = ?
     ORDER BY p.orden`),
 
   portfolio: db.prepare(`
-    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion
+    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, ${COLECCION_PORTADA} AS coleccionPortada
     FROM portfolios p
     WHERE p.idFotografo = ? AND p.nombreNormalizado = ${COMO_SEGMENTO('?')}`),
 
   // Filtros opcionales: NULL en un parámetro desactiva ese filtro.
-  albumes: db.prepare(`
-    SELECT a.idAlbum, f.nombreInformalNormalizado AS carpetaFotografo, f.nombreInformal, p.nombre AS nombrePortfolio, p.nombreNormalizado AS carpetaPortfolio,
+  colecciones: db.prepare(`
+    SELECT a.idColeccion, f.nombreInformalNormalizado AS carpetaFotografo, f.nombreInformal, p.nombre AS nombrePortfolio, p.nombreNormalizado AS carpetaPortfolio,
       a.nombreNormalizado, a.nombre, a.descripcion,
-      ${TAGS_ALBUM} AS tags,
-      ${PORTADA_ALBUM} AS coverFilename,
-      (SELECT count(*) FROM fotos WHERE idAlbum = a.idAlbum) AS photoCount
-    ${ALBUM_FROM}
+      ${TAGS_COLECCION} AS tags,
+      ${PORTADA_COLECCION} AS coverFilename,
+      (SELECT count(*) FROM fotos WHERE idColeccion = a.idColeccion) AS photoCount
+    ${COLECCION_FROM}
     WHERE (@idPortfolio IS NULL OR a.idPortfolio = @idPortfolio)
-      AND (@tag IS NULL OR EXISTS (SELECT 1 FROM albumTags t WHERE t.idAlbum = a.idAlbum AND t.tag = @tag))
+      AND (@tag IS NULL OR EXISTS (SELECT 1 FROM coleccionTags t WHERE t.idColeccion = a.idColeccion AND t.tag = @tag))
     ORDER BY f.idFotografo, p.orden, a.orden`),
 
-  album: db.prepare(`
-    SELECT a.idAlbum, f.nombreInformalNormalizado AS carpetaFotografo, p.idPortfolio, p.nombre AS nombrePortfolio,
+  coleccion: db.prepare(`
+    SELECT a.idColeccion, f.nombreInformalNormalizado AS carpetaFotografo, p.idPortfolio, p.nombre AS nombrePortfolio,
       p.nombreNormalizado AS carpetaPortfolio, a.nombreNormalizado, a.nombre, a.descripcion, a.idFotoPortada,
-      ${TAGS_ALBUM} AS tags
-    ${ALBUM_FROM}
+      ${TAGS_COLECCION} AS tags
+    ${COLECCION_FROM}
     WHERE f.idFotografo = @idFotografo
       AND p.nombreNormalizado = ${COMO_SEGMENTO('@portfolio')}
-      AND a.nombreNormalizado = ${COMO_SEGMENTO('@album')}`),
+      AND a.nombreNormalizado = ${COMO_SEGMENTO('@coleccion')}`),
 
-  fotosDeAlbum: db.prepare(`
+  fotosDeColeccion: db.prepare(`
     SELECT idFoto, nombreFichero, titulo, orden, ancho, alto
-    FROM fotos WHERE idAlbum = ? ORDER BY orden`),
+    FROM fotos WHERE idColeccion = ? ORDER BY orden`),
 
-  tags: db.prepare(`SELECT DISTINCT tag FROM albumTags`),
+  tags: db.prepare(`SELECT DISTINCT tag FROM coleccionTags`),
 
   insertarUsuario: db.prepare(
     'INSERT INTO usuarios (usuario, email, passwordHash) VALUES (@usuario, @email, @passwordHash)',
@@ -171,7 +179,7 @@ const consultas = {
      WHERE idUsuario = @idUsuario`,
   ),
 
-  // Borra también su fotógrafo (y con él sus portfolios, álbumes y fotos) en cascada.
+  // Borra también su fotógrafo (y con él sus portfolios, colecciones y fotos) en cascada.
   eliminarUsuario: db.prepare('DELETE FROM usuarios WHERE idUsuario = ?'),
 
   usuarioExiste: db.prepare('SELECT 1 FROM usuarios WHERE usuario = ?'),
@@ -188,10 +196,28 @@ const consultas = {
 
   // Lo que se muestra del usuario con la sesión iniciada (con su fotógrafo, si lo tiene).
   usuarioSesion: db.prepare(
-    `SELECT u.idUsuario, u.usuario, u.rol, f.nombreInformal, f.nombreInformalNormalizado
+    `SELECT u.idUsuario, u.usuario, u.email, u.rol, u.temaPreferido, u.fotoActualizada, f.nombreInformal, f.nombreInformalNormalizado
      FROM usuarios u LEFT JOIN fotografos f ON f.idUsuario = u.idUsuario
      WHERE u.idUsuario = ?`,
   ),
+
+  // "Mi perfil": todo lo del usuario y, si lo es, de su fotógrafo (con sus totales). Nunca el hash.
+  perfil: db.prepare(
+    `SELECT u.idUsuario, u.usuario, u.email, u.rol, u.temaPreferido, u.fotoActualizada, u.fechaCreacion, u.fechaUltimoAcceso,
+       u.passwordHash IS NOT NULL AS tieneContrasenya,
+       f.idFotografo, f.nombreInformal, f.nombreInformalNormalizado, f.nombre, f.primerApellido,
+       f.segundoApellido, f.descripcion,
+       (SELECT count(*) FROM portfolios p WHERE p.idFotografo = f.idFotografo) AS portfolioCount,
+       (SELECT count(*) FROM colecciones c JOIN portfolios p ON p.idPortfolio = c.idPortfolio
+         WHERE p.idFotografo = f.idFotografo) AS collectionCount
+     FROM usuarios u LEFT JOIN fotografos f ON f.idUsuario = u.idUsuario
+     WHERE u.idUsuario = ?`,
+  ),
+
+  guardarTemaPreferido: db.prepare('UPDATE usuarios SET temaPreferido = @tema WHERE idUsuario = @idUsuario'),
+
+  // fecha null = sin foto de perfil.
+  guardarFotoActualizada: db.prepare('UPDATE usuarios SET fotoActualizada = @fecha WHERE idUsuario = @idUsuario'),
 
   insertarSesion: db.prepare(
     'INSERT INTO sesiones (idUsuario, tokenHash, fechaExpiracion) VALUES (@idUsuario, @tokenHash, @fechaExpiracion)',
@@ -219,7 +245,7 @@ const consultas = {
   // contraseña (nunca el hash).
   fotografoEdicion: db.prepare(
     `SELECT f.idFotografo, f.idUsuario, f.nombreInformal, f.nombreInformalNormalizado, f.nombre, f.primerApellido,
-       f.segundoApellido, u.email, f.descripcion, u.passwordHash IS NOT NULL AS tieneContrasenya
+       f.segundoApellido, u.email, f.descripcion, u.passwordHash IS NOT NULL AS tieneContrasenya, u.fotoActualizada
      FROM fotografos f JOIN usuarios u ON u.idUsuario = f.idUsuario
      WHERE f.nombreInformalNormalizado = ${COMO_SEGMENTO('?')}`,
   ),
@@ -245,27 +271,53 @@ const consultas = {
 
   eliminarPortfolio: db.prepare('DELETE FROM portfolios WHERE idPortfolio = ?'),
 
-  numeroAlbumes: db.prepare('SELECT count(*) AS n FROM albumes WHERE idPortfolio = ?'),
+  cambiarOrdenPortfolio: db.prepare('UPDATE portfolios SET orden = @orden WHERE idPortfolio = @idPortfolio'),
 
-  // Los álbumes nuevos van al final de los del portfolio.
-  insertarAlbum: db.prepare(
-    `INSERT INTO albumes (idPortfolio, nombreNormalizado, nombre, descripcion, orden)
+  numeroColecciones: db.prepare('SELECT count(*) AS n FROM colecciones WHERE idPortfolio = ?'),
+
+  // Las colecciones nuevas van al final de las del portfolio.
+  insertarColeccion: db.prepare(
+    `INSERT INTO colecciones (idPortfolio, nombreNormalizado, nombre, descripcion, orden)
      VALUES (@idPortfolio, @nombreNormalizado, @nombre, @descripcion,
-       (SELECT COALESCE(max(orden) + 1, 0) FROM albumes WHERE idPortfolio = @idPortfolio))`,
+       (SELECT COALESCE(max(orden) + 1, 0) FROM colecciones WHERE idPortfolio = @idPortfolio))`,
   ),
 
-  actualizarAlbum: db.prepare(
-    `UPDATE albumes SET nombre = @nombre, nombreNormalizado = @nombreNormalizado, descripcion = @descripcion
-     WHERE idAlbum = @id`,
+  actualizarColeccion: db.prepare(
+    `UPDATE colecciones SET nombre = @nombre, nombreNormalizado = @nombreNormalizado, descripcion = @descripcion
+     WHERE idColeccion = @id`,
   ),
 
-  borrarTagsAlbum: db.prepare('DELETE FROM albumTags WHERE idAlbum = ?'),
+  cambiarFotoPortada: db.prepare('UPDATE colecciones SET idFotoPortada = @idFoto WHERE idColeccion = @idColeccion'),
 
-  insertarTagAlbum: db.prepare('INSERT INTO albumTags (idAlbum, tag, orden) VALUES (?, ?, ?)'),
+  cambiarColeccionPortada: db.prepare('UPDATE portfolios SET idColeccionPortada = @idColeccion WHERE idPortfolio = @idPortfolio'),
 
-  eliminarAlbum: db.prepare('DELETE FROM albumes WHERE idAlbum = ?'),
+  cambiarOrdenColeccion: db.prepare('UPDATE colecciones SET orden = @orden WHERE idColeccion = @idColeccion'),
 
-  numeroFotos: db.prepare('SELECT count(*) AS n FROM fotos WHERE idAlbum = ?'),
+  borrarTagsColeccion: db.prepare('DELETE FROM coleccionTags WHERE idColeccion = ?'),
+
+  insertarTagColeccion: db.prepare('INSERT INTO coleccionTags (idColeccion, tag, orden) VALUES (?, ?, ?)'),
+
+  eliminarColeccion: db.prepare('DELETE FROM colecciones WHERE idColeccion = ?'),
+
+  numeroFotos: db.prepare('SELECT count(*) AS n FROM fotos WHERE idColeccion = ?'),
+
+  // Las fotos nuevas van al final de las dla colección.
+  insertarFoto: db.prepare(
+    `INSERT INTO fotos (idColeccion, nombreFichero, orden, ancho, alto)
+     VALUES (@idColeccion, @nombreFichero,
+       (SELECT COALESCE(max(orden) + 1, 0) FROM fotos WHERE idColeccion = @idColeccion), @ancho, @alto)`,
+  ),
+
+  foto: db.prepare(
+    'SELECT idFoto, nombreFichero, titulo, orden, ancho, alto FROM fotos WHERE idColeccion = ? AND nombreFichero = ?',
+  ),
+
+  cambiarOrdenFoto: db.prepare('UPDATE fotos SET orden = @orden WHERE idFoto = @idFoto'),
+
+  cambiarTituloFoto: db.prepare('UPDATE fotos SET titulo = @titulo WHERE idFoto = @idFoto'),
+
+  // Si era la portada dla colección, idFotoPortada queda a NULL (ON DELETE SET NULL).
+  eliminarFoto: db.prepare('DELETE FROM fotos WHERE idFoto = ?'),
 
   numeroPortfolios: db.prepare('SELECT count(*) AS n FROM portfolios WHERE idFotografo = ?'),
 };
@@ -288,30 +340,52 @@ export function listarPortfolios(idFotografo: number): PortfolioConPortada[] {
   return consultas.portfoliosDeFotografo.all(idFotografo) as PortfolioConPortada[];
 }
 
-// portfolio/album: el segmento tal como viene en la URL; se compara con su nombreNormalizado.
+// portfolio/coleccion: el segmento tal como viene en la URL; se compara con su nombreNormalizado.
 export function obtenerPortfolio(idFotografo: number, portfolio: string): PortfolioFila | undefined {
   return consultas.portfolio.get(idFotografo, portfolio) as PortfolioFila | undefined;
 }
 
-export function listarAlbumes(filtro: { idPortfolio?: number; tag?: string } = {}): AlbumResumenFila[] {
-  const filas = consultas.albumes.all({
+export function listarColecciones(filtro: { idPortfolio?: number; tag?: string } = {}): ColeccionResumenFila[] {
+  const filas = consultas.colecciones.all({
     idPortfolio: filtro.idPortfolio ?? null,
     tag: filtro.tag ?? null,
-  }) as (Omit<AlbumResumenFila, 'tags'> & { tags: string })[];
+  }) as (Omit<ColeccionResumenFila, 'tags'> & { tags: string })[];
   return filas.map(conTags);
 }
 
-// Un álbum se identifica por su nombreNormalizado dentro de su portfolio, y el portfolio por el
+// Una colección se identifica por su nombreNormalizado dentro de su portfolio, y el portfolio por el
 // suyo dentro del fotógrafo, ambos como vienen en la URL.
-export function obtenerAlbum(idFotografo: number, portfolio: string, album: string): AlbumFila | undefined {
-  const fila = consultas.album.get({ idFotografo, portfolio, album }) as
-    | (Omit<AlbumFila, 'tags'> & { tags: string })
+export function obtenerColeccion(idFotografo: number, portfolio: string, coleccion: string): ColeccionFila | undefined {
+  const fila = consultas.coleccion.get({ idFotografo, portfolio, coleccion }) as
+    | (Omit<ColeccionFila, 'tags'> & { tags: string })
     | undefined;
   return fila && conTags(fila);
 }
 
-export function listarFotos(idAlbum: number): FotoFila[] {
-  return consultas.fotosDeAlbum.all(idAlbum) as FotoFila[];
+export function listarFotos(idColeccion: number): FotoFila[] {
+  return consultas.fotosDeColeccion.all(idColeccion) as FotoFila[];
+}
+
+export function obtenerFoto(idColeccion: number, nombreFichero: string): FotoFila | undefined {
+  return consultas.foto.get(idColeccion, nombreFichero) as FotoFila | undefined;
+}
+
+// Solo para services/foto.service.ts, que valida antes las reglas de negocio y guarda o borra el
+// fichero en la misma transacción.
+export function insertarFoto(idColeccion: number, foto: { nombreFichero: string; ancho: number | null; alto: number | null }): void {
+  consultas.insertarFoto.run({ idColeccion, ...foto });
+}
+
+export function cambiarOrdenFoto(idFoto: number, orden: number): void {
+  consultas.cambiarOrdenFoto.run({ idFoto, orden });
+}
+
+export function cambiarTituloFoto(idFoto: number, titulo: string | null): void {
+  consultas.cambiarTituloFoto.run({ idFoto, titulo });
+}
+
+export function eliminarFoto(idFoto: number): void {
+  consultas.eliminarFoto.run(idFoto);
 }
 
 export function listarTags(): string[] {
@@ -350,7 +424,7 @@ export function actualizarUsuario(idUsuario: number, datos: { email: string | nu
   consultas.actualizarUsuario.run({ ...datos, idUsuario });
 }
 
-// Borra en cascada su fotógrafo, con sus portfolios, álbumes y fotos.
+// Borra en cascada su fotógrafo, con sus portfolios, colecciones y fotos.
 export function eliminarUsuario(idUsuario: number): void {
   consultas.eliminarUsuario.run(idUsuario);
 }
@@ -390,10 +464,15 @@ export function usuarioParaIniciarSesion(identificador: string): { idUsuario: nu
   return consulta.get(identificador) as { idUsuario: number; passwordHash: string | null } | undefined;
 }
 
+export type Tema = 'oscuro' | 'claro';
+
 export interface UsuarioSesionFila {
   idUsuario: number;
   usuario: string;
+  email: string | null;
   rol: 'usuario' | 'administrador';
+  temaPreferido: Tema | null;
+  fotoActualizada: string | null;
   // null si el usuario no es fotógrafo (p. ej. el administrador)
   nombreInformal: string | null;
   nombreInformalNormalizado: string | null;
@@ -401,6 +480,42 @@ export interface UsuarioSesionFila {
 
 export function obtenerUsuarioSesion(idUsuario: number): UsuarioSesionFila | undefined {
   return consultas.usuarioSesion.get(idUsuario) as UsuarioSesionFila | undefined;
+}
+
+// Las columnas del fotógrafo son null si el usuario no es fotógrafo.
+export interface PerfilFila {
+  idUsuario: number;
+  usuario: string;
+  email: string | null;
+  rol: 'usuario' | 'administrador';
+  temaPreferido: Tema | null;
+  fotoActualizada: string | null;
+  fechaCreacion: string;
+  fechaUltimoAcceso: string | null;
+  tieneContrasenya: number;
+  idFotografo: number | null;
+  nombreInformal: string | null;
+  nombreInformalNormalizado: string | null;
+  nombre: string | null;
+  primerApellido: string | null;
+  segundoApellido: string | null;
+  descripcion: string | null;
+  portfolioCount: number;
+  collectionCount: number;
+}
+
+export function obtenerPerfil(idUsuario: number): PerfilFila | undefined {
+  return consultas.perfil.get(idUsuario) as PerfilFila | undefined;
+}
+
+// tema null = sin preferencia.
+export function guardarTemaPreferido(idUsuario: number, tema: Tema | null): void {
+  consultas.guardarTemaPreferido.run({ idUsuario, tema });
+}
+
+// Solo para services/foto-perfil.service.ts, que guarda o borra el fichero. fecha null = sin foto.
+export function guardarFotoActualizada(idUsuario: number, fecha: string | null): void {
+  consultas.guardarFotoActualizada.run({ idUsuario, fecha });
 }
 
 export function insertarSesion(idUsuario: number, tokenHash: string, fechaExpiracion: string): void {
@@ -446,6 +561,8 @@ export interface FotografoEdicion {
   email: string | null;
   descripcion: string;
   tieneContrasenya: boolean;
+  // null = sin foto de perfil
+  fotoActualizada: string | null;
 }
 
 export function obtenerFotografoEdicion(segmento: string): FotografoEdicion | undefined {
@@ -493,40 +610,57 @@ export function eliminarPortfolio(idPortfolio: number): void {
   consultas.eliminarPortfolio.run(idPortfolio);
 }
 
-export function numeroAlbumes(idPortfolio: number): number {
-  return (consultas.numeroAlbumes.get(idPortfolio) as { n: number }).n;
+export function numeroColecciones(idPortfolio: number): number {
+  return (consultas.numeroColecciones.get(idPortfolio) as { n: number }).n;
 }
 
-export interface DatosAlbum {
+export interface DatosColeccion {
   nombre: string;
   nombreNormalizado: string;
   descripcion: string | null;
   tags: string[];
 }
 
-function guardarTags(idAlbum: number, tags: string[]): void {
-  consultas.borrarTagsAlbum.run(idAlbum);
-  tags.forEach((tag, i) => consultas.insertarTagAlbum.run(idAlbum, tag, i));
+function guardarTags(idColeccion: number, tags: string[]): void {
+  consultas.borrarTagsColeccion.run(idColeccion);
+  tags.forEach((tag, i) => consultas.insertarTagColeccion.run(idColeccion, tag, i));
 }
 
-// Solo para services/album.service.ts, que valida las reglas de negocio y crea, renombra o elimina
-// la carpeta del álbum en la misma transacción. Deben llamarse dentro de enTransaccion (los tags
-// se guardan aparte del álbum).
-export function insertarAlbum(idPortfolio: number, { tags, ...datos }: DatosAlbum): number {
-  const idAlbum = Number(consultas.insertarAlbum.run({ ...datos, idPortfolio }).lastInsertRowid);
-  guardarTags(idAlbum, tags);
-  return idAlbum;
+// Solo para services/coleccion.service.ts, que valida las reglas de negocio y crea, renombra o elimina
+// la carpeta dla colección en la misma transacción. Deben llamarse dentro de enTransaccion (los tags
+// se guardan aparte dla colección).
+export function insertarColeccion(idPortfolio: number, { tags, ...datos }: DatosColeccion): number {
+  const idColeccion = Number(consultas.insertarColeccion.run({ ...datos, idPortfolio }).lastInsertRowid);
+  guardarTags(idColeccion, tags);
+  return idColeccion;
 }
 
-export function actualizarAlbum(idAlbum: number, { tags, ...datos }: DatosAlbum): void {
-  consultas.actualizarAlbum.run({ ...datos, id: idAlbum });
-  guardarTags(idAlbum, tags);
+export function actualizarColeccion(idColeccion: number, { tags, ...datos }: DatosColeccion): void {
+  consultas.actualizarColeccion.run({ ...datos, id: idColeccion });
+  guardarTags(idColeccion, tags);
 }
 
-export function eliminarAlbum(idAlbum: number): void {
-  consultas.eliminarAlbum.run(idAlbum);
+export function eliminarColeccion(idColeccion: number): void {
+  consultas.eliminarColeccion.run(idColeccion);
 }
 
-export function numeroFotos(idAlbum: number): number {
-  return (consultas.numeroFotos.get(idAlbum) as { n: number }).n;
+export function cambiarOrdenPortfolio(idPortfolio: number, orden: number): void {
+  consultas.cambiarOrdenPortfolio.run({ idPortfolio, orden });
+}
+
+// idFoto null: sin portada elegida (la portada es la primera foto).
+export function cambiarFotoPortada(idColeccion: number, idFoto: number | null): void {
+  consultas.cambiarFotoPortada.run({ idColeccion, idFoto });
+}
+
+export function cambiarColeccionPortada(idPortfolio: number, idColeccion: number | null): void {
+  consultas.cambiarColeccionPortada.run({ idPortfolio, idColeccion });
+}
+
+export function cambiarOrdenColeccion(idColeccion: number, orden: number): void {
+  consultas.cambiarOrdenColeccion.run({ idColeccion, orden });
+}
+
+export function numeroFotos(idColeccion: number): number {
+  return (consultas.numeroFotos.get(idColeccion) as { n: number }).n;
 }

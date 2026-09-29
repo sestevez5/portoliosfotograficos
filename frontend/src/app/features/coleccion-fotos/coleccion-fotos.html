@@ -1,0 +1,147 @@
+<section class="hero">
+  <a class="back-link" [routerLink]="volver">&larr; Volver a la colección</a>
+  <h1>Gestionar fotos</h1>
+  @if (coleccion(); as c) {
+    <p>
+      {{ c.nombre }} · {{ fotos().length }} {{ fotos().length === 1 ? 'foto' : 'fotos' }}
+    </p>
+    @if (fotos().length && !portada()) {
+      <p>Marca con la estrella la foto de portada. Mientras no elijas ninguna, la portada es la primera.</p>
+    }
+    @if (fotos().length > 1) {
+      <p>Para cambiar el orden, arrastra cada foto al lugar que quieres que ocupe.</p>
+    }
+  }
+</section>
+
+@if (coleccion() === null) {
+  <div class="aviso" role="alert">
+    <p class="aviso__titulo">Colección no encontrada</p>
+    <p><a [routerLink]="['/', fotografo, portfolio]">Ver las colecciones del portfolio</a></p>
+  </div>
+} @else if (coleccion()) {
+  <!-- Zona para soltar las fotos; también abre el selector de archivos (varios a la vez). -->
+  <label
+    class="zona"
+    [class.zona--activa]="arrastrando()"
+    (dragenter)="alArrastrarEncima($event)"
+    (dragover)="alArrastrarEncima($event)"
+    (dragleave)="alSalir($event)"
+    (drop)="alSoltar($event)"
+  >
+    <input #selector class="zona__input" type="file" multiple [accept]="tiposAdmitidos" (change)="alElegir(selector)" />
+    <span class="zona__titulo">Arrastra aquí las fotos</span>
+    <span class="zona__texto">o <span class="zona__enlace">elígelas en tu equipo</span></span>
+    <span class="zona__ayuda">JPEG, PNG o WebP, de hasta {{ tamanyoMaximoMB }} MB cada una. Se añaden al final de la colección.</span>
+  </label>
+
+  @if (subidas().length) {
+    <section class="subidas" aria-live="polite">
+      <div class="subidas__cabecera">
+        <span>
+          @if (pendientes()) {
+            Subiendo {{ pendientes() }} {{ pendientes() === 1 ? 'foto' : 'fotos' }}…
+          }
+          @if (errores()) {
+            {{ errores() }} {{ errores() === 1 ? 'foto no se ha podido añadir' : 'fotos no se han podido añadir' }}
+          }
+        </span>
+        @if (errores()) {
+          <button type="button" class="subidas__descartar" (click)="descartarErrores()">Descartar avisos</button>
+        }
+      </div>
+      <ul class="subidas__lista">
+        @for (subida of subidas(); track subida.id) {
+          <li class="subida" [class.subida--error]="subida.estado === 'error'">
+            <span class="subida__nombre">{{ subida.archivo.name }}</span>
+            <span class="subida__estado">
+              @switch (subida.estado) {
+                @case ('pendiente') { En espera }
+                @case ('subiendo') { Subiendo… }
+                @case ('error') { {{ subida.mensaje }} }
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (aviso(); as error) {
+    <div class="aviso" role="alert">
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  <section class="rejilla" [class.rejilla--guardando]="guardandoOrden()" [attr.aria-busy]="guardandoOrden()">
+    @for (foto of fotos(); track foto.nombreFichero; let i = $index) {
+      <!-- Se arrastra la tarjeta entera (no la imagen) para cambiar su lugar. -->
+      <figure
+        class="foto"
+        [class.foto--eliminando]="eliminando() === foto.nombreFichero"
+        [class.foto--arrastrada]="orden.arrastrado() === foto.nombreFichero"
+        [class.foto--ordenable]="puedeOrdenar()"
+        [attr.draggable]="puedeOrdenar() && !editandoTitulo()"
+        (dragstart)="orden.empezar($event, foto, puedeOrdenar() && !editandoTitulo())"
+        (dragover)="orden.pasarSobre($event, foto)"
+        (dragend)="orden.terminar($event)"
+      >
+        <span class="foto__posicion">{{ i + 1 }}</span>
+        <img [appFotoReducida]="foto.url" tamanyos="(max-width: 40rem) 50vw, 20vw" [alt]="foto.titulo ?? 'Foto ' + (i + 1)" loading="lazy" draggable="false" />
+        <!-- Título: al salir del cuadro (o con Intro) se guarda; vacío es "Sin título". -->
+        <input
+          #titulo
+          class="foto__titulo"
+          type="text"
+          [value]="foto.titulo ?? ''"
+          [placeholder]="sinTitulo"
+          [maxLength]="longitudMaximaTitulo"
+          [attr.aria-label]="'Título de la foto ' + (i + 1)"
+          [attr.aria-busy]="guardandoTitulo().has(foto.nombreFichero)"
+          [class.foto__titulo--guardando]="guardandoTitulo().has(foto.nombreFichero)"
+          (blur)="editandoTitulo.set(false); guardarTitulo(foto, titulo)"
+          (keydown.enter)="titulo.blur()"
+          (keydown.escape)="descartarTitulo(foto, titulo)"
+          (focus)="editandoTitulo.set(true)"
+        />
+        <figcaption class="foto__pie">
+          <!-- Estrella: rellena si es la portada; pulsarla la elige o, si ya lo es, la quita. -->
+          <button
+            type="button"
+            class="foto__portada"
+            [class.foto__portada--elegida]="portada() === foto.nombreFichero"
+            [attr.aria-pressed]="portada() === foto.nombreFichero"
+            [attr.aria-label]="'Portada de la colección: foto ' + (i + 1)"
+            [title]="portada() === foto.nombreFichero ? 'Es la portada (pulsa para quitarla)' : 'Usar como portada'"
+            [disabled]="cambiandoPortada()"
+            (click)="alternarPortada(foto)"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="foto__eliminar"
+            [disabled]="eliminando() !== null"
+            (click)="fotoAEliminar.set(foto)"
+            [attr.aria-label]="'Eliminar la foto ' + (i + 1)"
+          >
+            {{ eliminando() === foto.nombreFichero ? 'Eliminando…' : 'Eliminar' }}
+          </button>
+        </figcaption>
+      </figure>
+    } @empty {
+      <p class="vacio">Esta colección aún no tiene fotos.</p>
+    }
+  </section>
+
+  <app-confirmacion
+    [abierto]="fotoAEliminar() !== null"
+    titulo="Eliminar foto"
+    mensaje="Se eliminará esta foto de forma permanente. ¿Desea continuar?"
+    textoAceptar="Sí, eliminar"
+    (aceptado)="confirmarEliminar()"
+    (cancelado)="fotoAEliminar.set(null)"
+  />
+}

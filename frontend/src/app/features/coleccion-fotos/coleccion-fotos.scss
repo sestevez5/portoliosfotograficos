@@ -1,0 +1,334 @@
+// Cabecera, enlace de vuelta y aviso con el mismo aspecto que los formularios
+// (shared/estilos/_formulario.scss), sin incluir el resto de ese parcial, que aquí no se usa.
+// Sin ancho máximo: las instrucciones ("Para cambiar el orden…") ocupan una sola línea si caben.
+.hero {
+  padding: var(--space-4) 0 var(--space-4);
+
+  h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    margin-bottom: var(--space-2);
+  }
+
+  p {
+    color: var(--color-text-muted);
+  }
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color var(--transition);
+
+  &:hover {
+    color: var(--color-text);
+  }
+}
+
+.aviso {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-peligro);
+  border-left-width: 3px;
+  background: var(--color-peligro-fondo);
+
+  p {
+    color: var(--color-text);
+    margin: 0.25rem 0;
+  }
+}
+
+.aviso__titulo {
+  font-weight: 600;
+}
+
+.aviso {
+  margin-bottom: var(--space-3);
+}
+
+// Zona para soltar las fotos (es un <label>: al pulsarla abre el selector de archivos).
+.zona {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-3);
+  margin-bottom: var(--space-3);
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface);
+  text-align: center;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-within,
+  &--activa {
+    border-color: var(--color-text-muted);
+  }
+
+  &--activa {
+    border-style: solid;
+    background: var(--color-bg);
+  }
+}
+
+// Oculto pero accesible con el teclado (el foco se marca en la zona, con :focus-within).
+.zona__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.zona__titulo {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--color-text);
+}
+
+.zona__texto {
+  color: var(--color-text-muted);
+}
+
+.zona__enlace {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.zona__ayuda {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+// Fotos en cola, subiéndose o que no se han podido añadir.
+.subidas {
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--color-border);
+}
+
+.subidas__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.subidas__descartar {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+  }
+}
+
+.subidas__lista {
+  max-height: 14rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.subida {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0.5rem var(--space-2);
+  font-size: 0.875rem;
+
+  & + & {
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+.subida__nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+.subida__estado {
+  flex-shrink: 0;
+  max-width: 60%;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.subida--error {
+  background: var(--color-peligro-fondo);
+
+  .subida__estado {
+    color: var(--color-peligro-texto);
+  }
+}
+
+// Cuadrícula de fotos de la colección.
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  // Cada foto con su proporción original, centrada verticalmente en su fila, como en la página de
+  // la colección.
+  align-items: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-5);
+}
+
+.rejilla--guardando {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.foto {
+  position: relative;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: opacity var(--transition);
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
+.foto--eliminando {
+  opacity: 0.4;
+}
+
+.foto--ordenable {
+  cursor: grab;
+}
+
+// Hueco que ocupará la foto que se arrastra.
+.foto--arrastrada {
+  opacity: 0.35;
+  border-style: dashed;
+  border-color: var(--color-text-muted);
+}
+
+// Número de orden, sobre la esquina de la foto.
+.foto__posicion {
+  position: absolute;
+  top: 0.375rem;
+  left: 0.375rem;
+  min-width: 1.5rem;
+  padding: 0.125rem 0.375rem;
+  background: var(--color-velo);
+  color: #f2f1ed; // sobre el velo oscuro en los dos temas
+  font-size: 0.75rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+// Título de la foto, entre la imagen y la franja de la estrella y "Eliminar".
+.foto__titulo {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: text;
+
+  &::placeholder {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  &:hover {
+    background: var(--color-bg);
+  }
+
+  &:focus {
+    outline: 1px solid var(--color-text-muted);
+    outline-offset: -1px;
+    background: var(--color-bg);
+  }
+
+  &--guardando {
+    opacity: 0.6;
+  }
+}
+
+.foto__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 0.5rem;
+}
+
+// Estrella de la portada: solo el contorno si no lo es, rellena si lo es.
+.foto__portada {
+  display: flex;
+  padding: 0.125rem;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+
+  &:hover,
+  &--elegida {
+    color: var(--color-text);
+  }
+
+  &--elegida svg {
+    fill: currentColor;
+  }
+}
+
+.foto__eliminar {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-peligro);
+    color: var(--color-peligro-texto);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.vacio {
+  grid-column: 1 / -1;
+  color: var(--color-text-muted);
+}

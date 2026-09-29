@@ -1,6 +1,6 @@
-// Cabecera de las páginas de portfolio y de álbum: ocupa todo el ancho (datos a la izquierda,
-// botones de mantenimiento a la derecha) y se cierra con una línea fina que se desvanece en los
-// extremos, separándola de su contenido (álbumes o fotos). Se incluye con
+// Cabecera de las páginas de fotógrafo, portfolio y colección: ocupa todo el ancho (datos a la
+// izquierda, botones de mantenimiento a la derecha) y se cierra con una línea fina que se
+// desvanece en los extremos, separándola de su contenido (portfolios, colecciones o fotos). Se incluye con
 // @use '../../shared/estilos/cabecera' en el SCSS de cada página (los estilos siguen siendo locales
 // al componente).
 .cabecera {
@@ -36,7 +36,9 @@
   }
 }
 
+// Ocupa todo el ancho libre hasta los botones de mantenimiento.
 .cabecera__datos {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -50,20 +52,25 @@
   color: var(--color-text-muted);
 }
 
-// La descripción se limita a una medida cómoda de lectura aunque la cabecera ocupe todo el ancho.
+// La descripción ocupa una sola línea, hasta los botones: si no cabe se corta con puntos
+// suspensivos y la directiva appTextoRecortado muestra el texto entero como tooltip.
 .cabecera__descripcion {
-  max-width: 65ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cabecera__gestion {
   flex-shrink: 0;
 }
 
-// Bajo la línea separadora: acciones sobre el contenido de la página ("+ Nuevo álbum",
+// Bajo la línea separadora: acciones sobre el contenido de la página ("+ Nueva colección",
 // "Gestionar fotos").
 .cabecera-barra {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  gap: var(--space-1);
   margin-bottom: var(--space-4);
 }
 

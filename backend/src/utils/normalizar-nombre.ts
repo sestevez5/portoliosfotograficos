@@ -1,6 +1,6 @@
 // Forma normalizada de un nombre: la que se usa en las URL y como nombre de carpeta. Es la única
 // función que normaliza nombres en el backend: fotografos.nombreInformalNormalizado (a partir de
-// nombreInformal) y portfolios.nombreNormalizado y albumes.nombreNormalizado (a partir de nombre).
+// nombreInformal) y portfolios.nombreNormalizado y colecciones.nombreNormalizado (a partir de nombre).
 //
 // Quita los espacios de los extremos, pasa a minúsculas, escribe "ñ" como "ny", quita las tildes y
 // sustituye cada grupo de espacios intermedios por un único guion:
