@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentación · Portfolio fotográfico 2.0.0</title>
+<style>
+  :root {
+    --fondo: #f6f5f1; --superficie: #ffffff; --texto: #1b1b1c; --apagado: #6d6b66; --borde: #dedbd3; --codigo: #efede7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --fondo: #0b0b0c; --superficie: #141416; --texto: #f2f1ed; --apagado: #9a9994; --borde: #2a2a2d; --codigo: #1d1d20; }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 5.5rem; }
+  body { margin: 0; background: var(--fondo); color: var(--texto); font: 16px/1.55 Inter, "Segoe UI", system-ui, sans-serif; }
+  a { color: inherit; }
+  h1, h2, h3 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; line-height: 1.15; }
+  code { padding: 0.1em 0.35em; background: var(--codigo); font: 0.875em Consolas, "Cascadia Mono", monospace; }
+
+  .cabecera {
+    position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1.5rem;
+    padding: 0.9rem 1.5rem; background: var(--superficie); border-bottom: 1px solid var(--borde);
+  }
+  .cabecera__titulo { margin: 0; font-size: 1.6rem; }
+  .cabecera__titulo a { text-decoration: none; }
+  .cabecera__datos { margin: 0 0 0 auto; color: var(--apagado); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .cabecera__datos strong { color: var(--texto); }
+
+  .pagina { display: grid; grid-template-columns: 17rem minmax(0, 1fr); align-items: start; }
+  .menu { position: sticky; top: 4rem; max-height: calc(100vh - 4rem); overflow-y: auto; padding: 1.5rem; border-right: 1px solid var(--borde); }
+  .menu__inicio, .menu li a { display: block; padding: 0.35rem 0.6rem; border-left: 2px solid transparent; color: var(--apagado); text-decoration: none; }
+  .menu__inicio:hover, .menu li a:hover { color: var(--texto); }
+  .menu [aria-current="page"] { color: var(--texto); border-left-color: var(--texto); background: var(--superficie); }
+  .menu__seccion h2 { margin: 1.5rem 0 0.5rem; font: 600 0.72rem/1.3 Inter, "Segoe UI", system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+  .menu ul { margin: 0; padding: 0; list-style: none; }
+  .menu__vacio { margin: 0; padding: 0.35rem 0.6rem; color: var(--apagado); font-size: 0.875rem; font-style: italic; }
+
+  .contenido { min-width: 0; padding: 2rem clamp(1rem, 3vw, 3rem) 4rem; }
+  .contenido h1 { margin: 0 0 1rem; font-size: clamp(2.25rem, 4vw, 3.25rem); }
+  .contenido h2 { margin: 2.75rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid var(--borde); font-size: 1.8rem; }
+  .contenido h3 { margin: 1.75rem 0 0.5rem; font-size: 1.35rem; }
+  .contenido p, .contenido ul, .contenido ol { max-width: 52rem; }
+  .contenido p { margin: 0.75rem 0; }
+  .contenido li { margin: 0.4rem 0; }
+  .documento__seccion { margin: 0 0 0.5rem; color: var(--apagado); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .apartados { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1.5rem; }
+  .apartados a { padding: 0.3rem 0.75rem; border: 1px solid var(--borde); color: var(--apagado); text-decoration: none; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .apartados a:hover { color: var(--texto); border-color: var(--apagado); }
+
+  .indice__seccion p { color: var(--apagado); }
+  .indice__documentos { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 1rem; margin-top: 1rem; }
+  .ficha { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 1.1rem; border: 1px solid var(--borde); background: var(--superficie); text-decoration: none; }
+  .ficha:hover { border-color: var(--apagado); }
+  .ficha strong { font: 500 1.4rem/1.15 "Cormorant Garamond", Georgia, serif; }
+  .ficha span { color: var(--apagado); font-size: 0.875rem; }
+  .indice__vacio { font-style: italic; }
+
+  .tabla { margin: 1rem 0; overflow-x: auto; border: 1px solid var(--borde); background: var(--superficie); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { padding: 0.65rem 0.8rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--borde); }
+  tr:last-child td { border-bottom: none; }
+  tr:target td { background: var(--codigo); }
+  th { color: var(--apagado); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+  .casos td:nth-child(1) { white-space: nowrap; color: var(--apagado); font-variant-numeric: tabular-nums; }
+  .casos td:nth-child(2) { min-width: 11rem; font-weight: 600; }
+  .casos td:nth-child(3) { min-width: 20rem; }
+  .casos td:nth-child(4) { min-width: 8rem; }
+  .casos td:nth-child(5) { min-width: 18rem; }
+  .codigos td:nth-child(1) { min-width: 15rem; overflow-wrap: anywhere; }
+  .codigos td:nth-child(2), .codigos td:nth-child(3) { min-width: 18rem; }
+  .codigos td:nth-child(4) { min-width: 12rem; overflow-wrap: anywhere; }
+  .codigos code { font-size: 0.8em; }
+
+  /* Con JavaScript solo se ve el documento elegido (o el índice); sin él, todos seguidos. */
+  .con-js [data-documento]:not(.visible), .con-js .indice:not(.visible) { display: none; }
+  [data-documento] + [data-documento] { margin-top: 4rem; }
+
+  @media (max-width: 56rem) {
+    html { scroll-padding-top: 1rem; }
+    .cabecera { position: static; }
+    .cabecera__datos { margin-left: 0; }
+    .pagina { display: block; }
+    .menu { position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--borde); }
+    .tabla { overflow: visible; border: none; background: none; }
+    table, tbody, tr, td { display: block; }
+    thead { display: none; }
+    tr { margin-bottom: 0.75rem; border: 1px solid var(--borde); background: var(--superficie); }
+    td, .casos td, .codigos td { min-width: 0; border-bottom: none; padding: 0.4rem 0.8rem; white-space: normal; }
+    td::before { content: attr(data-col); display: block; color: var(--apagado); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  }
+  @media print {
+    body { background: #fff; color: #000; font-size: 10pt; }
+    .cabecera { position: static; }
+    .menu, .apartados { display: none; }
+    .pagina { display: block; }
+    .contenido { padding: 1rem 0; }
+    .contenido h2 { break-after: avoid; }
+    tr { break-inside: avoid; }
+    .tabla { overflow: visible; }
+  }
+</style>
+</head>
+<body>
+<header class="cabecera">
+  <p class="cabecera__titulo"><a href="#inicio">Portfolio fotográfico · Documentación</a></p>
+  <p class="cabecera__datos">Versión de la aplicación <strong>2.0.0</strong> · Generado el 30 de septiembre de 2026 · 2 documentos</p>
+</header>
+<div class="pagina">
+  <nav class="menu" aria-label="Documentos">
+    <a class="menu__inicio" href="#inicio" data-doc="inicio">Índice</a>
+    <section class="menu__seccion">
+      <h2>Documentación técnica</h2>
+      <p class="menu__vacio">Aún no hay documentos</p>
+    </section>
+<section class="menu__seccion">
+      <h2>Documentación funcional</h2>
+      <ul><li><a href="#casos-de-uso" data-doc="casos-de-uso">Casos de uso</a></li><li><a href="#reglas-de-negocio" data-doc="reglas-de-negocio">Reglas de negocio</a></li></ul>
+    </section>
+  </nav>
+  <main class="contenido">
+    <section class="indice" id="inicio">
+      <h1>Índice de documentos</h1>
+      <section class="indice__seccion">
+      <h2>Documentación técnica</h2>
+      <p>Cómo está hecha la aplicación y cómo se mantiene.</p>
+      <p class="indice__vacio">Aún no hay documentos en esta sección.</p>
+    </section>
+<section class="indice__seccion">
+      <h2>Documentación funcional</h2>
+      <p>Qué hace la aplicación y con qué condiciones.</p>
+      <div class="indice__documentos"><a class="ficha" href="#casos-de-uso"><strong>Casos de uso</strong><span>Lista de todo lo que un usuario puede hacer hoy en la aplicación, con una descripción breve y las condiciones para poder hacerlo. Pensada para quien necesita saber qué hace la aplicación sin leer el código.</span></a><a class="ficha" href="#reglas-de-negocio"><strong>Reglas de negocio</strong><span>Catálogo de todo lo que la aplicación no permite: cada regla con su código, lo que exige, el mensaje que recibe el usuario y las operaciones en las que se comprueba. Para quien necesita saber qué restricciones aplica la aplicación, y para quien las mantiene.</span></a></div>
+    </section>
+    </section>
+    <article class="documento" id="casos-de-uso" data-documento>
+      <p class="documento__seccion">Documentación funcional</p>
+      <h1>Casos de uso</h1>
+      <nav class="apartados" aria-label="Apartados de Casos de uso"><a href="#casos-de-uso--actores">Actores</a><a href="#casos-de-uso--restricciones-comunes">Restricciones comunes</a><a href="#casos-de-uso--consulta-del-catalogo">Consulta del catálogo</a><a href="#casos-de-uso--cuenta-y-sesion">Cuenta y sesión</a><a href="#casos-de-uso--datos-del-fotografo">Datos del fotógrafo</a><a href="#casos-de-uso--portfolios">Portfolios</a><a href="#casos-de-uso--colecciones">Colecciones</a><a href="#casos-de-uso--fotos-de-una-coleccion">Fotos de una colección</a><a href="#casos-de-uso--administracion">Administración</a><a href="#casos-de-uso--fuera-de-alcance">Fuera de alcance</a></nav>
+      <p>Lista de todo lo que un usuario puede hacer hoy en la aplicación, con una descripción breve y las condiciones para poder hacerlo. Pensada para quien necesita saber qué hace la aplicación sin leer el código.</p>
+<p>Corresponde a la versión 2.0.0 más los cambios en desarrollo a 30 de septiembre de 2026 (resaltado de la tarjeta propia y visibilidad de portfolios y colecciones).</p>
+<h2 id="casos-de-uso--actores">Actores</h2>
+<div class="tabla"><table><thead><tr><th>Actor</th><th>Quién es</th><th>Qué puede hacer, en resumen</th></tr></thead><tbody>
+<tr><td data-col="Actor"><strong>Visitante</strong></td><td data-col="Quién es">Cualquiera que entra sin iniciar sesión.</td><td data-col="Qué puede hacer, en resumen">Consultar el catálogo visible, registrarse e iniciar sesión.</td></tr>
+<tr><td data-col="Actor"><strong>Fotógrafo</strong></td><td data-col="Quién es">Usuario registrado, con su página de fotógrafo.</td><td data-col="Qué puede hacer, en resumen">Lo del visitante, más gestionar lo suyo: sus datos, su foto de perfil, sus portfolios, colecciones y fotos.</td></tr>
+<tr><td data-col="Actor"><strong>Administrador</strong></td><td data-col="Quién es">El usuario especial <code>admin</code>. Solo hay uno y no tiene página de fotógrafo.</td><td data-col="Qué puede hacer, en resumen">Gestionar lo de cualquier fotógrafo, dar de alta fotógrafos y configurar la aplicación en su primer uso.</td></tr>
+</tbody></table></div>
+<p>En las tablas, <strong>dueño</strong> es el fotógrafo al que pertenece lo que se modifica. Donde dice "dueño o administrador", cualquier otro usuario con sesión recibe un rechazo por falta de permiso, y un visitante, por falta de sesión. En la web, además, los botones correspondientes no se le muestran.</p>
+<h2 id="casos-de-uso--restricciones-comunes">Restricciones comunes</h2>
+<p>Se aplican a varios casos de uso y no se repiten en cada uno:</p>
+<ul><li><strong>Nombres que acaban en la dirección.</strong> El nombre informal de un fotógrafo y el nombre de un portfolio o de una colección se convierten en su dirección web y en el nombre de su carpeta (minúsculas, sin tildes, espacios como guiones, "ñ" como "ny"). Por eso se rechaza un nombre que, una vez convertido, coincida con otro del mismo nivel ("Ciudad de noche" y "ciudad-de noche" son el mismo), que contenga <code>/</code> o <code>\</code>, o que empiece por punto.</li><li><strong>Lo oculto no existe para los demás.</strong> Un portfolio o una colección ocultos solo los ven su dueño y el administrador. Para cualquier otro no aparecen en ningún listado ni total, y su dirección y las de sus fotos responden "no encontrado".</li><li><strong>Confirmación al eliminar con contenido.</strong> Eliminar algo que contiene otros elementos pide confirmación expresa antes de borrarlo todo.</li><li><strong>Primer uso.</strong> Hasta que el administrador completa el primer uso (CU-32), cualquier dirección lleva a la pantalla de bienvenida y no se puede usar nada más.</li></ul>
+<h2 id="casos-de-uso--consulta-del-catalogo">Consulta del catálogo</h2>
+<div class="tabla"><table class="casos"><thead><tr><th>Id</th><th>Caso de uso</th><th>Descripción</th><th>Quién</th><th>Restricciones</th></tr></thead><tbody>
+<tr id="casos-de-uso--cu-01"><td data-col="Id">CU-01</td><td data-col="Caso de uso">Ver la lista de fotógrafos</td><td data-col="Descripción">Portada con una tarjeta por fotógrafo: nombre, descripción (recortada a 70 caracteres) y número de portfolios y colecciones. La tarjeta del fotógrafo con la sesión iniciada aparece resaltada y marcada con "Tú".</td><td data-col="Quién">Todos</td><td data-col="Restricciones">Los totales solo cuentan lo que puede ver quien mira.</td></tr>
+<tr id="casos-de-uso--cu-02"><td data-col="Id">CU-02</td><td data-col="Caso de uso">Ver los portfolios de un fotógrafo</td><td data-col="Descripción">Página del fotógrafo con sus datos y una tarjeta por portfolio: portada, nombre, descripción y número de colecciones.</td><td data-col="Quién">Todos</td><td data-col="Restricciones">Los portfolios ocultos solo los ven el dueño y el administrador, marcados como "Oculto".</td></tr>
+<tr id="casos-de-uso--cu-03"><td data-col="Id">CU-03</td><td data-col="Caso de uso">Ver las colecciones de un portfolio</td><td data-col="Descripción">Página del portfolio con una tarjeta por colección: portada y nombre.</td><td data-col="Quién">Todos</td><td data-col="Restricciones">Si el portfolio está oculto, solo el dueño y el administrador. Las colecciones ocultas, igual, marcadas como "Oculta".</td></tr>
+<tr id="casos-de-uso--cu-04"><td data-col="Id">CU-04</td><td data-col="Caso de uso">Ver las fotos de una colección</td><td data-col="Descripción">Página de la colección con la cuadrícula de sus fotos.</td><td data-col="Quién">Todos</td><td data-col="Restricciones">Si la colección o su portfolio están ocultos, solo el dueño y el administrador.</td></tr>
+<tr id="casos-de-uso--cu-05"><td data-col="Id">CU-05</td><td data-col="Caso de uso">Ver una foto a tamaño grande</td><td data-col="Descripción">Visor a pantalla completa sobre la colección. Se pasa de foto con las flechas y se cierra con Escape.</td><td data-col="Quién">Todos</td><td data-col="Restricciones">Las mismas que CU-04.</td></tr>
+<tr id="casos-de-uso--cu-06"><td data-col="Id">CU-06</td><td data-col="Caso de uso">Cambiar entre tema claro y oscuro</td><td data-col="Descripción">Selector en la franja superior. La elección se recuerda en ese navegador.</td><td data-col="Quién">Todos</td><td data-col="Restricciones">Ninguna.</td></tr>
+</tbody></table></div>
+<h2 id="casos-de-uso--cuenta-y-sesion">Cuenta y sesión</h2>
+<div class="tabla"><table class="casos"><thead><tr><th>Id</th><th>Caso de uso</th><th>Descripción</th><th>Quién</th><th>Restricciones</th></tr></thead><tbody>
+<tr id="casos-de-uso--cu-07"><td data-col="Id">CU-07</td><td data-col="Caso de uso">Registrarse como fotógrafo</td><td data-col="Descripción">Formulario con los datos de acceso (usuario, correo y contraseña) y los del fotógrafo (nombre informal, nombre, apellidos, descripción y, si quiere, foto de perfil). Crea la cuenta y su página, y deja la sesión iniciada.</td><td data-col="Quién">Visitante</td><td data-col="Restricciones">Usuario, correo, contraseña, nombre informal, nombre y primer apellido son obligatorios. Usuario de 3 a 30 caracteres (letras sin tildes, números, <code>.</code>, <code>_</code>, <code>-</code>; empieza por letra o número) y no repetido. Correo con formato válido y no repetido. Contraseña de 8 caracteres o más. El nombre informal no puede coincidir con el de otro fotógrafo ni ser una palabra reservada (<code>admin</code>, <code>api</code>, <code>configuracion</code>, <code>gestion</code>, <code>perfil</code>, <code>photos</code>, <code>registro</code>).</td></tr>
+<tr id="casos-de-uso--cu-08"><td data-col="Id">CU-08</td><td data-col="Caso de uso">Iniciar sesión</td><td data-col="Descripción">Con el nombre de usuario o el correo, y la contraseña. La sesión dura 30 días en ese navegador.</td><td data-col="Quién">Visitante</td><td data-col="Restricciones">Credenciales correctas. El aviso es el mismo si el usuario no existe que si la contraseña no coincide.</td></tr>
+<tr id="casos-de-uso--cu-09"><td data-col="Id">CU-09</td><td data-col="Caso de uso">Cerrar sesión</td><td data-col="Descripción">Opción "Salir" del menú del usuario. Vuelve a la portada.</td><td data-col="Quién">Fotógrafo, administrador</td><td data-col="Restricciones">Tener la sesión iniciada.</td></tr>
+<tr id="casos-de-uso--cu-10"><td data-col="Id">CU-10</td><td data-col="Caso de uso">Ver "Mi perfil"</td><td data-col="Descripción">Sus datos de cuenta y, si es fotógrafo, sus datos, su firma y sus totales, con enlaces a su página, a editar sus datos y a la configuración.</td><td data-col="Quién">Fotógrafo, administrador</td><td data-col="Restricciones">Tener la sesión iniciada; sin ella, lleva a la portada.</td></tr>
+<tr id="casos-de-uso--cu-11"><td data-col="Id">CU-11</td><td data-col="Caso de uso">Elegir el tema preferido</td><td data-col="Descripción">En "Configuración": claro u oscuro. Se guarda en la cuenta y se aplica al iniciar sesión en cualquier navegador.</td><td data-col="Quién">Fotógrafo, administrador</td><td data-col="Restricciones">Tener la sesión iniciada.</td></tr>
+</tbody></table></div>
+<h2 id="casos-de-uso--datos-del-fotografo">Datos del fotógrafo</h2>
+<div class="tabla"><table class="casos"><thead><tr><th>Id</th><th>Caso de uso</th><th>Descripción</th><th>Quién</th><th>Restricciones</th></tr></thead><tbody>
+<tr id="casos-de-uso--cu-12"><td data-col="Id">CU-12</td><td data-col="Caso de uso">Editar los datos de un fotógrafo</td><td data-col="Descripción">Nombre informal, nombre, apellidos, correo, descripción y contraseña. Si cambia el nombre informal, cambian con él su dirección, su carpeta de fotos y su firma.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Las mismas de formato y duplicados que en el registro (CU-07). Dejar la contraseña vacía conserva la actual.</td></tr>
+<tr id="casos-de-uso--cu-13"><td data-col="Id">CU-13</td><td data-col="Caso de uso">Poner o cambiar la foto de perfil</td><td data-col="Descripción">Desde un archivo o desde la cámara; se encuadra dentro de un círculo (mover y ampliar hasta ×4) y se guarda recortada.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">La cámara solo funciona en una conexión segura (https o <code>localhost</code>). La imagen recortada no puede pasar de 2 MB.</td></tr>
+<tr id="casos-de-uso--cu-14"><td data-col="Id">CU-14</td><td data-col="Caso de uso">Quitar la foto de perfil</td><td data-col="Descripción">Vuelve a mostrarse el círculo con las iniciales.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Ninguna más.</td></tr>
+<tr id="casos-de-uso--cu-15"><td data-col="Id">CU-15</td><td data-col="Caso de uso">Eliminar un fotógrafo</td><td data-col="Descripción">Borra su cuenta, sus portfolios, colecciones y fotos, su carpeta y su firma.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Si tiene portfolios, pide confirmación. No se puede deshacer.</td></tr>
+</tbody></table></div>
+<h2 id="casos-de-uso--portfolios">Portfolios</h2>
+<div class="tabla"><table class="casos"><thead><tr><th>Id</th><th>Caso de uso</th><th>Descripción</th><th>Quién</th><th>Restricciones</th></tr></thead><tbody>
+<tr id="casos-de-uso--cu-16"><td data-col="Id">CU-16</td><td data-col="Caso de uso">Añadir un portfolio</td><td data-col="Descripción">Nombre y descripción opcional. Se añade al final de los del fotógrafo y nace visible.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Nombre obligatorio y distinto del de sus otros portfolios (ver "Nombres que acaban en la dirección").</td></tr>
+<tr id="casos-de-uso--cu-17"><td data-col="Id">CU-17</td><td data-col="Caso de uso">Editar un portfolio</td><td data-col="Descripción">Cambiar el nombre y la descripción. Si cambia el nombre, cambian su dirección y su carpeta.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Las mismas que al añadirlo.</td></tr>
+<tr id="casos-de-uso--cu-18"><td data-col="Id">CU-18</td><td data-col="Caso de uso">Eliminar un portfolio</td><td data-col="Descripción">Lo borra con sus colecciones, sus fotos y su carpeta.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Si tiene colecciones, pide confirmación. No se puede deshacer.</td></tr>
+<tr id="casos-de-uso--cu-19"><td data-col="Id">CU-19</td><td data-col="Caso de uso">Ordenar los portfolios</td><td data-col="Descripción">En "Gestionar portfolios", arrastrando cada tarjeta a su sitio. Se guarda al soltar.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Hacen falta al menos dos portfolios. No funciona en pantallas táctiles. Si entretanto se ha creado o eliminado un portfolio, el orden se rechaza y vuelve al anterior.</td></tr>
+<tr id="casos-de-uso--cu-20"><td data-col="Id">CU-20</td><td data-col="Caso de uso">Ocultar o mostrar un portfolio</td><td data-col="Descripción">En "Gestionar portfolios", con el ojo de su tarjeta: ojo normal si lo puede ver cualquiera, ojo tachado si está oculto.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Ocultarlo oculta también todas sus colecciones y fotos, aunque estén marcadas como visibles.</td></tr>
+</tbody></table></div>
+<h2 id="casos-de-uso--colecciones">Colecciones</h2>
+<div class="tabla"><table class="casos"><thead><tr><th>Id</th><th>Caso de uso</th><th>Descripción</th><th>Quién</th><th>Restricciones</th></tr></thead><tbody>
+<tr id="casos-de-uso--cu-21"><td data-col="Id">CU-21</td><td data-col="Caso de uso">Añadir una colección</td><td data-col="Descripción">Nombre, descripción opcional y etiquetas separadas por comas. Se añade al final de las del portfolio y nace visible.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Nombre obligatorio y distinto del de las otras colecciones del portfolio. Sin etiquetas repetidas.</td></tr>
+<tr id="casos-de-uso--cu-22"><td data-col="Id">CU-22</td><td data-col="Caso de uso">Editar una colección</td><td data-col="Descripción">Cambiar nombre, descripción y etiquetas. Si cambia el nombre, cambian su dirección y su carpeta.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Las mismas que al añadirla.</td></tr>
+<tr id="casos-de-uso--cu-23"><td data-col="Id">CU-23</td><td data-col="Caso de uso">Eliminar una colección</td><td data-col="Descripción">La borra con sus fotos y su carpeta.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Si tiene fotos, pide confirmación. No se puede deshacer.</td></tr>
+<tr id="casos-de-uso--cu-24"><td data-col="Id">CU-24</td><td data-col="Caso de uso">Ordenar las colecciones</td><td data-col="Descripción">En "Gestionar colecciones", arrastrando cada tarjeta a su sitio. Se guarda al soltar.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Como en CU-19: al menos dos colecciones, sin pantallas táctiles, y se rechaza si la lista ha cambiado entretanto.</td></tr>
+<tr id="casos-de-uso--cu-25"><td data-col="Id">CU-25</td><td data-col="Caso de uso">Elegir la portada del portfolio</td><td data-col="Descripción">En "Gestionar colecciones", con la estrella de una colección: su portada pasa a ser la del portfolio. Pulsar la elegida la quita.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Tiene que ser una colección de ese portfolio. Sin ninguna elegida, la portada es la de la primera colección. Si la elegida está oculta, los demás ven la de la primera colección visible.</td></tr>
+<tr id="casos-de-uso--cu-26"><td data-col="Id">CU-26</td><td data-col="Caso de uso">Ocultar o mostrar una colección</td><td data-col="Descripción">En "Gestionar colecciones", con el ojo de su tarjeta.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Una colección visible sigue sin verse si su portfolio está oculto.</td></tr>
+</tbody></table></div>
+<h2 id="casos-de-uso--fotos-de-una-coleccion">Fotos de una colección</h2>
+<p>Todo se hace en "Gestionar fotos", desde la página de la colección.</p>
+<div class="tabla"><table class="casos"><thead><tr><th>Id</th><th>Caso de uso</th><th>Descripción</th><th>Quién</th><th>Restricciones</th></tr></thead><tbody>
+<tr id="casos-de-uso--cu-27"><td data-col="Id">CU-27</td><td data-col="Caso de uso">Añadir fotos</td><td data-col="Descripción">Arrastrándolas a la zona de subida o eligiéndolas en el equipo, varias a la vez. Se suben de una en una, en ese orden, y se añaden al final. Las que se rechazan quedan en una lista con el motivo.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Solo JPEG, PNG o WebP (se comprueba el contenido, no la extensión). Máximo 25 MB por foto. No puede haber ya en la colección un fichero con el mismo nombre.</td></tr>
+<tr id="casos-de-uso--cu-28"><td data-col="Id">CU-28</td><td data-col="Caso de uso">Poner título a una foto</td><td data-col="Descripción">En el cuadro de texto bajo la foto. Se guarda al salir del cuadro o con Intro; Escape lo deshace.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Máximo 19 caracteres. Vacío equivale a "Sin título".</td></tr>
+<tr id="casos-de-uso--cu-29"><td data-col="Id">CU-29</td><td data-col="Caso de uso">Elegir la foto de portada</td><td data-col="Descripción">Con la estrella de una foto. Pulsar la elegida la quita.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">Tiene que ser una foto de esa colección. Sin ninguna elegida, la portada es la primera foto.</td></tr>
+<tr id="casos-de-uso--cu-30"><td data-col="Id">CU-30</td><td data-col="Caso de uso">Ordenar las fotos</td><td data-col="Descripción">Arrastrando cada foto a su sitio. Se guarda al soltar; Escape cancela.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">No funciona en pantallas táctiles. No se puede ordenar mientras se sube o se elimina una foto, ni mientras se escribe un título.</td></tr>
+<tr id="casos-de-uso--cu-31"><td data-col="Id">CU-31</td><td data-col="Caso de uso">Eliminar una foto</td><td data-col="Descripción">Borra la foto y su fichero, tras confirmarlo.</td><td data-col="Quién">Dueño o administrador</td><td data-col="Restricciones">No se puede deshacer. Si era la portada, pasa a serlo la primera.</td></tr>
+</tbody></table></div>
+<h2 id="casos-de-uso--administracion">Administración</h2>
+<div class="tabla"><table class="casos"><thead><tr><th>Id</th><th>Caso de uso</th><th>Descripción</th><th>Quién</th><th>Restricciones</th></tr></thead><tbody>
+<tr id="casos-de-uso--cu-32"><td data-col="Id">CU-32</td><td data-col="Caso de uso">Completar el primer uso</td><td data-col="Descripción">Pantalla de bienvenida de una instalación nueva: pide las credenciales del administrador (<code>admin</code> / <code>admin</code> de inicio) y ofrece cambiar la contraseña. Al terminar, deja su sesión iniciada.</td><td data-col="Quién">Administrador</td><td data-col="Restricciones">Solo una vez: después ya no está disponible. La contraseña nueva, si se indica, de 8 caracteres o más.</td></tr>
+<tr id="casos-de-uso--cu-33"><td data-col="Id">CU-33</td><td data-col="Caso de uso">Cambiar la contraseña del administrador</td><td data-col="Descripción">Pide la contraseña actual y la nueva.</td><td data-col="Quién">Administrador</td><td data-col="Restricciones">Contraseña actual correcta y nueva de 8 caracteres o más. No tiene enlace en la web: se entra por su dirección, <code>/admin/contrasenya</code>.</td></tr>
+<tr id="casos-de-uso--cu-34"><td data-col="Id">CU-34</td><td data-col="Caso de uso">Dar de alta un fotógrafo</td><td data-col="Descripción">El mismo formulario que el registro, sin elegir el nombre de usuario: lo calcula la aplicación (inicial del nombre más las tres primeras letras del primer apellido, con un número si se repite).</td><td data-col="Quién">Administrador</td><td data-col="Restricciones">Nombre informal, nombre y primer apellido obligatorios; correo y contraseña opcionales. Las mismas reglas de formato y duplicados que CU-07. No tiene enlace en la web: se entra por <code>/admin/fotografos/nuevo</code>.</td></tr>
+<tr id="casos-de-uso--cu-35"><td data-col="Id">CU-35</td><td data-col="Caso de uso">Gestionar lo de cualquier fotógrafo</td><td data-col="Descripción">El administrador puede hacer los casos CU-12 a CU-31 sobre cualquier fotógrafo, y ve todo lo oculto.</td><td data-col="Quién">Administrador</td><td data-col="Restricciones">Ninguna más que las de cada caso.</td></tr>
+</tbody></table></div>
+<h2 id="casos-de-uso--fuera-de-alcance">Fuera de alcance</h2>
+<p>No son casos de uso de la web, aunque existen o están previstos:</p>
+<ul><li><strong>Tareas de mantenimiento por línea de comandos</strong>, para quien administra la instalación: cargar un catálogo completo desde un fichero JSON y renombrar un fotógrafo, un portfolio o una colección.</li><li><strong>Buscar colecciones por etiqueta.</strong> Las etiquetas se guardan y la API permite filtrar por ellas, pero la web todavía no ofrece ninguna pantalla para hacerlo.</li><li><strong>Recuperar una contraseña olvidada.</strong> No existe.</li><li><strong>Ordenar en pantallas táctiles.</strong> El arrastre no funciona en móviles ni tabletas.</li></ul>
+    </article>
+<article class="documento" id="reglas-de-negocio" data-documento>
+      <p class="documento__seccion">Documentación funcional</p>
+      <h1>Reglas de negocio</h1>
+      <nav class="apartados" aria-label="Apartados de Reglas de negocio"><a href="#reglas-de-negocio--como-estan-organizadas">Cómo están organizadas</a><a href="#reglas-de-negocio--preguntas-de-confirmacion">Preguntas de confirmación</a><a href="#reglas-de-negocio--nombres-que-dan-la-misma-direccion">Nombres que dan la misma dirección</a><a href="#reglas-de-negocio--cuenta-de-usuario">Cuenta de usuario</a><a href="#reglas-de-negocio--administrador-y-primer-uso">Administrador y primer uso</a><a href="#reglas-de-negocio--fotografos">Fotógrafos</a><a href="#reglas-de-negocio--portfolios">Portfolios</a><a href="#reglas-de-negocio--colecciones">Colecciones</a><a href="#reglas-de-negocio--fotos">Fotos</a><a href="#reglas-de-negocio--comunes-a-fotografos-portfolios-y-colecciones">Comunes a fotógrafos, portfolios y colecciones</a><a href="#reglas-de-negocio--operaciones">Operaciones</a><a href="#reglas-de-negocio--lo-que-no-esta-en-el-catalogo">Lo que no está en el catálogo</a><a href="#reglas-de-negocio--como-se-entrega-una-regla-incumplida">Cómo se entrega una regla incumplida</a><a href="#reglas-de-negocio--como-anadir-una-regla">Cómo añadir una regla</a></nav>
+      <p>Catálogo de todo lo que la aplicación no permite: cada regla con su código, lo que exige, el mensaje que recibe el usuario y las operaciones en las que se comprueba. Para quien necesita saber qué restricciones aplica la aplicación, y para quien las mantiene.</p>
+<p>Corresponde a la versión 2.0.0 más los cambios en desarrollo a 30 de septiembre de 2026. Los códigos y los mensajes de este documento están copiados tal cual del catálogo del código.</p>
+<h2 id="reglas-de-negocio--como-estan-organizadas">Cómo están organizadas</h2>
+<p>Las reglas no están repartidas por el código: se definen en un único fichero, <code>backend/src/reglas/catalogo.ts</code>, que contiene dos listas.</p>
+<ul><li><strong>Reglas</strong> (38): un código y el mensaje que explica qué se ha incumplido.</li><li><strong>Operaciones</strong> (27): un código y la descripción de lo que se intentaba hacer.</li></ul>
+<p>Cuando una operación incumple una regla, no se guarda nada y el usuario recibe las dos cosas juntas: "No se ha podido <em>operación</em>. <em>Regla</em>." Por ejemplo: <em>No se ha podido crear el portfolio "Viajes" del fotógrafo "Ana Ruiz". Ya existe otro portfolio con el mismo nombre ("Viajes") para este fotógrafo.</em></p>
+<p>Los textos entre llaves de los mensajes, como <code>{nombre}</code>, se sustituyen por el dato concreto.</p>
+<p>La comprobación de casi todas las reglas está también en un solo sitio, <code>backend/src/reglas/validaciones.ts</code>. Tres se comprueban junto a la operación a la que pertenecen: <code>PRIMER_USO_COMPLETADO</code> y <code>USUARIO_CONTRASENYA_REPETIDA</code> (en <code>services/administrador.service.ts</code>) y <code>USUARIO_FOTO_NO_VALIDA</code> (en <code>services/foto-perfil.service.ts</code>); <code>USUARIO_CREDENCIALES_INCORRECTAS</code> se comprueba en <code>services/sesion.service.ts</code> y en <code>services/administrador.service.ts</code>.</p>
+<h2 id="reglas-de-negocio--preguntas-de-confirmacion">Preguntas de confirmación</h2>
+<p>Tres reglas no son una prohibición, sino una pregunta: se incumplen cuando se intenta eliminar algo que tiene contenido sin haberlo confirmado. La web muestra su mensaje en un diálogo y, si el usuario acepta, repite la operación confirmándola. Son <code>FOTOGRAFO_ELIMINAR_CON_PORTFOLIOS</code>, <code>PORTFOLIO_ELIMINAR_CON_COLECCIONES</code> y <code>COLECCION_ELIMINAR_CON_FOTOS</code>.</p>
+<h2 id="reglas-de-negocio--nombres-que-dan-la-misma-direccion">Nombres que dan la misma dirección</h2>
+<p>Varias reglas comparan nombres "por su dirección": el nombre informal de un fotógrafo y el nombre de un portfolio o de una colección se convierten en su dirección web y en el nombre de su carpeta (minúsculas, sin tildes, espacios como guiones, "ñ" como "ny"). Dos nombres que dan la misma dirección se consideran el mismo: "Ciudad de noche", "ciudad de Noche" y "Ciudad-de noche" coinciden.</p>
+<h2 id="reglas-de-negocio--cuenta-de-usuario">Cuenta de usuario</h2>
+<div class="tabla"><table class="codigos"><thead><tr><th>Código</th><th>Qué exige</th><th>Mensaje</th><th>Se comprueba en</th></tr></thead><tbody>
+<tr id="reglas-de-negocio--usuario-obligatorio"><td data-col="Código"><code>USUARIO_OBLIGATORIO</code></td><td data-col="Qué exige">Quien se registra debe indicar un nombre de usuario.</td><td data-col="Mensaje">El nombre de usuario es obligatorio.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code></td></tr>
+<tr id="reglas-de-negocio--usuario-no-valido"><td data-col="Código"><code>USUARIO_NO_VALIDO</code></td><td data-col="Qué exige">El nombre de usuario tiene de 3 a 30 caracteres, empieza por letra o número y solo usa letras sin tildes, números, <code>.</code>, <code>_</code> o <code>-</code>. Se guarda en minúsculas.</td><td data-col="Mensaje">El nombre de usuario "{usuario}" no es válido: debe tener entre 3 y 30 caracteres, empezar por una letra o un número y usar solo letras sin tildes, números, ".", "_" o "-".</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code></td></tr>
+<tr id="reglas-de-negocio--usuario-duplicado"><td data-col="Código"><code>USUARIO_DUPLICADO</code></td><td data-col="Qué exige">No puede haber dos usuarios con el mismo nombre de usuario.</td><td data-col="Mensaje">Ya existe otro usuario con el nombre de usuario "{usuario}".</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code></td></tr>
+<tr id="reglas-de-negocio--usuario-email-obligatorio"><td data-col="Código"><code>USUARIO_EMAIL_OBLIGATORIO</code></td><td data-col="Qué exige">Quien se registra debe indicar un correo electrónico.</td><td data-col="Mensaje">El correo electrónico es obligatorio.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code></td></tr>
+<tr id="reglas-de-negocio--usuario-email-no-valido"><td data-col="Código"><code>USUARIO_EMAIL_NO_VALIDO</code></td><td data-col="Qué exige">El correo, si se indica, debe tener formato de correo.</td><td data-col="Mensaje">El correo electrónico "{email}" no tiene un formato válido.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code></td></tr>
+<tr id="reglas-de-negocio--usuario-email-duplicado"><td data-col="Código"><code>USUARIO_EMAIL_DUPLICADO</code></td><td data-col="Qué exige">No puede haber dos usuarios con el mismo correo, sin distinguir mayúsculas.</td><td data-col="Mensaje">Ya existe otro usuario con el correo electrónico "{email}".</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code></td></tr>
+<tr id="reglas-de-negocio--usuario-contrasenya-obligatoria"><td data-col="Código"><code>USUARIO_CONTRASENYA_OBLIGATORIA</code></td><td data-col="Qué exige">Quien se registra debe indicar una contraseña.</td><td data-col="Mensaje">La contraseña es obligatoria.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code></td></tr>
+<tr id="reglas-de-negocio--usuario-contrasenya-corta"><td data-col="Código"><code>USUARIO_CONTRASENYA_CORTA</code></td><td data-col="Qué exige">Una contraseña, si se indica, tiene 8 caracteres o más.</td><td data-col="Mensaje">La contraseña debe tener al menos {minimo} caracteres.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>COMPLETAR_PRIMER_USO</code>, <code>CAMBIAR_CONTRASENYA_ADMINISTRADOR</code></td></tr>
+<tr id="reglas-de-negocio--usuario-contrasenya-repetida"><td data-col="Código"><code>USUARIO_CONTRASENYA_REPETIDA</code></td><td data-col="Qué exige">Al cambiar la contraseña del administrador, la nueva debe ser distinta de la actual.</td><td data-col="Mensaje">La contraseña nueva debe ser distinta de la actual.</td><td data-col="Se comprueba en"><code>COMPLETAR_PRIMER_USO</code>, <code>CAMBIAR_CONTRASENYA_ADMINISTRADOR</code></td></tr>
+<tr id="reglas-de-negocio--usuario-credenciales-incorrectas"><td data-col="Código"><code>USUARIO_CREDENCIALES_INCORRECTAS</code></td><td data-col="Qué exige">El usuario (o correo) y la contraseña deben ser los de una cuenta. El mensaje es el mismo si el usuario no existe, no tiene contraseña o no coincide, para no revelar cuál falla.</td><td data-col="Mensaje">El usuario o la contraseña no son correctos.</td><td data-col="Se comprueba en"><code>INICIAR_SESION</code>, <code>COMPLETAR_PRIMER_USO</code>, <code>CAMBIAR_CONTRASENYA_ADMINISTRADOR</code></td></tr>
+<tr id="reglas-de-negocio--usuario-foto-no-valida"><td data-col="Código"><code>USUARIO_FOTO_NO_VALIDA</code></td><td data-col="Qué exige">La foto de perfil es una imagen JPEG de 2 MB como máximo.</td><td data-col="Mensaje">La foto de perfil debe ser una imagen JPEG de como máximo {maximo} MB.</td><td data-col="Se comprueba en"><code>CAMBIAR_FOTO_PERFIL</code></td></tr>
+</tbody></table></div>
+<h2 id="reglas-de-negocio--administrador-y-primer-uso">Administrador y primer uso</h2>
+<div class="tabla"><table class="codigos"><thead><tr><th>Código</th><th>Qué exige</th><th>Mensaje</th><th>Se comprueba en</th></tr></thead><tbody>
+<tr id="reglas-de-negocio--primer-uso-completado"><td data-col="Código"><code>PRIMER_USO_COMPLETADO</code></td><td data-col="Qué exige">La configuración inicial de la aplicación solo se completa una vez.</td><td data-col="Mensaje">La aplicación ya está configurada: el primer uso ya se completó.</td><td data-col="Se comprueba en"><code>COMPLETAR_PRIMER_USO</code></td></tr>
+</tbody></table></div>
+<h2 id="reglas-de-negocio--fotografos">Fotógrafos</h2>
+<div class="tabla"><table class="codigos"><thead><tr><th>Código</th><th>Qué exige</th><th>Mensaje</th><th>Se comprueba en</th></tr></thead><tbody>
+<tr id="reglas-de-negocio--fotografo-nombre-informal-obligatorio"><td data-col="Código"><code>FOTOGRAFO_NOMBRE_INFORMAL_OBLIGATORIO</code></td><td data-col="Qué exige">Todo fotógrafo tiene nombre informal.</td><td data-col="Mensaje">El nombre informal del fotógrafo es obligatorio.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>CAMBIAR_NOMBRE_INFORMAL</code></td></tr>
+<tr id="reglas-de-negocio--fotografo-nombre-obligatorio"><td data-col="Código"><code>FOTOGRAFO_NOMBRE_OBLIGATORIO</code></td><td data-col="Qué exige">Todo fotógrafo tiene nombre.</td><td data-col="Mensaje">El nombre del fotógrafo es obligatorio.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code></td></tr>
+<tr id="reglas-de-negocio--fotografo-primer-apellido-obligatorio"><td data-col="Código"><code>FOTOGRAFO_PRIMER_APELLIDO_OBLIGATORIO</code></td><td data-col="Qué exige">Todo fotógrafo tiene primer apellido.</td><td data-col="Mensaje">El primer apellido del fotógrafo es obligatorio.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code></td></tr>
+<tr id="reglas-de-negocio--fotografo-nombre-informal-duplicado"><td data-col="Código"><code>FOTOGRAFO_NOMBRE_INFORMAL_DUPLICADO</code></td><td data-col="Qué exige">No puede haber dos fotógrafos cuyo nombre informal dé la misma dirección ("Ana Ruiz" y "ana  ruíz" coinciden).</td><td data-col="Mensaje">Ya existe otro fotógrafo con el mismo nombre informal ("{nombreInformal}" coincide con "{otro}").</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>CAMBIAR_NOMBRE_INFORMAL</code></td></tr>
+<tr id="reglas-de-negocio--fotografo-nombre-informal-reservado"><td data-col="Código"><code>FOTOGRAFO_NOMBRE_INFORMAL_RESERVADO</code></td><td data-col="Qué exige">La dirección de un fotógrafo no puede coincidir con una que usa la propia aplicación: <code>admin</code>, <code>api</code>, <code>configuracion</code>, <code>gestion</code>, <code>perfil</code>, <code>photos</code> o <code>registro</code>.</td><td data-col="Mensaje">El nombre informal "{nombreInformal}" no se puede usar: su dirección coincide con una reservada por la aplicación ("{reservado}").</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>CAMBIAR_NOMBRE_INFORMAL</code></td></tr>
+<tr id="reglas-de-negocio--fotografo-carpeta-ocupada"><td data-col="Código"><code>FOTOGRAFO_CARPETA_OCUPADA</code></td><td data-col="Qué exige">La carpeta de fotos que le corresponde al fotógrafo no puede existir ya en el disco.</td><td data-col="Mensaje">Ya existe la carpeta "{carpeta}" en datos/fotos; no se puede usar para el fotógrafo "{nombreInformal}".</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>CAMBIAR_NOMBRE_INFORMAL</code></td></tr>
+<tr id="reglas-de-negocio--fotografo-eliminar-con-portfolios"><td data-col="Código"><code>FOTOGRAFO_ELIMINAR_CON_PORTFOLIOS</code></td><td data-col="Qué exige">Un fotógrafo con portfolios solo se elimina si se confirma expresamente. <strong>Es una pregunta de confirmación.</strong></td><td data-col="Mensaje">El usuario que intenta eliminar tiene portfolios creados. Si lo elimina, se perderán de forma permanente sus portfolios, colecciones y fotos. ¿Desea continuar?</td><td data-col="Se comprueba en"><code>ELIMINAR_FOTOGRAFO</code></td></tr>
+</tbody></table></div>
+<h2 id="reglas-de-negocio--portfolios">Portfolios</h2>
+<div class="tabla"><table class="codigos"><thead><tr><th>Código</th><th>Qué exige</th><th>Mensaje</th><th>Se comprueba en</th></tr></thead><tbody>
+<tr id="reglas-de-negocio--portfolio-nombre-obligatorio"><td data-col="Código"><code>PORTFOLIO_NOMBRE_OBLIGATORIO</code></td><td data-col="Qué exige">Todo portfolio tiene nombre.</td><td data-col="Mensaje">El nombre del portfolio es obligatorio.</td><td data-col="Se comprueba en"><code>CREAR_PORTFOLIO</code>, <code>EDITAR_PORTFOLIO</code>, <code>RENOMBRAR_PORTFOLIO</code></td></tr>
+<tr id="reglas-de-negocio--portfolio-nombre-duplicado"><td data-col="Código"><code>PORTFOLIO_NOMBRE_DUPLICADO</code></td><td data-col="Qué exige">Un fotógrafo no puede tener dos portfolios cuyo nombre dé la misma dirección.</td><td data-col="Mensaje">Ya existe otro portfolio con el mismo nombre ("{nombre}") para este fotógrafo.</td><td data-col="Se comprueba en"><code>CREAR_PORTFOLIO</code>, <code>EDITAR_PORTFOLIO</code>, <code>RENOMBRAR_PORTFOLIO</code></td></tr>
+<tr id="reglas-de-negocio--portfolio-carpeta-ocupada"><td data-col="Código"><code>PORTFOLIO_CARPETA_OCUPADA</code></td><td data-col="Qué exige">La carpeta que le corresponde al portfolio no puede existir ya dentro de la del fotógrafo.</td><td data-col="Mensaje">Ya existe la carpeta "{carpeta}" en la del fotógrafo; no se puede usar para el portfolio "{nombre}".</td><td data-col="Se comprueba en"><code>CREAR_PORTFOLIO</code>, <code>EDITAR_PORTFOLIO</code>, <code>RENOMBRAR_PORTFOLIO</code></td></tr>
+<tr id="reglas-de-negocio--portfolio-orden-no-valido"><td data-col="Código"><code>PORTFOLIO_ORDEN_NO_VALIDO</code></td><td data-col="Qué exige">Un nuevo orden nombra todos los portfolios del fotógrafo, cada uno una sola vez.</td><td data-col="Mensaje">El nuevo orden debe incluir exactamente los portfolios del fotógrafo "{fotografo}", cada uno una sola vez (puede que otra persona lo haya cambiado: recarga la página).</td><td data-col="Se comprueba en"><code>ORDENAR_PORTFOLIOS</code></td></tr>
+<tr id="reglas-de-negocio--portfolio-coleccion-portada-inexistente"><td data-col="Código"><code>PORTFOLIO_COLECCION_PORTADA_INEXISTENTE</code></td><td data-col="Qué exige">La colección de portada de un portfolio es una de sus colecciones.</td><td data-col="Mensaje">La colección de portada "{coleccionPortada}" no pertenece al portfolio "{portfolio}".</td><td data-col="Se comprueba en"><code>CAMBIAR_PORTADA_PORTFOLIO</code>, <code>CREAR_PORTFOLIO</code></td></tr>
+<tr id="reglas-de-negocio--portfolio-eliminar-con-colecciones"><td data-col="Código"><code>PORTFOLIO_ELIMINAR_CON_COLECCIONES</code></td><td data-col="Qué exige">Un portfolio con colecciones solo se elimina si se confirma expresamente. <strong>Es una pregunta de confirmación.</strong></td><td data-col="Mensaje">Este portfolio contiene colecciones. Si lo elimina, se perderán de forma permanente sus colecciones y fotos. ¿Desea continuar?</td><td data-col="Se comprueba en"><code>ELIMINAR_PORTFOLIO</code></td></tr>
+</tbody></table></div>
+<h2 id="reglas-de-negocio--colecciones">Colecciones</h2>
+<div class="tabla"><table class="codigos"><thead><tr><th>Código</th><th>Qué exige</th><th>Mensaje</th><th>Se comprueba en</th></tr></thead><tbody>
+<tr id="reglas-de-negocio--coleccion-nombre-obligatorio"><td data-col="Código"><code>COLECCION_NOMBRE_OBLIGATORIO</code></td><td data-col="Qué exige">Toda colección tiene nombre.</td><td data-col="Mensaje">El nombre dla colección es obligatorio.</td><td data-col="Se comprueba en"><code>CREAR_COLECCION</code>, <code>EDITAR_COLECCION</code>, <code>RENOMBRAR_COLECCION</code></td></tr>
+<tr id="reglas-de-negocio--coleccion-nombre-duplicado"><td data-col="Código"><code>COLECCION_NOMBRE_DUPLICADO</code></td><td data-col="Qué exige">Un portfolio no puede tener dos colecciones cuyo nombre dé la misma dirección.</td><td data-col="Mensaje">Ya existe otra colección con el mismo nombre ("{nombre}") en este portfolio.</td><td data-col="Se comprueba en"><code>CREAR_COLECCION</code>, <code>EDITAR_COLECCION</code>, <code>RENOMBRAR_COLECCION</code></td></tr>
+<tr id="reglas-de-negocio--coleccion-carpeta-ocupada"><td data-col="Código"><code>COLECCION_CARPETA_OCUPADA</code></td><td data-col="Qué exige">La carpeta que le corresponde a la colección no puede existir ya dentro de la del portfolio.</td><td data-col="Mensaje">Ya existe la carpeta "{carpeta}" en la del portfolio; no se puede usar para la colección "{nombre}".</td><td data-col="Se comprueba en"><code>CREAR_COLECCION</code>, <code>EDITAR_COLECCION</code>, <code>RENOMBRAR_COLECCION</code></td></tr>
+<tr id="reglas-de-negocio--coleccion-tag-duplicado"><td data-col="Código"><code>COLECCION_TAG_DUPLICADO</code></td><td data-col="Qué exige">Una colección no repite una etiqueta.</td><td data-col="Mensaje">La colección "{coleccion}" tiene el tag "{tag}" repetido.</td><td data-col="Se comprueba en"><code>CREAR_COLECCION</code>, <code>EDITAR_COLECCION</code></td></tr>
+<tr id="reglas-de-negocio--coleccion-orden-no-valido"><td data-col="Código"><code>COLECCION_ORDEN_NO_VALIDO</code></td><td data-col="Qué exige">Un nuevo orden nombra todas las colecciones del portfolio, cada una una sola vez.</td><td data-col="Mensaje">El nuevo orden debe incluir exactamente las colecciones del portfolio "{portfolio}", cada una una sola vez (puede que otra persona lo haya cambiado: recarga la página).</td><td data-col="Se comprueba en"><code>ORDENAR_COLECCIONES</code></td></tr>
+<tr id="reglas-de-negocio--coleccion-foto-portada-inexistente"><td data-col="Código"><code>COLECCION_FOTO_PORTADA_INEXISTENTE</code></td><td data-col="Qué exige">La foto de portada de una colección es una de sus fotos.</td><td data-col="Mensaje">La foto de portada "{fotoPortada}" no pertenece a la colección "{coleccion}".</td><td data-col="Se comprueba en"><code>CAMBIAR_PORTADA_COLECCION</code>, <code>CREAR_COLECCION</code></td></tr>
+<tr id="reglas-de-negocio--coleccion-eliminar-con-fotos"><td data-col="Código"><code>COLECCION_ELIMINAR_CON_FOTOS</code></td><td data-col="Qué exige">Una colección con fotos solo se elimina si se confirma expresamente. <strong>Es una pregunta de confirmación.</strong></td><td data-col="Mensaje">Esta colección contiene fotos. Si lo elimina, se perderán de forma permanente sus fotos. ¿Desea continuar?</td><td data-col="Se comprueba en"><code>ELIMINAR_COLECCION</code></td></tr>
+</tbody></table></div>
+<h2 id="reglas-de-negocio--fotos">Fotos</h2>
+<div class="tabla"><table class="codigos"><thead><tr><th>Código</th><th>Qué exige</th><th>Mensaje</th><th>Se comprueba en</th></tr></thead><tbody>
+<tr id="reglas-de-negocio--foto-nombre-fichero-no-valido"><td data-col="Código"><code>FOTO_NOMBRE_FICHERO_NO_VALIDO</code></td><td data-col="Qué exige">El nombre del fichero de una foto no está vacío, no contiene <code>/</code> ni <code>\</code>, no empieza por punto y no pasa de 200 caracteres.</td><td data-col="Mensaje">El nombre de fichero "{nombreFichero}" no es válido: no puede estar vacío, contener "/" ni "\", empezar por "." ni tener más de {maximo} caracteres.</td><td data-col="Se comprueba en"><code>ANYADIR_FOTO</code></td></tr>
+<tr id="reglas-de-negocio--foto-fichero-duplicado"><td data-col="Código"><code>FOTO_FICHERO_DUPLICADO</code></td><td data-col="Qué exige">Una colección no tiene dos fotos con el mismo nombre de fichero, ni en el catálogo ni en su carpeta.</td><td data-col="Mensaje">Ya existe otra foto con el mismo fichero ("{nombreFichero}") en esta colección.</td><td data-col="Se comprueba en"><code>ANYADIR_FOTO</code></td></tr>
+<tr id="reglas-de-negocio--foto-formato-no-valido"><td data-col="Código"><code>FOTO_FORMATO_NO_VALIDO</code></td><td data-col="Qué exige">Una foto es una imagen JPEG, PNG o WebP (por su contenido, no por su extensión) de 25 MB como máximo.</td><td data-col="Mensaje">El fichero "{nombreFichero}" no es una imagen JPEG, PNG o WebP de como máximo {maximo} MB.</td><td data-col="Se comprueba en"><code>ANYADIR_FOTO</code></td></tr>
+<tr id="reglas-de-negocio--foto-titulo-demasiado-largo"><td data-col="Código"><code>FOTO_TITULO_DEMASIADO_LARGO</code></td><td data-col="Qué exige">El título de una foto, si lo tiene, no pasa de 19 caracteres.</td><td data-col="Mensaje">El título de una foto debe tener menos de {limite} caracteres ("{titulo}" tiene {longitud}).</td><td data-col="Se comprueba en"><code>CAMBIAR_TITULO_FOTO</code>, <code>ANYADIR_FOTO</code></td></tr>
+<tr id="reglas-de-negocio--foto-orden-no-valido"><td data-col="Código"><code>FOTO_ORDEN_NO_VALIDO</code></td><td data-col="Qué exige">Un nuevo orden nombra todas las fotos de la colección, cada una una sola vez.</td><td data-col="Mensaje">El nuevo orden debe incluir exactamente las fotos de la colección "{coleccion}", cada una una sola vez (puede que otra persona la haya cambiado: recarga la página).</td><td data-col="Se comprueba en"><code>ORDENAR_FOTOS</code></td></tr>
+</tbody></table></div>
+<h2 id="reglas-de-negocio--comunes-a-fotografos-portfolios-y-colecciones">Comunes a fotógrafos, portfolios y colecciones</h2>
+<div class="tabla"><table class="codigos"><thead><tr><th>Código</th><th>Qué exige</th><th>Mensaje</th><th>Se comprueba en</th></tr></thead><tbody>
+<tr id="reglas-de-negocio--nombre-no-valido"><td data-col="Código"><code>NOMBRE_NO_VALIDO</code></td><td data-col="Qué exige">Un nombre que da nombre a una carpeta (nombre informal del fotógrafo, nombre de portfolio o de colección) no contiene <code>/</code> ni <code>\</code> ni empieza por punto.</td><td data-col="Mensaje">El nombre "{nombre}" no es válido: no puede contener "/" ni "\" ni empezar por ".", porque da nombre a su carpeta.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>CAMBIAR_NOMBRE_INFORMAL</code>, <code>CREAR_PORTFOLIO</code>, <code>EDITAR_PORTFOLIO</code>, <code>RENOMBRAR_PORTFOLIO</code>, <code>CREAR_COLECCION</code>, <code>EDITAR_COLECCION</code>, <code>RENOMBRAR_COLECCION</code></td></tr>
+</tbody></table></div>
+<h2 id="reglas-de-negocio--operaciones">Operaciones</h2>
+<p>Lo que se intentaba hacer cuando se incumple una regla. "Importación" es la carga de un catálogo desde un fichero JSON (<code>npm run db:importar</code>); los comandos son tareas de mantenimiento de quien administra la instalación.</p>
+<div class="tabla"><table class="codigos"><thead><tr><th>Código</th><th>Descripción</th><th>Desde dónde</th><th>¿Puede incumplir reglas?</th></tr></thead><tbody>
+<tr id="reglas-de-negocio--iniciar-sesion"><td data-col="Código"><code>INICIAR_SESION</code></td><td data-col="Descripción">Iniciar sesión</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--cambiar-foto-perfil"><td data-col="Código"><code>CAMBIAR_FOTO_PERFIL</code></td><td data-col="Descripción">Cambiar la foto de perfil de "{nombreInformal}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--registrar-usuario"><td data-col="Código"><code>REGISTRAR_USUARIO</code></td><td data-col="Descripción">Registrar al usuario "{usuario}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--completar-primer-uso"><td data-col="Código"><code>COMPLETAR_PRIMER_USO</code></td><td data-col="Descripción">Completar la configuración inicial de la aplicación</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--cambiar-contrasenya-administrador"><td data-col="Código"><code>CAMBIAR_CONTRASENYA_ADMINISTRADOR</code></td><td data-col="Descripción">Cambiar la contraseña del administrador</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--crear-fotografo"><td data-col="Código"><code>CREAR_FOTOGRAFO</code></td><td data-col="Descripción">Dar de alta al fotógrafo "{nombreInformal}"</td><td data-col="Desde dónde">Web (administrador) e importación</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--cambiar-nombre-informal"><td data-col="Código"><code>CAMBIAR_NOMBRE_INFORMAL</code></td><td data-col="Descripción">Cambiar el nombre informal del fotógrafo "{actual}" a "{nuevo}"</td><td data-col="Desde dónde">Comando <code>fotografo:renombrar</code></td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--editar-fotografo"><td data-col="Código"><code>EDITAR_FOTOGRAFO</code></td><td data-col="Descripción">Modificar los datos del fotógrafo "{nombreInformal}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--eliminar-fotografo"><td data-col="Código"><code>ELIMINAR_FOTOGRAFO</code></td><td data-col="Descripción">Eliminar al fotógrafo "{nombreInformal}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--crear-portfolio"><td data-col="Código"><code>CREAR_PORTFOLIO</code></td><td data-col="Descripción">Crear el portfolio "{nombre}" del fotógrafo "{fotografo}"</td><td data-col="Desde dónde">Web e importación</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--renombrar-portfolio"><td data-col="Código"><code>RENOMBRAR_PORTFOLIO</code></td><td data-col="Descripción">Cambiar el nombre del portfolio "{actual}" del fotógrafo "{fotografo}" a "{nuevo}"</td><td data-col="Desde dónde">Comando <code>portfolio:renombrar</code></td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--editar-portfolio"><td data-col="Código"><code>EDITAR_PORTFOLIO</code></td><td data-col="Descripción">Modificar el portfolio "{nombre}" del fotógrafo "{fotografo}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--ordenar-portfolios"><td data-col="Código"><code>ORDENAR_PORTFOLIOS</code></td><td data-col="Descripción">Cambiar el orden de los portfolios del fotógrafo "{fotografo}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--cambiar-portada-portfolio"><td data-col="Código"><code>CAMBIAR_PORTADA_PORTFOLIO</code></td><td data-col="Descripción">Cambiar la colección de portada del portfolio "{portfolio}" del fotógrafo "{fotografo}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--cambiar-visibilidad-portfolio"><td data-col="Código"><code>CAMBIAR_VISIBILIDAD_PORTFOLIO</code></td><td data-col="Descripción">Cambiar la visibilidad del portfolio "{portfolio}" del fotógrafo "{fotografo}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">No, hoy ninguna</td></tr>
+<tr id="reglas-de-negocio--eliminar-portfolio"><td data-col="Código"><code>ELIMINAR_PORTFOLIO</code></td><td data-col="Descripción">Eliminar el portfolio "{nombre}" del fotógrafo "{fotografo}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--crear-coleccion"><td data-col="Código"><code>CREAR_COLECCION</code></td><td data-col="Descripción">Crear la colección "{nombre}" en el portfolio "{portfolio}" del fotógrafo "{fotografo}"</td><td data-col="Desde dónde">Web e importación</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--renombrar-coleccion"><td data-col="Código"><code>RENOMBRAR_COLECCION</code></td><td data-col="Descripción">Cambiar el nombre dla colección "{actual}" del portfolio "{portfolio}" a "{nuevo}"</td><td data-col="Desde dónde">Comando <code>coleccion:renombrar</code></td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--editar-coleccion"><td data-col="Código"><code>EDITAR_COLECCION</code></td><td data-col="Descripción">Modificar la colección "{nombre}" del portfolio "{portfolio}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--cambiar-portada-coleccion"><td data-col="Código"><code>CAMBIAR_PORTADA_COLECCION</code></td><td data-col="Descripción">Cambiar la foto de portada de la colección "{coleccion}" del portfolio "{portfolio}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--cambiar-visibilidad-coleccion"><td data-col="Código"><code>CAMBIAR_VISIBILIDAD_COLECCION</code></td><td data-col="Descripción">Cambiar la visibilidad de la colección "{coleccion}" del portfolio "{portfolio}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">No, hoy ninguna</td></tr>
+<tr id="reglas-de-negocio--eliminar-coleccion"><td data-col="Código"><code>ELIMINAR_COLECCION</code></td><td data-col="Descripción">Eliminar la colección "{nombre}" del portfolio "{portfolio}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--ordenar-colecciones"><td data-col="Código"><code>ORDENAR_COLECCIONES</code></td><td data-col="Descripción">Cambiar el orden de las colecciones del portfolio "{portfolio}" del fotógrafo "{fotografo}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--anyadir-foto"><td data-col="Código"><code>ANYADIR_FOTO</code></td><td data-col="Descripción">Añadir la foto "{nombreFichero}" a la colección "{coleccion}" del portfolio "{portfolio}"</td><td data-col="Desde dónde">Web e importación</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--ordenar-fotos"><td data-col="Código"><code>ORDENAR_FOTOS</code></td><td data-col="Descripción">Cambiar el orden de las fotos de la colección "{coleccion}" del portfolio "{portfolio}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--cambiar-titulo-foto"><td data-col="Código"><code>CAMBIAR_TITULO_FOTO</code></td><td data-col="Descripción">Cambiar el título de la foto "{nombreFichero}" de la colección "{coleccion}" del portfolio "{portfolio}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">Sí</td></tr>
+<tr id="reglas-de-negocio--eliminar-foto"><td data-col="Código"><code>ELIMINAR_FOTO</code></td><td data-col="Descripción">Eliminar la foto "{nombreFichero}" de la colección "{coleccion}" del portfolio "{portfolio}"</td><td data-col="Desde dónde">Web</td><td data-col="¿Puede incumplir reglas?">No, hoy ninguna</td></tr>
+</tbody></table></div>
+<h2 id="reglas-de-negocio--lo-que-no-esta-en-el-catalogo">Lo que no está en el catálogo</h2>
+<p>Otros rechazos de la aplicación no son reglas de negocio y no tienen código en el catálogo:</p>
+<ul><li><strong>Permisos.</strong> Modificar algo sin haber iniciado sesión, o algo que es de otro fotógrafo, se rechaza antes de comprobar ninguna regla (en <code>backend/src/routes/autorizacion.ts</code>).</li><li><strong>Lo que no existe.</strong> Pedir un fotógrafo, portfolio, colección o foto que no existe, o que está oculto para quien lo pide, responde "no encontrado".</li><li><strong>Peticiones mal formadas.</strong> Un dato del tipo equivocado (un número donde va un texto) se rechaza como petición incorrecta, no como regla.</li><li><strong>Restricciones de la base de datos.</strong> Los valores únicos y obligatorios están también en la base de datos, como última defensa. Las reglas se comprueban antes, para dar un mensaje comprensible.</li></ul>
+<h2 id="reglas-de-negocio--como-se-entrega-una-regla-incumplida">Cómo se entrega una regla incumplida</h2>
+<ul><li><strong>En la web.</strong> La API responde con el estado 422 y este cuerpo, del que la web muestra la operación y el motivo: <code>{ tipo: "reglaNegocioIncumplida", operacion: { codigo, descripcion }, regla: { codigo, mensaje }, message }</code>.</li><li><strong>En los comandos.</strong> Se muestran la operación y la regla en la consola, y no se guarda nada.</li></ul>
+<h2 id="reglas-de-negocio--como-anadir-una-regla">Cómo añadir una regla</h2>
+<ol><li>Darle un código y un mensaje en <code>backend/src/reglas/catalogo.ts</code>.</li><li>Comprobarla en <code>backend/src/reglas/validaciones.ts</code>, o junto a la operación si solo tiene sentido allí.</li><li>Añadir su prueba en <code>backend/src/reglas/reglas.test.ts</code>.</li><li>Añadirla a este documento.</li></ol>
+    </article>
+  </main>
+</div>
+<script>
+  // Muestra el documento que indica la dirección (#documento o #documento--apartado) o, si no indica
+  // ninguno, el índice; y marca su elemento en el menú.
+  (function () {
+    document.documentElement.classList.add('con-js');
+    var vistas = document.querySelectorAll('[data-documento], .indice');
+    function mostrar() {
+      var id = decodeURIComponent(location.hash.slice(1));
+      var destino = id ? document.getElementById(id) : null;
+      var vista = (destino && destino.closest('[data-documento], .indice')) || document.getElementById('inicio');
+      vistas.forEach(function (v) { v.classList.toggle('visible', v === vista); });
+      document.querySelectorAll('.menu [data-doc]').forEach(function (a) {
+        if (a.dataset.doc === vista.id) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
+      });
+      if (destino && destino !== vista) destino.scrollIntoView();
+      else window.scrollTo(0, 0);
+    }
+    window.addEventListener('hashchange', mostrar);
+    mostrar();
+  })();
+</script>
+</body>
+</html>
