@@ -34,6 +34,7 @@
 }
 
 .portfolio-card__image {
+  position: relative; // para la marca "Oculto"
   aspect-ratio: 3 / 2;
   overflow: hidden;
   background: var(--color-surface);

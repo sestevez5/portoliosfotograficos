@@ -25,7 +25,7 @@ const cuenta = (db: Database.Database, tabla: string) => (db.prepare(`SELECT cou
 
 test('una BD nueva se crea con el esquema actual, solo con el administrador y en su primer uso', () => {
   const db = nueva('nueva');
-  assert.equal(db.pragma('user_version', { simple: true }), 16);
+  assert.equal(db.pragma('user_version', { simple: true }), 17);
   const tablas = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all() as { name: string }[]).map((t) => t.name);
   assert.deepEqual(tablas, ['coleccionTags', 'colecciones', 'fotografos', 'fotos', 'portfolios', 'sesiones', 'usuarios']);
 
@@ -57,7 +57,7 @@ test('una BD de otra versión del esquema no se abre (para no perder datos)', ()
   const otra = new Database(ruta);
   otra.exec('CREATE TABLE cualquiera (x); PRAGMA user_version = 14;');
   otra.close();
-  assert.throws(() => abrirBaseDatos(ruta), /versión 14 del esquema y la aplicación espera la 16/);
+  assert.throws(() => abrirBaseDatos(ruta), /versión 14 del esquema y la aplicación espera la 17/);
 });
 
 test('una BD de la versión 15 se migra a la actual conservando sus datos', () => {
@@ -71,8 +71,11 @@ test('una BD de la versión 15 se migra a la actual conservando sus datos', () =
   v15.close();
 
   const db = abrirBaseDatos(ruta);
-  assert.equal(db.pragma('user_version', { simple: true }), 16);
-  assert.deepEqual(db.prepare('SELECT nombre, idColeccionPortada FROM portfolios').all(), [{ nombre: 'Viajes', idColeccionPortada: null }]);
+  assert.equal(db.pragma('user_version', { simple: true }), 17);
+  // Lo que ya había sigue visible para todos.
+  assert.deepEqual(db.prepare('SELECT nombre, idColeccionPortada, visible FROM portfolios').all(), [
+    { nombre: 'Viajes', idColeccionPortada: null, visible: 1 },
+  ]);
   db.close();
 });
 

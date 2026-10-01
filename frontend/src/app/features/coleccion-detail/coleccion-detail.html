@@ -7,6 +7,9 @@
     <div class="cabecera__datos">
       <span class="cabecera__etiqueta">
         Colección · {{ a.fotos.length }} {{ a.fotos.length === 1 ? 'foto' : 'fotos' }}
+        @if (!a.visible) {
+          · <app-marca-oculto texto="Oculta" />
+        }
       </span>
       <h1>Colección: "{{ a.nombre }}"</h1>
       @if (a.descripcion) {

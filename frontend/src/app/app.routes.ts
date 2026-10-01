@@ -63,7 +63,7 @@ export const routes: Routes = [
         canActivate: [urlCanonica, puedeGestionarFotografo],
         loadComponent: () => import('./features/portfolio-form/portfolio-form').then((m) => m.PortfolioForm),
       },
-      // "Ordenar portfolios" de un fotógrafo (arrastrándolos), por el propio fotógrafo.
+      // "Gestionar portfolios" de un fotógrafo (ordenarlos arrastrándolos y ocultarlos), por el propio fotógrafo.
       {
         path: 'gestion/:fotografo/portfolios/ordenar',
         canActivate: [urlCanonica, puedeGestionarFotografo],

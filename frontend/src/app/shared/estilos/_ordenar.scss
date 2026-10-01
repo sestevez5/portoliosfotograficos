@@ -122,6 +122,26 @@
   padding: 0.5rem 0.625rem;
 }
 
+// Pie en fila: los textos (nombre y total) y, a su derecha, el ojo de la visibilidad.
+.tarjeta__pie--en-fila {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tarjeta__textos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0; // para que el nombre se recorte con puntos suspensivos
+}
+
+// Oculto a los demás usuarios: la portada, apagada.
+.tarjeta--oculta .tarjeta__imagen img {
+  opacity: 0.4;
+}
+
 .tarjeta__nombre {
   overflow: hidden;
   text-overflow: ellipsis;

@@ -5,15 +5,16 @@ import { ColeccionResumen, PortfolioDetalle, ReglaNegocioIncumplida } from '../.
 import { CatalogoService } from '../../core/services/catalogo';
 import { OrdenPorArrastre } from '../../shared/orden-arrastre/orden-arrastre';
 import { FotoReducida } from '../../shared/foto-reducida/foto-reducida';
+import { OjoVisibilidad } from '../../shared/visibilidad/ojo-visibilidad';
 
 // "Gestionar colecciones" de un portfolio, para su fotógrafo propietario
 // (/gestion/:fotografo/portfolios/:portfolio/colecciones/gestionar): las colecciones en una
 // cuadrícula, que se ordenan arrastrándolas al lugar que deben ocupar, igual que las fotos en
 // "Gestionar fotos". Al soltar se guarda el orden nuevo; si no se puede, vuelve al anterior. La
 // estrella de cada colección elige la que da su portada al portfolio (pulsar la elegida la quita:
-// entonces es la primera).
+// entonces es la primera) y el ojo indica si la ven los demás usuarios (pulsarlo la oculta o la muestra).
 @Component({
-  imports: [RouterLink, FotoReducida],
+  imports: [RouterLink, FotoReducida, OjoVisibilidad],
   selector: 'app-coleccion-gestion',
   styleUrl: './coleccion-gestion.scss',
   templateUrl: './coleccion-gestion.html',
@@ -31,13 +32,14 @@ export class ColeccionGestion {
   protected readonly colecciones = signal<ColeccionResumen[]>([]);
 
   protected readonly guardando = signal(false);
-  // Error al guardar el orden o al cambiar la portada.
+  // Error al guardar el orden o al cambiar la portada o la visibilidad.
   protected readonly aviso = signal<{ titulo: string; mensaje: string } | null>(null);
   protected readonly puedeOrdenar = computed(() => this.colecciones().length > 1 && !this.guardando());
 
   // Colección elegida como portada del portfolio (su nombreNormalizado), o null si no hay ninguna.
   protected readonly portada = signal<string | null>(null);
   protected readonly cambiandoPortada = signal(false);
+  protected readonly cambiandoVisibilidad = signal(false);
 
   protected readonly orden = new OrdenPorArrastre(
     this.colecciones,
@@ -68,6 +70,25 @@ export class ColeccionGestion {
         this.aviso.set({
           titulo: 'No se ha podido guardar el nuevo orden',
           mensaje: mensajeDeError(respuesta, 'No se ha podido guardar el nuevo orden.'),
+        });
+      },
+    });
+  }
+
+  protected cambiarVisibilidad(coleccion: ColeccionResumen, visible: boolean): void {
+    const poner = (valor: boolean) =>
+      this.colecciones.update((lista) => lista.map((c) => (c.nombreNormalizado === coleccion.nombreNormalizado ? { ...c, visible: valor } : c)));
+    poner(visible); // se marca ya; si no se puede guardar, vuelve a como estaba
+    this.cambiandoVisibilidad.set(true);
+    this.aviso.set(null);
+    this.catalogoService.cambiarVisibilidadColeccion(this.fotografo, this.portfolioSegmento, coleccion.nombreNormalizado, visible).subscribe({
+      next: () => this.cambiandoVisibilidad.set(false),
+      error: (respuesta: HttpErrorResponse) => {
+        this.cambiandoVisibilidad.set(false);
+        poner(!visible);
+        this.aviso.set({
+          titulo: 'No se ha podido cambiar la visibilidad',
+          mensaje: mensajeDeError(respuesta, 'No se ha podido cambiar la visibilidad de la colección.'),
         });
       },
     });

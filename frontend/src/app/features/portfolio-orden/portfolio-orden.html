@@ -1,8 +1,11 @@
 <section class="hero">
   <a class="back-link" [routerLink]="volver">&larr; Volver a los portfolios</a>
-  <h1>Ordenar portfolios</h1>
+  <h1>Gestionar portfolios</h1>
   @if (fotografo(); as f) {
     <p>{{ nombreCompleto(f) }} · {{ portfolios().length }} {{ portfolios().length === 1 ? 'portfolio' : 'portfolios' }}</p>
+    @if (portfolios().length) {
+      <p>El ojo de cada portfolio indica si lo puede ver cualquiera; púlsalo para ocultarlo, con todas sus colecciones, a los demás usuarios.</p>
+    }
     @if (portfolios().length > 1) {
       <p>Arrastra cada portfolio al lugar que quieres que ocupe. El orden se guarda al soltarlo.</p>
     }
@@ -15,10 +18,10 @@
     <p><a routerLink="/">Ver todos los fotógrafos</a></p>
   </div>
 } @else if (fotografo()) {
-  @if (aviso(); as mensaje) {
+  @if (aviso(); as a) {
     <div class="aviso" role="alert">
-      <p class="aviso__titulo">No se ha podido guardar el nuevo orden</p>
-      <p>{{ mensaje }}</p>
+      <p class="aviso__titulo">{{ a.titulo }}</p>
+      <p>{{ a.mensaje }}</p>
     </div>
   }
 
@@ -26,6 +29,7 @@
     @for (portfolio of portfolios(); track portfolio.nombreNormalizado; let i = $index) {
       <figure
         class="tarjeta"
+        [class.tarjeta--oculta]="!portfolio.visible"
         [class.tarjeta--arrastrada]="orden.arrastrado() === portfolio.nombreNormalizado"
         [class.tarjeta--ordenable]="puedeOrdenar()"
         [attr.draggable]="puedeOrdenar()"
@@ -41,11 +45,20 @@
             <span class="tarjeta__sin-portada">{{ portfolio.collectionCount ? 'Sin fotos' : 'Sin colecciones' }}</span>
           }
         </div>
-        <figcaption class="tarjeta__pie">
-          <span class="tarjeta__nombre" [title]="portfolio.nombre">{{ portfolio.nombre }}</span>
-          <span class="tarjeta__meta">
-            {{ portfolio.collectionCount }} {{ portfolio.collectionCount === 1 ? 'colección' : 'colecciones' }}
+        <figcaption class="tarjeta__pie tarjeta__pie--en-fila">
+          <span class="tarjeta__textos">
+            <span class="tarjeta__nombre" [title]="portfolio.nombre">{{ portfolio.nombre }}</span>
+            <span class="tarjeta__meta">
+              {{ portfolio.collectionCount }} {{ portfolio.collectionCount === 1 ? 'colección' : 'colecciones' }}
+            </span>
           </span>
+          <!-- Ojo: tachado si el portfolio está oculto a los demás usuarios; pulsarlo lo cambia. -->
+          <app-ojo-visibilidad
+            [visible]="portfolio.visible"
+            [nombre]="portfolio.nombre"
+            [desactivado]="cambiandoVisibilidad()"
+            (cambiar)="cambiarVisibilidad(portfolio, $event)"
+          />
         </figcaption>
       </figure>
     } @empty {

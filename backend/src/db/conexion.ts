@@ -103,6 +103,8 @@ CREATE TABLE portfolios (
   descripcion        TEXT,
   -- Colección cuya portada es la del portfolio; NULL = la primera colección.
   idColeccionPortada INTEGER REFERENCES colecciones(idColeccion) ON DELETE SET NULL,
+  -- 0 = oculto: solo lo ven su fotógrafo y el administrador (con todas sus colecciones).
+  visible            INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1)),
   orden              INTEGER NOT NULL,
   fechaCreacion      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   fechaModificacion  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
@@ -118,6 +120,8 @@ CREATE TABLE colecciones (
   nombre             TEXT NOT NULL,
   descripcion        TEXT,
   idFotoPortada      INTEGER REFERENCES fotos(idFoto) ON DELETE SET NULL,
+  -- 0 = oculta: solo la ven su fotógrafo y el administrador.
+  visible            INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1)),
   orden              INTEGER NOT NULL,
   fechaCreacion      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   fechaModificacion  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
@@ -157,13 +161,16 @@ ${triggerFechaModificacion('fotos', 'idFoto')}
 
 // Versión del esquema, guardada en PRAGMA user_version. Cada cambio de esquema sube esta versión y
 // añade en MIGRACIONES la migración desde la anterior, que conserva los datos.
-const VERSION_ESQUEMA = 16;
+const VERSION_ESQUEMA = 17;
 
 // Migraciones: la de la clave N lleva una BD de la versión N a la N + 1. Las BD anteriores a la 15
 // (cuando la aplicación aún no se había publicado y el esquema se redefinía) no se pueden abrir.
 const MIGRACIONES: Record<number, string> = {
   // 16: colección de portada de cada portfolio.
   15: 'ALTER TABLE portfolios ADD COLUMN idColeccionPortada INTEGER REFERENCES colecciones(idColeccion) ON DELETE SET NULL;',
+  // 17: portfolios y colecciones se pueden ocultar a los demás usuarios.
+  16: `ALTER TABLE portfolios ADD COLUMN visible INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1));
+       ALTER TABLE colecciones ADD COLUMN visible INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1));`,
 };
 
 // Credenciales iniciales del administrador (se pueden cambiar; ver services/administrador.service.ts).

@@ -7,6 +7,9 @@
     <div class="cabecera__datos">
       <span class="cabecera__etiqueta">
         Portfolio · {{ p.colecciones.length }} {{ p.colecciones.length === 1 ? 'colección' : 'colecciones' }}
+        @if (!p.visible) {
+          · <app-marca-oculto />
+        }
       </span>
       <h1>Portfolio: {{ p.nombre }}</h1>
       @if (p.descripcion) {
@@ -29,6 +32,10 @@
       <article class="coleccion-card">
         <a class="coleccion-card__enlace" [routerLink]="['/', segmentoFotografo(), p.nombreNormalizado, coleccion.nombreNormalizado]">
           <div class="coleccion-card__image">
+            <!-- Las ocultas solo llegan a quien puede verlas (su fotógrafo y el administrador). -->
+            @if (!coleccion.visible) {
+              <app-marca-oculto class="sobre-portada" texto="Oculta" />
+            }
             @if (coleccion.coverPhotoUrl) {
               <img [appFotoReducida]="coleccion.coverPhotoUrl" tamanyos="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 25vw" [alt]="coleccion.nombre" loading="lazy" />
             } @else {

@@ -8,9 +8,10 @@ import { ColeccionAcciones } from '../../shared/coleccion-acciones/coleccion-acc
 import { Lightbox } from '../../shared/lightbox/lightbox';
 import { TextoRecortado } from '../../shared/texto-recortado/texto-recortado';
 import { FotoReducida } from '../../shared/foto-reducida/foto-reducida';
+import { MarcaOculto } from '../../shared/visibilidad/marca-oculto';
 
 @Component({
-  imports: [RouterLink, Lightbox, ColeccionAcciones, TextoRecortado, FotoReducida],
+  imports: [RouterLink, Lightbox, ColeccionAcciones, TextoRecortado, FotoReducida, MarcaOculto],
   selector: 'app-coleccion-detail',
   styleUrl: './coleccion-detail.scss',
   templateUrl: './coleccion-detail.html',

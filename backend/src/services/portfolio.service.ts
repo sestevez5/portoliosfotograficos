@@ -5,6 +5,7 @@ import {
   actualizarPortfolio,
   cambiarColeccionPortada,
   cambiarOrdenPortfolio,
+  cambiarVisibilidadPortfolio as cambiarVisibilidadPortfolioBD,
   eliminarPortfolio as eliminarPortfolioBD,
   enTransaccion,
   insertarPortfolio,
@@ -163,6 +164,15 @@ export function cambiarPortadaPortfolio(fotografo: string, portfolio: string, co
   );
   const elegida = coleccion === null ? undefined : colecciones.find((c) => c.nombreNormalizado === normalizarNombre(coleccion));
   cambiarColeccionPortada(actual.idPortfolio, elegida?.idColeccion ?? null);
+}
+
+// Muestra u oculta un portfolio a los demás usuarios. Oculto, solo lo ven (con todas sus
+// colecciones y fotos) su fotógrafo y el administrador.
+export function cambiarVisibilidadPortfolio(fotografo: string, portfolio: string, visible: boolean): void {
+  const { f, actual } = cargarPortfolio(fotografo, portfolio);
+  enOperacion('CAMBIAR_VISIBILIDAD_PORTFOLIO', { portfolio: actual.nombre, fotografo: f.nombreInformal }, () =>
+    cambiarVisibilidadPortfolioBD(actual.idPortfolio, visible),
+  );
 }
 
 export function eliminarPortfolio(fotografo: string, portfolio: string, confirmado: boolean): void {

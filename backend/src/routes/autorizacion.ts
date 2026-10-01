@@ -1,4 +1,5 @@
 import type { Request } from 'express';
+import { VER_TODO, type Vista } from '../db/catalogo.repository.js';
 import { SinPermiso, SinSesion } from '../errores.js';
 import { COOKIE_SESION, usuarioDeSesion } from '../services/sesion.service.js';
 import type { UsuarioSesion } from '../types/catalogo.js';
@@ -21,6 +22,16 @@ export function tokenDeSesion(req: Request): string | undefined {
     }
   }
   return undefined;
+}
+
+// Qué ve del catálogo quien hace la petición (ver "Visibilidad" en db/catalogo.repository.ts): el
+// administrador, todo; un fotógrafo, lo visible y además lo oculto suyo; los demás, solo lo visible.
+export function vistaDe(req: Request): Vista {
+  const usuario = usuarioDeSesion(tokenDeSesion(req));
+  if (!usuario) {
+    return null;
+  }
+  return usuario.rol === 'administrador' ? VER_TODO : (usuario.fotografo?.nombreInformalNormalizado ?? null);
 }
 
 function exigirSesion(req: Request): UsuarioSesion {

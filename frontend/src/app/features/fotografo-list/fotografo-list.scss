@@ -70,6 +70,16 @@
   border-color: var(--color-text-muted);
 }
 
+// La tarjeta del fotógrafo con la sesión iniciada: marco y fondo un poco más claros que el resto.
+.fotografo-card--propio {
+  border-color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-text) 4%, var(--color-surface));
+
+  &:hover {
+    border-color: var(--color-text);
+  }
+}
+
 .empty-state {
   color: var(--color-text-muted);
 }
