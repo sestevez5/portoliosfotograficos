@@ -5,6 +5,25 @@ Todos los cambios relevantes del proyecto se documentan en este fichero.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [Versionado Semántico](https://semver.org/lang/es/) (`MAYOR.MENOR.PARCHE`).
 
+## [2.1.0] - 2026-10-06
+
+### Añadido
+
+- **Visibilidad** de portfolios y colecciones: se pueden ocultar a los demás usuarios con el ojo de "Gestionar
+  portfolios" y "Gestionar colecciones". Lo oculto solo lo ven su fotógrafo y el administrador (marcado como
+  "Oculto"); para los demás no aparece en listados, totales, búsquedas por tag ni portadas, su página responde 404 y
+  sus fotos no se sirven en `/photos`. Un portfolio oculto oculta todas sus colecciones. Nuevas rutas
+  `PUT …/portfolios/:portfolio/visibilidad` y `PUT …/colecciones/:coleccion/visibilidad`; la API devuelve `visible`.
+- Al fallar el envío de un formulario (registro, fotógrafo, portfolio, colección, primer uso o contraseña del
+  administrador), la página se desplaza sola hasta el aviso con el error.
+- Documentación funcional en `docs/` (casos de uso y reglas de negocio, primera versión incompleta) y el agente
+  `documentador` de Claude Code que la mantiene.
+
+### Notas de despliegue
+
+- Esquema 17 de la base de datos (columna `visible` en `portfolios` y `colecciones`): la migración se aplica sola al
+  arrancar y deja todo visible.
+
 ## [2.0.0] - 2026-09-29
 
 Versión con cambios incompatibles (organización de `datos/`, esquema de la base de datos, rutas de la API y de la
@@ -181,5 +200,6 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
+[2.1.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.1.0
 [2.0.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.0.0
 [1.0.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v1.0.0

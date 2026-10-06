@@ -154,6 +154,15 @@ export class CatalogoService {
     return this.http.put<void>(`${this.portfolioUrl(fotografo, portfolio)}/portada`, { coleccionPortada });
   }
 
+  // Muestra u oculta un portfolio (con todas sus colecciones) o una colección a los demás usuarios.
+  cambiarVisibilidadPortfolio(fotografo: string, portfolio: string, visible: boolean): Observable<void> {
+    return this.http.put<void>(`${this.portfolioUrl(fotografo, portfolio)}/visibilidad`, { visible });
+  }
+
+  cambiarVisibilidadColeccion(fotografo: string, portfolio: string, coleccion: string, visible: boolean): Observable<void> {
+    return this.http.put<void>(`${this.coleccionUrl(fotografo, portfolio, coleccion)}/visibilidad`, { visible });
+  }
+
   // Sin confirmar, si la colección tiene fotos el backend responde 422 con la regla
   // COLECCION_ELIMINAR_CON_FOTOS (su mensaje es la pregunta que hay que hacer al usuario).
   eliminarColeccion(fotografo: string, portfolio: string, coleccion: string, confirmar = false): Observable<void> {

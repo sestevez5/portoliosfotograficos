@@ -15,6 +15,7 @@ import { CatalogoService } from '../../core/services/catalogo';
 import { SesionService } from '../../core/services/sesion';
 import { Avatar } from '../../shared/avatar/avatar';
 import { EditorFoto } from '../../shared/editor-foto/editor-foto';
+import { AvisoVisible } from '../../shared/aviso-visible/aviso-visible';
 
 // Debe coincidir con LONGITUD_MINIMA_CONTRASENYA del backend (reglas/validaciones.ts).
 const LONGITUD_MINIMA_CONTRASENYA = 8;
@@ -38,7 +39,7 @@ const USUARIO = /^\s*[a-zA-Z0-9][a-zA-Z0-9._-]{2,29}\s*$/;
 // se intentaba y por qué no se ha podido. El nombreInformalNormalizado (dirección y carpeta) lo
 // calcula el backend y no se muestra. Al editar, una contraseña vacía conserva la actual.
 @Component({
-  imports: [ReactiveFormsModule, RouterLink, Avatar, EditorFoto],
+  imports: [ReactiveFormsModule, RouterLink, Avatar, EditorFoto, AvisoVisible],
   selector: 'app-fotografo-form',
   styleUrl: './fotografo-form.scss',
   templateUrl: './fotografo-form.html',

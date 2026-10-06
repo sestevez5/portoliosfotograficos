@@ -4,7 +4,7 @@
 
 <ul class="fotografo-list">
   @for (fotografo of fotografos(); track fotografo.nombreInformalNormalizado) {
-    <li class="fotografo-card">
+    <li class="fotografo-card" [class.fotografo-card--propio]="sesion.esSuFotografo(fotografo.nombreInformalNormalizado)">
       <a class="fotografo-card__enlace" [routerLink]="['/', fotografo.nombreInformalNormalizado]">
         <h2>{{ nombreCompleto(fotografo) }}</h2>
         <!-- Siempre presente (aunque esté vacía) y con alto fijo, para que la línea de totales quede
@@ -17,7 +17,7 @@
           {{ fotografo.collectionCount }} {{ fotografo.collectionCount === 1 ? 'colección' : 'colecciones' }}
         </span>
       </a>
-      <app-fotografo-acciones class="en-tarjeta" [fotografo]="fotografo" (eliminado)="cargar()" />
+      <app-fotografo-acciones class="en-tarjeta" [fotografo]="fotografo" [indicarPropio]="true" (eliminado)="cargar()" />
     </li>
   } @empty {
     <li class="empty-state">No hay fotógrafos disponibles todavía.</li>

@@ -15,7 +15,7 @@
 
 <form class="formulario" [formGroup]="formulario" (ngSubmit)="enviar()" novalidate [attr.aria-busy]="cargando()">
   @if (reglaIncumplida(); as regla) {
-    <div class="aviso" role="alert">
+    <div class="aviso" role="alert" appAvisoVisible>
       <p class="aviso__titulo">{{ editando ? 'No se han podido guardar los cambios' : registro ? 'No se ha podido crear la cuenta' : 'No se ha podido crear el fotógrafo' }}</p>
       @if (regla.operacion) {
         <p><span class="aviso__etiqueta">Se intentaba:</span> {{ regla.operacion.descripcion }}</p>
@@ -24,7 +24,7 @@
     </div>
   }
   @if (errorGeneral(); as error) {
-    <div class="aviso" role="alert">
+    <div class="aviso" role="alert" appAvisoVisible>
       <p class="aviso__titulo">{{ editando ? 'No se han podido guardar los cambios' : registro ? 'No se ha podido crear la cuenta' : 'No se ha podido crear el fotógrafo' }}</p>
       <p>{{ error }}</p>
     </div>

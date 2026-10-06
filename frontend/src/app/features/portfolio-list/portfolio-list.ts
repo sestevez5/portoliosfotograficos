@@ -9,9 +9,10 @@ import { FotografoAcciones } from '../../shared/fotografo-acciones/fotografo-acc
 import { PortfolioAcciones } from '../../shared/portfolio-acciones/portfolio-acciones';
 import { TextoRecortado } from '../../shared/texto-recortado/texto-recortado';
 import { FotoReducida } from '../../shared/foto-reducida/foto-reducida';
+import { MarcaOculto } from '../../shared/visibilidad/marca-oculto';
 
 @Component({
-  imports: [RouterLink, FotografoAcciones, PortfolioAcciones, TextoRecortado, FotoReducida],
+  imports: [RouterLink, FotografoAcciones, PortfolioAcciones, TextoRecortado, FotoReducida, MarcaOculto],
   selector: 'app-portfolio-list',
   styleUrl: './portfolio-list.scss',
   templateUrl: './portfolio-list.html',

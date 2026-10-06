@@ -19,6 +19,9 @@ import { Confirmacion } from '../confirmacion/confirmacion';
          Los botones no se eliminan: sin permiso simplemente no se muestran. -->
     @if (visibles()) {
       <div class="acciones">
+        @if (propio()) {
+          <em class="propio">Tú</em>
+        }
         <a class="accion" [routerLink]="['/admin/fotografos', fotografo().nombreInformalNormalizado, 'editar']">Editar</a>
         <button type="button" class="accion accion--peligro" [disabled]="eliminando()" (click)="eliminar()">
           {{ eliminando() ? 'Eliminando…' : 'Eliminar' }}
@@ -44,9 +47,15 @@ export class FotografoAcciones {
 
   readonly fotografo = input.required<Pick<FotografoPublico, 'nombreInformal' | 'nombreInformalNormalizado'>>();
   readonly eliminado = output<void>();
+  // En la tarjeta de la portada: indica con "Tú" que el fotógrafo es el del usuario con la sesión iniciada.
+  readonly indicarPropio = input(false);
 
   // Sus botones solo se muestran a quien puede gestionarlo.
   protected readonly visibles = computed(() => this.sesion.puedeGestionar(this.fotografo().nombreInformalNormalizado));
+
+  protected readonly propio = computed(
+    () => this.indicarPropio() && this.sesion.esSuFotografo(this.fotografo().nombreInformalNormalizado),
+  );
 
   protected readonly eliminando = signal(false);
   protected readonly advertencia = signal<string | null>(null);

@@ -1,0 +1,31 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  vertical-align: middle;
+}
+
+svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+// En la esquina de la portada de una tarjeta (su contenedor debe tener position: relative).
+:host(.sobre-portada) {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-velo);
+  color: #f2f1ed; // sobre el velo oscuro en los dos temas
+}

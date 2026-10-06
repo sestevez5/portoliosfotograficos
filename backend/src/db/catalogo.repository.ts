@@ -33,6 +33,8 @@ export interface PortfolioFila {
   nombre: string;
   descripcion: string | null;
   idColeccionPortada: number | null;
+  // 0 = oculto a los demás usuarios
+  visible: number;
   // nombreNormalizado de la colección de portada (idColeccionPortada), o null si no hay.
   coleccionPortada: string | null;
 }
@@ -59,6 +61,7 @@ export interface ColeccionResumenFila {
   tags: string[];
   coverFilename: string | null;
   photoCount: number;
+  visible: number;
 }
 
 export interface ColeccionFila {
@@ -71,6 +74,9 @@ export interface ColeccionFila {
   nombre: string;
   descripcion: string | null;
   idFotoPortada: number | null;
+  // 0 = oculta a los demás usuarios (la colección; si lo está su portfolio, portfolioVisible = 0)
+  visible: number;
+  portfolioVisible: number;
   tags: string[];
 }
 
@@ -110,12 +116,24 @@ const COLECCION_FROM = `
   JOIN portfolios p ON p.idPortfolio = a.idPortfolio
   JOIN fotografos f ON f.idFotografo = p.idFotografo`;
 
+// Visibilidad: un portfolio o una colección ocultos (visible = 0) solo los ven su fotógrafo y el
+// administrador; para los demás es como si no existieran (ni en los listados, ni en los totales, ni
+// como portada). Un portfolio oculto oculta todas sus colecciones. Las consultas de lectura reciben
+// en @ve quién mira: VER_TODO (el administrador, y los servicios, que ya han comprobado el
+// permiso), el nombreInformalNormalizado de un fotógrafo (ve también lo oculto suyo) o null (solo
+// lo visible). "f", "p" y "a" son los alias de fotografos, portfolios y colecciones.
+export type Vista = string | null;
+export const VER_TODO = '';
+const VE_LO_OCULTO = `(@ve = '' OR f.nombreInformalNormalizado = @ve)`;
+const PORTFOLIO_VISIBLE = `(p.visible = 1 OR ${VE_LO_OCULTO})`;
+const COLECCION_VISIBLE = `(a.visible = 1 OR ${VE_LO_OCULTO})`;
+
 const consultas = {
   fotografos: db.prepare(`
     SELECT ${FOTOGRAFO_COLUMNAS},
-      (SELECT count(*) FROM portfolios p WHERE p.idFotografo = f.idFotografo) AS portfolioCount,
+      (SELECT count(*) FROM portfolios p WHERE p.idFotografo = f.idFotografo AND ${PORTFOLIO_VISIBLE}) AS portfolioCount,
       (SELECT count(*) FROM colecciones a JOIN portfolios p ON p.idPortfolio = a.idPortfolio
-        WHERE p.idFotografo = f.idFotografo) AS collectionCount
+        WHERE p.idFotografo = f.idFotografo AND ${PORTFOLIO_VISIBLE} AND ${COLECCION_VISIBLE}) AS collectionCount
     FROM fotografos f
     ORDER BY f.idFotografo`),
 
@@ -123,51 +141,65 @@ const consultas = {
     `SELECT ${FOTOGRAFO_COLUMNAS} FROM fotografos f WHERE f.nombreInformalNormalizado = ${COMO_SEGMENTO('?')}`,
   ),
 
+  // La portada es la de la colección de portada o, si no hay (o quien mira no la ve), la de la
+  // primera colección que ve.
   portfoliosDeFotografo: db.prepare(`
-    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, ${COLECCION_PORTADA} AS coleccionPortada,
-      (SELECT count(*) FROM colecciones a WHERE a.idPortfolio = p.idPortfolio) AS collectionCount,
+    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, p.visible, ${COLECCION_PORTADA} AS coleccionPortada,
+      (SELECT count(*) FROM colecciones a WHERE a.idPortfolio = p.idPortfolio AND ${COLECCION_VISIBLE}) AS collectionCount,
       primero.nombreNormalizado AS coverCarpetaColeccion,
       (SELECT ${PORTADA_COLECCION} FROM colecciones a WHERE a.idColeccion = primero.idColeccion) AS coverFilename
     FROM portfolios p
     JOIN fotografos f ON f.idFotografo = p.idFotografo
     LEFT JOIN colecciones primero ON primero.idColeccion = COALESCE(
-      p.idColeccionPortada,
-      (SELECT idColeccion FROM colecciones WHERE idPortfolio = p.idPortfolio ORDER BY orden LIMIT 1)
+      (SELECT a.idColeccion FROM colecciones a WHERE a.idColeccion = p.idColeccionPortada AND ${COLECCION_VISIBLE}),
+      (SELECT a.idColeccion FROM colecciones a WHERE a.idPortfolio = p.idPortfolio AND ${COLECCION_VISIBLE} ORDER BY a.orden LIMIT 1)
     )
-    WHERE p.idFotografo = ?
+    WHERE p.idFotografo = @idFotografo AND ${PORTFOLIO_VISIBLE}
     ORDER BY p.orden`),
 
   portfolio: db.prepare(`
-    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, ${COLECCION_PORTADA} AS coleccionPortada
+    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, p.visible, ${COLECCION_PORTADA} AS coleccionPortada
     FROM portfolios p
-    WHERE p.idFotografo = ? AND p.nombreNormalizado = ${COMO_SEGMENTO('?')}`),
+    JOIN fotografos f ON f.idFotografo = p.idFotografo
+    WHERE p.idFotografo = @idFotografo AND p.nombreNormalizado = ${COMO_SEGMENTO('@portfolio')} AND ${PORTFOLIO_VISIBLE}`),
 
   // Filtros opcionales: NULL en un parámetro desactiva ese filtro.
   colecciones: db.prepare(`
     SELECT a.idColeccion, f.nombreInformalNormalizado AS carpetaFotografo, f.nombreInformal, p.nombre AS nombrePortfolio, p.nombreNormalizado AS carpetaPortfolio,
-      a.nombreNormalizado, a.nombre, a.descripcion,
+      a.nombreNormalizado, a.nombre, a.descripcion, a.visible,
       ${TAGS_COLECCION} AS tags,
       ${PORTADA_COLECCION} AS coverFilename,
       (SELECT count(*) FROM fotos WHERE idColeccion = a.idColeccion) AS photoCount
     ${COLECCION_FROM}
     WHERE (@idPortfolio IS NULL OR a.idPortfolio = @idPortfolio)
       AND (@tag IS NULL OR EXISTS (SELECT 1 FROM coleccionTags t WHERE t.idColeccion = a.idColeccion AND t.tag = @tag))
+      AND ${PORTFOLIO_VISIBLE} AND ${COLECCION_VISIBLE}
     ORDER BY f.idFotografo, p.orden, a.orden`),
 
   coleccion: db.prepare(`
     SELECT a.idColeccion, f.nombreInformalNormalizado AS carpetaFotografo, p.idPortfolio, p.nombre AS nombrePortfolio,
       p.nombreNormalizado AS carpetaPortfolio, a.nombreNormalizado, a.nombre, a.descripcion, a.idFotoPortada,
+      a.visible, p.visible AS portfolioVisible,
       ${TAGS_COLECCION} AS tags
     ${COLECCION_FROM}
     WHERE f.idFotografo = @idFotografo
       AND p.nombreNormalizado = ${COMO_SEGMENTO('@portfolio')}
-      AND a.nombreNormalizado = ${COMO_SEGMENTO('@coleccion')}`),
+      AND a.nombreNormalizado = ${COMO_SEGMENTO('@coleccion')}
+      AND ${PORTFOLIO_VISIBLE} AND ${COLECCION_VISIBLE}`),
 
   fotosDeColeccion: db.prepare(`
     SELECT idFoto, nombreFichero, titulo, orden, ancho, alto
     FROM fotos WHERE idColeccion = ? ORDER BY orden`),
 
-  tags: db.prepare(`SELECT DISTINCT tag FROM coleccionTags`),
+  tags: db.prepare(`
+    SELECT DISTINCT t.tag FROM coleccionTags t JOIN colecciones a ON a.idColeccion = t.idColeccion
+      JOIN portfolios p ON p.idPortfolio = a.idPortfolio
+      JOIN fotografos f ON f.idFotografo = p.idFotografo
+    WHERE ${PORTFOLIO_VISIBLE} AND ${COLECCION_VISIBLE}`),
+
+  cambiarVisibilidadPortfolio: db.prepare('UPDATE portfolios SET visible = @visible WHERE idPortfolio = @idPortfolio'),
+
+  cambiarVisibilidadColeccion: db.prepare('UPDATE colecciones SET visible = @visible WHERE idColeccion = @idColeccion'),
 
   insertarUsuario: db.prepare(
     'INSERT INTO usuarios (usuario, email, passwordHash) VALUES (@usuario, @email, @passwordHash)',
@@ -326,8 +358,10 @@ function conTags<T extends { tags: string }>(fila: T): Omit<T, 'tags'> & { tags:
   return { ...fila, tags: JSON.parse(fila.tags) as string[] };
 }
 
-export function listarFotografos(): FotografoConTotales[] {
-  return consultas.fotografos.all() as FotografoConTotales[];
+// ve: quién mira (ver "Visibilidad"). Por defecto, todo: es lo que necesitan los servicios, que
+// modifican el catálogo con el permiso ya comprobado. Las rutas de consulta pasan siempre la suya.
+export function listarFotografos(ve: Vista = VER_TODO): FotografoConTotales[] {
+  return consultas.fotografos.all({ ve }) as FotografoConTotales[];
 }
 
 // segmento: el fotógrafo tal como viene en la URL; se normaliza y se compara con
@@ -336,27 +370,28 @@ export function obtenerFotografo(segmento: string): FotografoFila | undefined {
   return consultas.fotografo.get(segmento) as FotografoFila | undefined;
 }
 
-export function listarPortfolios(idFotografo: number): PortfolioConPortada[] {
-  return consultas.portfoliosDeFotografo.all(idFotografo) as PortfolioConPortada[];
+export function listarPortfolios(idFotografo: number, ve: Vista = VER_TODO): PortfolioConPortada[] {
+  return consultas.portfoliosDeFotografo.all({ idFotografo, ve }) as PortfolioConPortada[];
 }
 
 // portfolio/coleccion: el segmento tal como viene en la URL; se compara con su nombreNormalizado.
-export function obtenerPortfolio(idFotografo: number, portfolio: string): PortfolioFila | undefined {
-  return consultas.portfolio.get(idFotografo, portfolio) as PortfolioFila | undefined;
+export function obtenerPortfolio(idFotografo: number, portfolio: string, ve: Vista = VER_TODO): PortfolioFila | undefined {
+  return consultas.portfolio.get({ idFotografo, portfolio, ve }) as PortfolioFila | undefined;
 }
 
-export function listarColecciones(filtro: { idPortfolio?: number; tag?: string } = {}): ColeccionResumenFila[] {
+export function listarColecciones(filtro: { idPortfolio?: number; tag?: string } = {}, ve: Vista = VER_TODO): ColeccionResumenFila[] {
   const filas = consultas.colecciones.all({
     idPortfolio: filtro.idPortfolio ?? null,
     tag: filtro.tag ?? null,
+    ve,
   }) as (Omit<ColeccionResumenFila, 'tags'> & { tags: string })[];
   return filas.map(conTags);
 }
 
 // Una colección se identifica por su nombreNormalizado dentro de su portfolio, y el portfolio por el
 // suyo dentro del fotógrafo, ambos como vienen en la URL.
-export function obtenerColeccion(idFotografo: number, portfolio: string, coleccion: string): ColeccionFila | undefined {
-  const fila = consultas.coleccion.get({ idFotografo, portfolio, coleccion }) as
+export function obtenerColeccion(idFotografo: number, portfolio: string, coleccion: string, ve: Vista = VER_TODO): ColeccionFila | undefined {
+  const fila = consultas.coleccion.get({ idFotografo, portfolio, coleccion, ve }) as
     | (Omit<ColeccionFila, 'tags'> & { tags: string })
     | undefined;
   return fila && conTags(fila);
@@ -388,8 +423,8 @@ export function eliminarFoto(idFoto: number): void {
   consultas.eliminarFoto.run(idFoto);
 }
 
-export function listarTags(): string[] {
-  return (consultas.tags.all() as { tag: string }[]).map((f) => f.tag);
+export function listarTags(ve: Vista = VER_TODO): string[] {
+  return (consultas.tags.all({ ve }) as { tag: string }[]).map((f) => f.tag);
 }
 
 // La carpeta de fotos de cada fotógrafo debe llamarse como su nombreInformalNormalizado. Al
@@ -655,6 +690,14 @@ export function cambiarFotoPortada(idColeccion: number, idFoto: number | null): 
 
 export function cambiarColeccionPortada(idPortfolio: number, idColeccion: number | null): void {
   consultas.cambiarColeccionPortada.run({ idPortfolio, idColeccion });
+}
+
+export function cambiarVisibilidadPortfolio(idPortfolio: number, visible: boolean): void {
+  consultas.cambiarVisibilidadPortfolio.run({ idPortfolio, visible: visible ? 1 : 0 });
+}
+
+export function cambiarVisibilidadColeccion(idColeccion: number, visible: boolean): void {
+  consultas.cambiarVisibilidadColeccion.run({ idColeccion, visible: visible ? 1 : 0 });
 }
 
 export function cambiarOrdenColeccion(idColeccion: number, orden: number): void {

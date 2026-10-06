@@ -6,6 +6,11 @@
     @if (colecciones().length && !portada()) {
       <p>Marca con la estrella la colección cuya portada será la del portfolio. Mientras no elijas ninguna, es la primera.</p>
     }
+    @if (!p.visible) {
+      <p>Este portfolio está oculto: los demás usuarios tampoco ven sus colecciones, aunque estén visibles.</p>
+    } @else if (colecciones().length) {
+      <p>El ojo de cada colección indica si la puede ver cualquiera; púlsalo para ocultarla a los demás usuarios.</p>
+    }
     @if (colecciones().length > 1) {
       <p>Arrastra cada colección al lugar que quieres que ocupe. El orden se guarda al soltarla.</p>
     }
@@ -29,6 +34,7 @@
     @for (coleccion of colecciones(); track coleccion.nombreNormalizado; let i = $index) {
       <figure
         class="tarjeta"
+        [class.tarjeta--oculta]="!coleccion.visible"
         [class.tarjeta--arrastrada]="orden.arrastrado() === coleccion.nombreNormalizado"
         [class.tarjeta--ordenable]="puedeOrdenar()"
         [attr.draggable]="puedeOrdenar()"
@@ -44,7 +50,7 @@
             <span class="tarjeta__sin-portada">Sin fotos</span>
           }
         </div>
-        <figcaption class="tarjeta__pie tarjeta__pie--con-portada">
+        <figcaption class="tarjeta__pie tarjeta__pie--en-fila">
           <!-- Estrella: rellena si da su portada al portfolio; pulsarla la elige o, si ya lo es, la quita. -->
           <button
             type="button"
@@ -64,6 +70,13 @@
             <span class="tarjeta__nombre" [title]="coleccion.nombre">{{ coleccion.nombre }}</span>
             <span class="tarjeta__meta">{{ coleccion.photoCount }} {{ coleccion.photoCount === 1 ? 'foto' : 'fotos' }}</span>
           </span>
+          <!-- Ojo: tachado si la colección está oculta a los demás usuarios; pulsarlo lo cambia. -->
+          <app-ojo-visibilidad
+            [visible]="coleccion.visible"
+            [nombre]="coleccion.nombre"
+            [desactivado]="cambiandoVisibilidad()"
+            (cambiar)="cambiarVisibilidad(coleccion, $event)"
+          />
         </figcaption>
       </figure>
     } @empty {

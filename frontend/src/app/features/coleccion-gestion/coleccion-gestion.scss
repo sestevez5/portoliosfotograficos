@@ -1,18 +1,7 @@
 @use '../../shared/estilos/ordenar';
 
-// Pie con la estrella de la portada a la izquierda del nombre y el número de fotos.
-.tarjeta__pie--con-portada {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.tarjeta__textos {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  min-width: 0; // para que el nombre se recorte con puntos suspensivos
-}
+// El pie va en fila (tarjeta__pie--en-fila): la estrella de la portada a la izquierda del nombre y
+// el número de fotos, y el ojo de la visibilidad a la derecha.
 
 // Estrella de la portada del portfolio: solo el contorno si no lo es, rellena si lo es (como la
 // de la foto de portada en "Gestionar fotos").

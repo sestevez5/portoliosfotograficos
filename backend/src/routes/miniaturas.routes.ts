@@ -30,7 +30,8 @@ export function servirMiniaturas(req: Request, res: Response, next: NextFunction
         return;
       }
       // Un día en caché: si se cambia una foto por otra con el mismo nombre, se verá al día siguiente.
-      res.set('Cache-Control', 'public, max-age=86400');
+      // Las de una colección oculta (ver fotos-visibles.routes.ts), solo en la caché de quien puede verla.
+      res.set('Cache-Control', `${res.locals.fotoOculta ? 'private' : 'public'}, max-age=86400`);
       res.sendFile(fichero);
     },
     (error: Error) => {

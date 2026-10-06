@@ -5,6 +5,7 @@ import {
   actualizarColeccion,
   cambiarFotoPortada,
   cambiarOrdenColeccion,
+  cambiarVisibilidadColeccion as cambiarVisibilidadColeccionBD,
   eliminarColeccion as eliminarColeccionBD,
   enTransaccion,
   insertarColeccion,
@@ -138,6 +139,15 @@ export function cambiarPortada(fotografo: string, portfolio: string, coleccion: 
     ),
   );
   cambiarFotoPortada(actual.idColeccion, fotos.find((foto) => foto.nombreFichero === nombreFichero)?.idFoto ?? null);
+}
+
+// Muestra u oculta una colección a los demás usuarios. Oculta, solo la ven (con sus fotos) su
+// fotógrafo y el administrador. Si su portfolio está oculto, no se ve aunque ella sea visible.
+export function cambiarVisibilidadColeccion(fotografo: string, portfolio: string, coleccion: string, visible: boolean): void {
+  const { actual } = cargarColeccion(fotografo, portfolio, coleccion);
+  enOperacion('CAMBIAR_VISIBILIDAD_COLECCION', { coleccion: actual.nombre, portfolio: actual.nombrePortfolio }, () =>
+    cambiarVisibilidadColeccionBD(actual.idColeccion, visible),
+  );
 }
 
 // Cambia el orden de las colecciones de un portfolio: nuevoOrden son los nombreNormalizado de todas

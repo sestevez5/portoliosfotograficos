@@ -49,6 +49,11 @@ export class SesionService {
     return !!usuario && (usuario.rol === 'administrador' || (!!fotografo && usuario.fotografo?.nombreInformalNormalizado === fotografo));
   }
 
+  // Si ese fotógrafo es el del usuario con la sesión iniciada (el administrador no tiene).
+  esSuFotografo(fotografo: string | null | undefined): boolean {
+    return !!fotografo && this.usuario()?.fotografo?.nombreInformalNormalizado === fotografo;
+  }
+
   // Quién tiene la sesión iniciada (se pregunta al backend una vez; después, lo ya sabido).
   comprobar(): Observable<UsuarioSesion | null> {
     this.consulta ??= this.http.get<{ usuario: UsuarioSesion | null }>(`${this.baseUrl}/sesion`).pipe(

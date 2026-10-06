@@ -21,7 +21,7 @@
   <!-- Solo para quien puede gestionar lo de este fotógrafo (no se elimina: no se muestra). -->
   @if (sesion.puedeGestionar(f.nombreInformalNormalizado)) {
     <div class="cabecera-barra">
-      <a class="cabecera-barra__boton" [routerLink]="['/gestion', f.nombreInformalNormalizado, 'portfolios', 'ordenar']">Ordenar portfolios</a>
+      <a class="cabecera-barra__boton" [routerLink]="['/gestion', f.nombreInformalNormalizado, 'portfolios', 'ordenar']">Gestionar portfolios</a>
       <a class="cabecera-barra__boton" [routerLink]="['/gestion', f.nombreInformalNormalizado, 'portfolios', 'nuevo']">+ Nuevo portfolio</a>
     </div>
   }
@@ -31,6 +31,10 @@
       <article class="portfolio-card">
         <a class="portfolio-card__enlace" [routerLink]="['/', f.nombreInformalNormalizado, portfolio.nombreNormalizado]">
           <div class="portfolio-card__image">
+            <!-- Los ocultos solo llegan a quien puede verlos (su fotógrafo y el administrador). -->
+            @if (!portfolio.visible) {
+              <app-marca-oculto class="sobre-portada" />
+            }
             @if (portfolio.coverPhotoUrl) {
               <img [appFotoReducida]="portfolio.coverPhotoUrl" tamanyos="(max-width: 40rem) 100vw, (max-width: 80rem) 50vw, 33vw" [alt]="portfolio.nombre" loading="lazy" />
             } @else {

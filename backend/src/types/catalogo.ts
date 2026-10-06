@@ -78,6 +78,8 @@ export interface ColeccionResumen {
   tags: string[];
   coverPhotoUrl: string;
   photoCount: number;
+  /** false = oculta: solo la ven su fotógrafo y el administrador (los demás no la reciben). */
+  visible: boolean;
 }
 
 // Colección en el listado global (/api/colecciones): lleva su fotógrafo y portfolio para poder enlazarlo.
@@ -92,6 +94,7 @@ export interface ColeccionDetalle {
   descripcion?: string;
   tags: string[];
   portfolio: { nombre: string; nombreNormalizado: string };
+  visible: boolean;
   fotos: FotoApi[];
   /** nombreFichero de la foto elegida como portada; sin ella, la portada es la primera foto. */
   fotoPortada?: string;
@@ -104,12 +107,15 @@ export interface PortfolioResumen {
   descripcion?: string;
   coverPhotoUrl: string;
   collectionCount: number;
+  /** false = oculto: solo lo ven su fotógrafo y el administrador (los demás no lo reciben). */
+  visible: boolean;
 }
 
 export interface PortfolioDetalle {
   nombre: string;
   nombreNormalizado: string;
   descripcion?: string;
+  visible: boolean;
   colecciones: ColeccionResumen[];
   /** nombreNormalizado de la colección de portada; sin ella, la portada es la de la primera colección. */
   coleccionPortada?: string;

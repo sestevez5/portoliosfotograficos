@@ -1,7 +1,7 @@
 import { WritableSignal, signal } from '@angular/core';
 
 // Ordenar una lista arrastrando sus elementos con el drag & drop nativo del navegador (sin
-// librerías; no funciona en pantallas táctiles). La usan "Gestionar fotos", "Ordenar portfolios" y "Gestionar colecciones".
+// librerías; no funciona en pantallas táctiles). La usan "Gestionar fotos", "Gestionar portfolios" y "Gestionar colecciones".
 //
 // Al pasar el elemento arrastrado sobre otro, ocupa su sitio (los demás se desplazan) y la lista
 // muestra el resultado en el momento; al soltarlo se llama a guardar() con el orden nuevo y el que

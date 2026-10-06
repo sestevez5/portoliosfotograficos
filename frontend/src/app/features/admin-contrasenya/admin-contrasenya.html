@@ -9,13 +9,13 @@
     <p class="confirmacion" role="status">La contraseña se ha cambiado.</p>
   }
   @if (reglaIncumplida(); as regla) {
-    <div class="aviso" role="alert">
+    <div class="aviso" role="alert" appAvisoVisible>
       <p class="aviso__titulo">No se ha podido cambiar la contraseña</p>
       <p>{{ regla.regla.mensaje }}</p>
     </div>
   }
   @if (errorGeneral(); as error) {
-    <div class="aviso" role="alert">
+    <div class="aviso" role="alert" appAvisoVisible>
       <p class="aviso__titulo">No se ha podido cambiar la contraseña</p>
       <p>{{ error }}</p>
     </div>

@@ -70,6 +70,7 @@ test('POST crea la colección (201) y valida el cuerpo (400) y las reglas (422)'
     descripcion: 'Picos',
     tags: ['nieve'],
     portfolio: { nombre: 'Viajes', nombreNormalizado: 'viajes' },
+    visible: true,
     fotos: [],
   });
   assert.ok(existsSync(path.join(fotos, 'ana-uno', 'viajes', 'montanya')));

@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FotografoResumen, nombreCompleto } from '../../core/models/catalogo.model';
 import { CatalogoService } from '../../core/services/catalogo';
+import { SesionService } from '../../core/services/sesion';
 import { FotografoAcciones } from '../../shared/fotografo-acciones/fotografo-acciones';
 
 const MAX_DESCRIPCION_TARJETA = 70;
@@ -14,6 +15,7 @@ const MAX_DESCRIPCION_TARJETA = 70;
 })
 export class FotografoList {
   private readonly catalogoService = inject(CatalogoService);
+  protected readonly sesion = inject(SesionService);
 
   protected readonly fotografos = signal<FotografoResumen[]>([]);
   protected readonly nombreCompleto = nombreCompleto;
