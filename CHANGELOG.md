@@ -5,6 +5,24 @@ Todos los cambios relevantes del proyecto se documentan en este fichero.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [Versionado Semántico](https://semver.org/lang/es/) (`MAYOR.MENOR.PARCHE`).
 
+## [3.0.0] - 2026-10-06
+
+Versión mayor: cambia dónde se guardan los datos de la aplicación en el NAS (base de datos, logos, miniaturas y fotos
+de perfil), que pasan del volumen interno de Docker a una carpeta junto a la de fotos. Ver las notas de despliegue.
+
+### Cambiado
+
+- **Carpeta de datos en el NAS**: la base de datos, los logos, las miniaturas y las fotos de perfil pueden ir en una
+  carpeta del NAS (`DATOS_PATH` en `.env`, montada en `/app/datos`) junto a la de fotos, en lugar del volumen interno
+  de Docker. Así una copia o instantánea de la carpeta del proyecto guarda a la vez la base de datos y las fotos, y
+  `docker compose down -v` ya no la borra. Sin `DATOS_PATH` todo sigue como antes (volumen `datos-internos`).
+
+### Notas de despliegue
+
+- Para pasar una instalación existente a la carpeta: `docker compose stop backend`,
+  `docker compose cp backend:/app/datos/. /volume1/docker/portfolio-fotografico/datos/`, añadir `DATOS_PATH` al `.env`
+  y `docker compose up -d`. Comprobado que todo está bien, el volumen antiguo se puede borrar.
+
 ## [2.1.0] - 2026-10-06
 
 ### Añadido
@@ -200,6 +218,7 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
+[3.0.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v3.0.0
 [2.1.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.1.0
 [2.0.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.0.0
 [1.0.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v1.0.0
