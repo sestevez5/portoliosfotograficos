@@ -32,8 +32,8 @@ COPY --from=build /app/dist ./dist
 # Fuentes usadas para generar los logos de los fotógrafos
 COPY assets ./assets
 
-# Datos internos (base de datos SQLite en BD/ y logos): /app/datos, en un volumen gestionado por
-# Docker (ver docker-compose.yml). Las fotos son lo único que se monta desde el host, en /app/fotos.
+# Datos de la aplicación (base de datos SQLite en BD/, logos, miniaturas y fotos de perfil) en
+# /app/datos y fotos en /app/fotos: las dos se montan desde el host (ver docker-compose.yml).
 ENV FOTOS_DIR=/app/fotos
 RUN mkdir -p /app/datos /app/fotos
 EXPOSE 3000

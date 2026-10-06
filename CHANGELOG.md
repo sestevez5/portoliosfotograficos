@@ -5,6 +5,21 @@ Todos los cambios relevantes del proyecto se documentan en este fichero.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [Versionado Semántico](https://semver.org/lang/es/) (`MAYOR.MENOR.PARCHE`).
 
+## [Sin publicar]
+
+### Cambiado
+
+- **Carpeta de datos en el NAS**: la base de datos, los logos, las miniaturas y las fotos de perfil pueden ir en una
+  carpeta del NAS (`DATOS_PATH` en `.env`, montada en `/app/datos`) junto a la de fotos, en lugar del volumen interno
+  de Docker. Así una copia o instantánea de la carpeta del proyecto guarda a la vez la base de datos y las fotos, y
+  `docker compose down -v` ya no la borra. Sin `DATOS_PATH` todo sigue como antes (volumen `datos-internos`).
+
+### Notas de despliegue
+
+- Para pasar una instalación existente a la carpeta: `docker compose stop backend`,
+  `docker compose cp backend:/app/datos/. /volume1/docker/portfolio-fotografico/datos/`, añadir `DATOS_PATH` al `.env`
+  y `docker compose up -d`. Comprobado que todo está bien, el volumen antiguo se puede borrar.
+
 ## [2.1.0] - 2026-10-06
 
 ### Añadido

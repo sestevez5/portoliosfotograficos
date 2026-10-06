@@ -3,7 +3,7 @@
 # imágenes en local en vez de descargarlas de GHCR, útil para desarrollo y para
 # probar cambios en los Dockerfiles antes de publicarlos.
 #
-# En el NAS (donde solo se copian docker-compose.yml, .env y la carpeta de fotos) este fichero
+# En el NAS (donde solo están docker-compose.yml, .env y las carpetas de fotos y datos) este fichero
 # no existe, así que docker-compose.yml usa directamente las imágenes de GHCR.
 services:
   backend:

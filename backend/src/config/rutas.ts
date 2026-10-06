@@ -3,8 +3,8 @@ import { fileURLToPath } from 'node:url';
 
 // Datos de la aplicación: base de datos (BD/) y logos, y por defecto también las fotos. Se puede
 // cambiar con la variable DATOS_DIR (p. ej. para pruebas con una carpeta de datos temporal). En
-// Docker, BD y logos son internos (volumen gestionado por Docker) y solo las fotos se montan desde
-// el host, en otra ruta (FOTOS_DIR).
+// Docker, los datos (/app/datos) y las fotos (otra ruta, FOTOS_DIR) se montan por separado desde
+// el host.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const datosDir = process.env.DATOS_DIR
   ? path.resolve(process.env.DATOS_DIR)

@@ -161,7 +161,7 @@ En Docker los datos se reparten así:
 | Datos | Dónde |
 |---|---|
 | Fotos | Una carpeta de tu equipo que tú eliges (`FOTOS_PATH`), montada en el contenedor |
-| Base de datos y logos | Un volumen interno de Docker, propio de cada entorno |
+| Base de datos, logos, miniaturas y fotos de perfil | Un volumen interno de Docker, propio de cada entorno (en el NAS, en cambio, una carpeta: `DATOS_PATH`) |
 
 ### Configuración
 
@@ -178,6 +178,9 @@ FRONTEND_PORT=8081
   `portfolio-pre_…`, así que su base de datos no se mezcla con ninguna otra.
 - `FOTOS_PATH` es la ruta absoluta de la carpeta de fotos de preproducción. Créala antes (puede estar vacía) y no uses
   la de desarrollo (`backend/datos/fotos`): la preproducción crea, renombra y borra carpetas dentro.
+- `DATOS_PATH` no se define en preproducción: sin ella los datos van en el volumen interno. En Windows es lo
+  recomendable, porque SQLite en modo WAL no es fiable sobre una carpeta de Windows montada en Docker Desktop. En el
+  NAS sí se define (carpeta junto a la de fotos; ver `.env.example`).
 - `FRONTEND_PORT` es el puerto por el que abrirás la web (distinto del 4200 de desarrollo y de otros entornos).
 
 ### Arrancar, parar y actualizar
