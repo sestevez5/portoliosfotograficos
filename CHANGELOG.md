@@ -5,10 +5,7 @@ Todos los cambios relevantes del proyecto se documentan en este fichero.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [Versionado Semántico](https://semver.org/lang/es/) (`MAYOR.MENOR.PARCHE`).
 
-## [3.0.0] - 2026-10-06
-
-Versión mayor: cambia dónde se guardan los datos de la aplicación en el NAS (base de datos, logos, miniaturas y fotos
-de perfil), que pasan del volumen interno de Docker a una carpeta junto a la de fotos. Ver las notas de despliegue.
+## [2.2.0] - 2026-10-06
 
 ### Cambiado
 
@@ -218,7 +215,7 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
-[3.0.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v3.0.0
+[2.2.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.2.0
 [2.1.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.1.0
 [2.0.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.0.0
 [1.0.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v1.0.0
