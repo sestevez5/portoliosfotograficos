@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { PortfolioAlta, PortfolioDetalle, ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
 import { CatalogoService } from '../../core/services/catalogo';
+import { AvisoVisible } from '../../shared/aviso-visible/aviso-visible';
 
 // Alta y edición de un portfolio por su fotógrafo propietario
 // (/gestion/:fotografo/portfolios/nuevo y /gestion/:fotografo/portfolios/:portfolio/editar).
@@ -12,7 +13,7 @@ import { CatalogoService } from '../../core/services/catalogo';
 // decide es el backend; si incumple una regla de negocio se muestra qué se intentaba y por qué no
 // se ha podido. El nombreNormalizado (dirección y carpeta) lo calcula el backend.
 @Component({
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AvisoVisible],
   selector: 'app-portfolio-form',
   styleUrl: './portfolio-form.scss',
   templateUrl: './portfolio-form.html',

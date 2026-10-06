@@ -4,6 +4,7 @@ import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validatio
 import { Router } from '@angular/router';
 import { PrimerUso as DatosPrimerUso, ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
 import { AdministracionService } from '../../core/services/administracion';
+import { AvisoVisible } from '../../shared/aviso-visible/aviso-visible';
 
 // Debe coincidir con LONGITUD_MINIMA_CONTRASENYA del backend (reglas/validaciones.ts).
 const LONGITUD_MINIMA_CONTRASENYA = 8;
@@ -29,7 +30,7 @@ function contrasenyaNuevaValida(grupo: AbstractControl): ValidationErrors | null
 // credenciales del administrador (inicialmente admin / admin). Si se quiere, se cambia a la vez su
 // contraseña. Al terminar lleva a la portada. Si el primer uso ya se completó, lleva a la portada.
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, AvisoVisible],
   selector: 'app-primer-uso',
   styleUrl: './primer-uso.scss',
   templateUrl: './primer-uso.html',

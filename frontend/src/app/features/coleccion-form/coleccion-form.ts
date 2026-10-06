@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ColeccionAlta, ColeccionDetalle, ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
 import { CatalogoService } from '../../core/services/catalogo';
+import { AvisoVisible } from '../../shared/aviso-visible/aviso-visible';
 
 // Alta y edición de una colección por su fotógrafo propietario
 // (/gestion/:fotografo/portfolios/:portfolio/colecciones/nuevo y .../colecciones/:coleccion/editar).
@@ -12,7 +13,7 @@ import { CatalogoService } from '../../core/services/catalogo';
 // decide es el backend; si incumple una regla de negocio se muestra qué se intentaba y por qué no
 // se ha podido. El nombreNormalizado (dirección y carpeta) lo calcula el backend.
 @Component({
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AvisoVisible],
   selector: 'app-coleccion-form',
   styleUrl: './coleccion-form.scss',
   templateUrl: './coleccion-form.html',

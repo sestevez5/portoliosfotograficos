@@ -4,6 +4,7 @@ import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validatio
 import { RouterLink } from '@angular/router';
 import { ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
 import { AdministracionService } from '../../core/services/administracion';
+import { AvisoVisible } from '../../shared/aviso-visible/aviso-visible';
 
 // Debe coincidir con LONGITUD_MINIMA_CONTRASENYA del backend (reglas/validaciones.ts).
 const LONGITUD_MINIMA_CONTRASENYA = 8;
@@ -16,7 +17,7 @@ function contrasenyasIguales(grupo: AbstractControl): ValidationErrors | null {
 // Cambio de la contraseña del administrador (/admin/contrasenya): pide la actual y la nueva dos
 // veces. Si va bien, lo confirma y vacía el formulario.
 @Component({
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AvisoVisible],
   selector: 'app-admin-contrasenya',
   styleUrl: './admin-contrasenya.scss',
   templateUrl: './admin-contrasenya.html',
