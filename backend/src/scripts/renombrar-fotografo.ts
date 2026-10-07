@@ -1,5 +1,5 @@
 // Cambia el nombreInformal de un fotógrafo y, si cambia su forma normalizada, renombra su
-// carpeta en datos/fotos (ver services/fotografo.service.ts).
+// carpeta en fotos (ver services/fotografo.service.ts).
 //
 //   npm run fotografo:renombrar -- <fotógrafo actual> "<nuevo nombre informal>"
 //   npm run fotografo:renombrar -- santi-estevez "Santiago Estévez"
@@ -21,8 +21,8 @@ try {
   console.log(`'${antes.nombreInformal}' -> '${despues.nombreInformal}'`);
   console.log(
     carpetaRenombrada
-      ? `Carpeta renombrada: datos/fotos/${antes.nombreInformalNormalizado} -> datos/fotos/${despues.nombreInformalNormalizado}`
-      : `La carpeta no cambia (datos/fotos/${despues.nombreInformalNormalizado})`,
+      ? `Carpeta renombrada: fotos/${antes.nombreInformalNormalizado} -> fotos/${despues.nombreInformalNormalizado}`
+      : `La carpeta no cambia (fotos/${despues.nombreInformalNormalizado})`,
   );
 } catch (error) {
   if (error instanceof ReglaNegocioIncumplida) {

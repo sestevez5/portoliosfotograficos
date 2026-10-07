@@ -39,7 +39,7 @@ export interface FotografoJson {
   usuario?: string;
   /**
    * Obligatorio. Texto del logo. Su forma normalizada (normalizarNombre) debe ser única y es el
-   * identificador en la URL y el nombre de su carpeta en datos/fotos.
+   * identificador en la URL y el nombre de su carpeta en fotos.
    */
   nombreInformal: string;
   nombre: string;

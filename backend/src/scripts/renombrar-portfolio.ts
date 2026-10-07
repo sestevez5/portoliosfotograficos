@@ -1,5 +1,5 @@
 // Cambia el nombre de un portfolio o de una colección y, si cambia su nombre normalizado, renombra su
-// carpeta en datos/fotos (ver services/portfolio.service.ts y services/coleccion.service.ts).
+// carpeta en fotos (ver services/portfolio.service.ts y services/coleccion.service.ts).
 //
 //   npm run portfolio:renombrar -- <fotógrafo> <portfolio> "<nuevo nombre>"
 //   npm run coleccion:renombrar -- <fotógrafo> <portfolio> <colección> "<nuevo nombre>"

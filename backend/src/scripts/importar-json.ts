@@ -1,6 +1,6 @@
 // Importa un catálogo en JSON (forma OrganizacionFotos[], ver types/catalogo.ts) en la base de datos
 // SQLite. La BD es la única fuente de verdad: esto solo sirve para cargas masivas puntuales (p. ej.
-// fotos, mientras no se puedan subir desde la web). Las carpetas de datos/fotos ya deben existir
+// fotos, mientras no se puedan subir desde la web). Las carpetas de fotos ya deben existir
 // con los nombres normalizados.
 //
 //   npm run db:importar -- ruta/al/fichero.json                -> solo si la base de datos está vacía

@@ -27,7 +27,7 @@ import { rutaFotoPerfil } from './foto-perfil.service.js';
 import { rutaLogo } from './logo.service.js';
 import { borrarMiniaturas } from './miniatura.service.js';
 
-// Alta, edición y eliminación de fotógrafos. La carpeta datos/fotos/<nombreInformalNormalizado>
+// Alta, edición y eliminación de fotógrafos. La carpeta fotos/<nombreInformalNormalizado>
 // de cada fotógrafo debe existir y llamarse siempre así: estas funciones la crean, la renombran y
 // la eliminan junto con la BD (dentro de la misma transacción). Todas validan antes las reglas de
 // negocio (reglas/) dentro de su operación, y lanzan RecursoNoEncontrado si el fotógrafo no existe.
@@ -70,7 +70,7 @@ function guardarAlta(datos: Omit<ReturnType<typeof limpiar>, 'email'>, email: st
       passwordHash: contrasenya ? hashContrasenya(contrasenya) : null,
     });
     insertarFotografo({ ...datos, idUsuario, nombreInformalNormalizado });
-    // recursive: en una instalación nueva datos/fotos aún no existe (la del fotógrafo ya se ha
+    // recursive: en una instalación nueva fotos aún no existe (la del fotógrafo ya se ha
     // comprobado que no existe en la validación).
     mkdirSync(path.join(fotosDir, nombreInformalNormalizado), { recursive: true });
   });

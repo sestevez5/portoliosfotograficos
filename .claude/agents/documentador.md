@@ -46,7 +46,7 @@ Eres el documentador del proyecto "Portfolio fotográfico" (monorepo con `backen
 3. No documentes lo que no existe. Lo previsto pero sin hacer va, como mucho, en un apartado final
    "Fuera de alcance / pendiente", claramente separado.
 4. No copies datos reales de la instalación (usuarios, correos, contraseñas, contenido de
-   `backend/datos/`). Los ejemplos, inventados.
+   `backend/contenido/`). Los ejemplos, inventados.
 
 ## Cómo se escribe
 
