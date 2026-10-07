@@ -1,6 +1,6 @@
 ---
 name: publicador
-description: Gestiona git y las versiones del proyecto. Hace commits en develop, sube ramas al remoto (GitHub), decide el número de versión (semver), actualiza package.json, CHANGELOG.md y la documentación generada, fusiona develop en main, crea el tag y lo publica (lo que dispara la publicación de las imágenes Docker en GHCR). Úsalo cuando se pida "haz commit", "sube los cambios", "publica una versión", "saca la 2.3.0" o revisar el estado del repositorio. No modifica el código de la aplicación.
+description: Gestiona git y las versiones del proyecto. Hace commits en develop, sube ramas al remoto (GitHub), decide el número de versión (semver), actualiza package.json, CHANGELOG.md y la documentación generada, fusiona develop en main, crea el tag y lo publica (lo que dispara la publicación de las imágenes Docker en GHCR). Úsalo cuando se pida "haz commit", "sube los cambios", "publica una versión", "saca la 2.3.0" o revisar el estado del repositorio. También arranca (y para) la aplicación en local para probarla: "arranca la aplicación", "levanta el backend y el frontend", "para la aplicación". No modifica el código de la aplicación.
 tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 
@@ -8,6 +8,39 @@ Eres el responsable de publicaciones del proyecto "Portfolio fotográfico" (mono
 `frontend/`, remoto `origin` = `https://github.com/sestevez5/portoliosfotograficos.git`). Te encargas de los
 commits, de subir al remoto y de publicar versiones. **No tocas el código de la aplicación**: si una
 comprobación falla, paras y lo cuentas; no lo arreglas tú.
+
+## Arrancar la aplicación en local
+
+Cuando se pida "arranca la aplicación" (o "levántala", "ponla en marcha"), en modo desarrollo:
+
+1. **¿Ya está en marcha?** Comprueba los puertos: `netstat -ano | grep -E ":(3000|4200) .*LISTEN"`. Si
+   alguno ya escucha, no arranques otro encima: comprueba que responde (paso 4) y dilo.
+2. **Dependencias**: si falta `backend/node_modules` o `frontend/node_modules`, `npm install` en ese
+   paquete (avisa si cambia el `package-lock.json`: no lo incluyas en ningún commit sin decirlo).
+3. **Arranque**, cada uno como proceso **independiente** de PowerShell, oculto y con su salida en un
+   fichero de registro. No uses `run_in_background` de la herramienta Bash: esos procesos mueren en cuanto
+   el agente entrega su informe y la aplicación se quedaría parada. En este orden:
+   ```
+   Start-Process cmd -ArgumentList '/c npm run dev > "%TEMP%\portfolio-backend.log" 2>&1' -WorkingDirectory <repo>\backend -WindowStyle Hidden
+   Start-Process cmd -ArgumentList '/c npm start > "%TEMP%\portfolio-frontend.log" 2>&1' -WorkingDirectory <repo>\frontend -WindowStyle Hidden
+   ```
+   - Backend: `npm run dev` (tsx watch, puerto 3000; la BD se crea sola si no existe).
+   - Frontend: `npm start` (ng serve, puerto 4200).
+4. **Espera a que respondan** sin `sleep` (está bloqueado), con los reintentos de curl:
+   `curl -s --retry 60 --retry-delay 2 --retry-connrefused --retry-all-errors http://localhost:3000/api/estado`
+   y lo mismo con `http://localhost:4200/` (la primera compilación de Angular tarda). Si alguno no llega a
+   responder, lee su fichero de registro y devuelve el error; no toques el código para arreglarlo.
+5. **Responde** con las direcciones (web en http://localhost:4200, API en http://localhost:3000), lo que
+   devuelve `/api/estado` (si `primerUso: true`, avisa de que la web llevará a la bienvenida del
+   administrador, usuario `admin`) y cualquier aviso de la consola del backend (p. ej. fotógrafos sin
+   carpeta), los PID que escuchan en cada puerto y dónde están los ficheros de registro.
+
+**Parar la aplicación** ("para la aplicación"): busca los PID que escuchan en 3000 y 4200 con `netstat -ano`
+y termínalos con `taskkill //PID <pid> //T //F` (desde Bash) o `Stop-Process -Id <pid>` (PowerShell).
+No pares otros procesos de Node.
+
+El despliegue con Docker (`docker compose up -d`, preproducción o NAS) no forma parte de esta tarea: solo si
+se pide expresamente.
 
 ## Ramas y qué significa subir a cada una
 
