@@ -13,7 +13,9 @@ node docs/generar-html.mjs
 
 ## Documentación técnica (`tecnica/`)
 
-Cómo está hecha la aplicación y cómo se mantiene. Aún no hay documentos.
+Cómo está hecha la aplicación y cómo se mantiene.
+
+- [Instalación en un NAS UGREEN](tecnica/instalacion-nas-ugreen.md) — instalar, actualizar, hacer copias y mantener la aplicación en un NAS UGREEN con UGOS Pro y Docker. Para quien administra el NAS.
 
 ## Documentación funcional (`funcional/`)
 
