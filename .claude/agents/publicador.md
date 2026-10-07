@@ -1,6 +1,6 @@
 ---
 name: publicador
-description: Gestiona git y las versiones del proyecto. Hace commits en develop, sube ramas al remoto (GitHub), decide el número de versión (semver), actualiza package.json, CHANGELOG.md y la documentación generada, fusiona develop en main, crea el tag y lo publica (lo que dispara la publicación de las imágenes Docker en GHCR). Úsalo cuando se pida "haz commit", "sube los cambios", "publica una versión", "saca la 2.3.0" o revisar el estado del repositorio. También arranca (y para) la aplicación en local para probarla: "arranca la aplicación", "levanta el backend y el frontend", "para la aplicación". No modifica el código de la aplicación.
+description: 'Gestiona git y las versiones del proyecto. Hace commits en develop, sube ramas al remoto (GitHub), decide el número de versión (semver), actualiza package.json, CHANGELOG.md y la documentación generada, fusiona develop en main, crea el tag y lo publica (lo que dispara la publicación de las imágenes Docker en GHCR). Úsalo cuando se pida "haz commit", "sube los cambios", "publica una versión", "saca la 2.3.0" o revisar el estado del repositorio. También arranca (y para) la aplicación en local para probarla: "arranca la aplicación", "levanta el backend y el frontend", "para la aplicación". No modifica el código de la aplicación.'
 tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 
