@@ -22,4 +22,6 @@ Cómo está hecha la aplicación y cómo se mantiene.
 Qué hace la aplicación y con qué condiciones.
 
 - [Casos de uso](funcional/casos-de-uso.md) — todo lo que un usuario puede hacer hoy en la aplicación y con qué condiciones. Para quien necesita saber qué hace la aplicación sin leer el código.
+- [Manual de usuario](funcional/manual-de-usuario.md) — cómo se hace, paso a paso, cada gestión de la aplicación: ver el catálogo, la cuenta y la sesión, los portfolios, las colecciones y las fotos, y la administración. Para quien usa la aplicación: visitantes, fotógrafos y el administrador.
+- [Manual del fotógrafo](funcional/manual-del-fotografo.md) — el manual de usuario sin las gestiones del administrador: ver el catálogo, la cuenta y la sesión, sus datos, y sus portfolios, colecciones y fotos. Para fotógrafos. También en su propia página: [manual-del-fotografo.html](manual-del-fotografo.html).
 - [Reglas de negocio](funcional/reglas-de-negocio.md) — catálogo de todo lo que la aplicación no permite: código, qué exige, mensaje y operaciones en las que se comprueba cada regla. Para quien necesita conocer las restricciones y para quien las mantiene.

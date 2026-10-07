@@ -6,7 +6,11 @@
 //
 // Hay que volver a ejecutarlo cada vez que se crea o cambia un documento. El Markdown admitido es el
 // que usan los documentos: títulos (#, ##, ###), párrafos, listas (- y 1.), tablas, `código`,
-// **negrita**, *cursiva* y [enlaces](destino).
+// **negrita**, *cursiva*, [enlaces](destino) e imágenes en una línea propia: ![texto](ruta). La ruta de
+// una imagen es relativa a la carpeta del documento; se incrusta como data URI (la página sigue siendo
+// un único fichero) dentro de una figura cuyo pie es el texto alternativo.
+//
+// Los documentos de SUELTOS (al final) se publican además en su propia página, docs/<documento>.html.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,14 +51,24 @@ const celdas = (l) =>
     .split(/(?<!\\)\|/)
     .map((c) => c.trim());
 
+// Imagen en una línea propia: ![texto alternativo](ruta relativa a la carpeta del documento).
+const IMAGEN = /^!\[([^\]]*)\]\(([^)\s]+)\)\s*$/;
+const TIPOS_IMAGEN = { '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.svg': 'image/svg+xml' };
+function dataUri(fichero) {
+  const tipo = TIPOS_IMAGEN[path.extname(fichero).toLowerCase()];
+  if (!tipo) throw new Error(`Formato de imagen no admitido: ${fichero}`);
+  if (!existsSync(fichero)) throw new Error(`No existe la imagen ${fichero}`);
+  return `data:${tipo};base64,${readFileSync(fichero).toString('base64')}`;
+}
+
 // Convierte un documento. Los id de sus elementos llevan delante el del documento (id--ancla), para
 // que no choquen con los de otro documento de la misma página.
-function convertir(id, markdown) {
+function convertir(id, markdown, carpeta) {
   const lineas = markdown.split(/\r?\n/);
   let titulo = id;
   const apartados = [];
   const cuerpo = [];
-  const nuevoBloque = /^(#{1,3} |\||- |\d+\. )/;
+  const nuevoBloque = /^(#{1,3} |\||- |\d+\. |!\[)/;
   for (let i = 0; i < lineas.length; ) {
     const l = lineas[i];
     if (!l.trim()) {
@@ -84,6 +98,12 @@ function convertir(id, markdown) {
       cuerpo.push(
         `<div class="tabla"><table${clase ? ` class="${clase}"` : ''}><thead><tr>${cabecera.map((c) => `<th>${enLinea(c)}</th>`).join('')}</tr></thead><tbody>\n${filas.map(fila).join('\n')}\n</tbody></table></div>`,
       );
+    } else if (IMAGEN.test(l)) {
+      const [, alt, ruta] = l.match(IMAGEN);
+      cuerpo.push(
+        `<figure><img src="${dataUri(path.join(carpeta, ruta))}" alt="${esc(alt).replace(/"/g, '&quot;')}" loading="lazy"><figcaption>${enLinea(alt)}</figcaption></figure>`,
+      );
+      i++;
     } else if (/^(- |\d+\. )/.test(l)) {
       const ordenada = /^\d/.test(l);
       const items = [];
@@ -117,7 +137,7 @@ const secciones = SECCIONES.map((seccion) => {
     : [];
   return {
     ...seccion,
-    documentos: ficheros.map((f) => convertir(f.replace(/\.md$/, ''), readFileSync(path.join(carpeta, f), 'utf8'))),
+    documentos: ficheros.map((f) => convertir(f.replace(/\.md$/, ''), readFileSync(path.join(carpeta, f), 'utf8'), carpeta)),
   };
 });
 const ids = secciones.flatMap((s) => s.documentos.map((d) => d.id));
@@ -171,14 +191,8 @@ const articulos = secciones
   )
   .join('\n');
 
-const html = `<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Documentación · Portfolio fotográfico ${esc(version)}</title>
-<style>
-  :root {
+// Estilos comunes a documentacion.html y a las páginas sueltas.
+const estilos = `  :root {
     --fondo: #f6f5f1; --superficie: #ffffff; --texto: #1b1b1c; --apagado: #6d6b66; --borde: #dedbd3; --codigo: #efede7;
   }
   @media (prefers-color-scheme: dark) {
@@ -189,6 +203,9 @@ const html = `<!doctype html>
   body { margin: 0; background: var(--fondo); color: var(--texto); font: 16px/1.55 Inter, "Segoe UI", system-ui, sans-serif; }
   a { color: inherit; }
   h1, h2, h3 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; line-height: 1.15; }
+  figure { margin: 1.25rem 0 1.75rem; }
+  figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--borde); border-radius: 4px; }
+  figcaption { margin-top: 0.45rem; color: var(--apagado); font-size: 0.85rem; }
   code { padding: 0.1em 0.35em; background: var(--codigo); font: 0.875em Consolas, "Cascadia Mono", monospace; }
 
   .cabecera {
@@ -272,7 +289,16 @@ const html = `<!doctype html>
     tr { break-inside: avoid; }
     .tabla { overflow: visible; }
   }
-</style>
+`;
+
+const html = `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentación · Portfolio fotográfico ${esc(version)}</title>
+<style>
+${estilos}</style>
 </head>
 <body>
 <header class="cabecera">
@@ -323,4 +349,42 @@ writeFileSync(destino, html);
 console.log(`docs/documentacion.html generado (versión ${version}):`);
 for (const s of secciones) {
   console.log(`  ${s.titulo}: ${s.documentos.map((d) => d.titulo).join(', ') || '(sin documentos)'}`);
+}
+
+// Páginas sueltas: algunos documentos se publican también en su propia página (docs/<documento>.html),
+// para dárselos a quien solo necesita ese (p. ej. el manual del fotógrafo). Mismo estilo, sin menú ni
+// índice; los apartados del documento hacen de índice.
+const SUELTOS = ['manual-del-fotografo'];
+for (const id of SUELTOS) {
+  const seccion = secciones.find((s) => s.documentos.some((d) => d.id === id));
+  if (!seccion) throw new Error(`No existe el documento ${id}, que debe publicarse en su propia página.`);
+  const d = seccion.documentos.find((doc) => doc.id === id);
+  const pagina = `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(d.titulo)} · Portfolio fotográfico ${esc(version)}</title>
+<style>
+${estilos}
+  .suelto { max-width: 64rem; margin: 0 auto; }
+</style>
+</head>
+<body>
+<header class="cabecera">
+  <p class="cabecera__titulo"><a href="#${d.id}">Portfolio fotográfico · ${esc(d.titulo)}</a></p>
+  <p class="cabecera__datos">Versión de la aplicación <strong>${esc(version)}</strong> · Generado el ${esc(fecha)}</p>
+</header>
+<main class="contenido suelto">
+  <article class="documento" id="${d.id}">
+    <h1>${enLinea(d.titulo)}</h1>
+    ${d.apartados.length > 1 ? `<nav class="apartados" aria-label="Apartados de ${esc(d.titulo)}">${d.apartados.map((a) => `<a href="#${d.id}--${ancla(a)}">${esc(a)}</a>`).join('')}</nav>` : ''}
+    ${d.html}
+  </article>
+</main>
+</body>
+</html>
+`;
+  writeFileSync(path.join(docs, `${id}.html`), pagina);
+  console.log(`docs/${id}.html generado (página suelta de "${d.titulo}").`);
 }
