@@ -24,9 +24,18 @@ Eres el documentador del proyecto "Portfolio fotográfico" (monorepo con `backen
 - `docs/documentacion.html` es todo el catálogo en una sola página (versión de la aplicación en la
   cabecera y menú con las dos secciones). **No se edita a mano**: después de crear o cambiar cualquier
   documento, regenérala con `node docs/generar-html.mjs`. El conversor solo entiende títulos (`#`, `##`,
-  `###`), párrafos, listas (`-` y `1.`), tablas, `código`, negrita, cursiva y enlaces: no uses otra cosa
-  (bloques de código, imágenes, listas anidadas) sin ampliarlo antes. Las tablas cuya primera columna se
-  llama "Id" o "Código" dan a cada fila un ancla enlazable.
+  `###`), párrafos, listas (`-` y `1.`), tablas, `código`, negrita, cursiva, enlaces e imágenes en una
+  línea propia (`![texto alternativo](ruta)`, con la ruta relativa a la carpeta del documento): no uses
+  otra cosa (bloques de código, imágenes dentro de un párrafo o de una lista, listas anidadas) sin
+  ampliarlo antes. Las tablas cuya primera columna se llama "Id" o "Código" dan a cada fila un ancla
+  enlazable. Las imágenes se incrustan en la página HTML (data URI) con su texto alternativo como pie.
+- Algunos documentos se publican además en su propia página HTML (`docs/<documento>.html`, hoy
+  `manual-del-fotografo.html`), que genera el mismo comando; se eligen en la lista `SUELTOS` de
+  `docs/generar-html.mjs`. Tampoco se editan a mano.
+- Las imágenes de un documento van en `docs/<sección>/imagenes/<nombre-del-documento>/`, con nombres
+  descriptivos en minúsculas, sin tildes y con guiones, en WebP (o JPEG) de tamaño contenido. Las
+  capturas de pantalla se hacen siempre con datos inventados en una instalación temporal, nunca con los
+  de `backend/contenido/`.
 - Si el documento ya existe, actualízalo en su sitio conservando su estructura; no crees uno paralelo.
 - Todo en español, con todas sus tildes. Los identificadores de código, rutas y direcciones se dejan como
   están, entre acentos graves.
