@@ -7,6 +7,36 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [2.3.1] - 2026-10-07
+
+### Añadido
+
+- Documentación: manuales de usuario y del fotógrafo con capturas (el del fotógrafo, también en su propia página,
+  `docs/manual-del-fotografo.html`).
+
+### Corregido
+
+- **En Docker, los datos de la aplicación (base de datos, logos, miniaturas y fotos de perfil) se guardaban dentro
+  del contenedor** (`/app/contenido/datos`, sin montar) en vez de en `/app/datos`, donde se monta `DATOS_PATH`: se
+  perdían al recrear el contenedor (`docker compose pull && docker compose up -d`) y no entraban en las copias de la
+  carpeta del NAS. Fallo de la 2.3.0; el Dockerfile fija ahora `DATOS_DIR=/app/datos`.
+- La guía de instalación en un NAS UGREEN corresponde a la 2.3.1 e indica qué apartados son solo para instalaciones
+  antiguas.
+
+### Notas de despliegue
+
+- **Si la instalación está en la 2.3.0 con `DATOS_PATH`**, los datos actuales están dentro del contenedor y al
+  actualizar se recrea: hay que sacarlos antes del `pull`.
+  1. `docker compose stop backend`
+  2. `docker compose cp backend:/app/contenido/datos/. <DATOS_PATH>/`
+  3. `docker compose pull && docker compose up -d`
+
+  Si se instaló desde cero con la 2.3.0, la carpeta `contenido/datos` del NAS está vacía o solo tiene subcarpetas.
+  Si los datos venían de la 2.2.0, en ella está la BD de entonces (sin los cambios hechos con la 2.3.0), y lo
+  copiado del contenedor la sustituye.
+- Sin `DATOS_PATH` (volumen `datos-internos`) o desde la 2.2.0 o anteriores: solo
+  `docker compose pull && docker compose up -d`.
+
 ## [2.3.0] - 2026-10-07
 
 ### Añadido
@@ -252,6 +282,7 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
+[2.3.1]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.3.1
 [2.3.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.3.0
 [2.2.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.2.0
 [2.1.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.1.0

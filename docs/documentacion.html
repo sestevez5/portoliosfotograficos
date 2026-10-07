@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Documentación · Portfolio fotográfico 2.3.0</title>
+<title>Documentación · Portfolio fotográfico 2.3.1</title>
 <style>
   :root {
     --fondo: #f6f5f1; --superficie: #ffffff; --texto: #1b1b1c; --apagado: #6d6b66; --borde: #dedbd3; --codigo: #efede7;
@@ -107,7 +107,7 @@
 <body>
 <header class="cabecera">
   <p class="cabecera__titulo"><a href="#inicio">Portfolio fotográfico · Documentación</a></p>
-  <p class="cabecera__datos">Versión de la aplicación <strong>2.3.0</strong> · Generado el 7 de octubre de 2026 · 5 documentos</p>
+  <p class="cabecera__datos">Versión de la aplicación <strong>2.3.1</strong> · Generado el 7 de octubre de 2026 · 5 documentos</p>
 </header>
 <div class="pagina">
   <nav class="menu" aria-label="Documentos">
@@ -140,7 +140,8 @@
       <h1>Instalación en un NAS UGREEN</h1>
       <nav class="apartados" aria-label="Apartados de Instalación en un NAS UGREEN"><a href="#instalacion-nas-ugreen--que-se-instala">Qué se instala</a><a href="#instalacion-nas-ugreen--requisitos">Requisitos</a><a href="#instalacion-nas-ugreen--estructura-de-carpetas">Estructura de carpetas</a><a href="#instalacion-nas-ugreen--instalacion">Instalación</a><a href="#instalacion-nas-ugreen--actualizar-a-una-version-nueva">Actualizar a una versión nueva</a><a href="#instalacion-nas-ugreen--convertir-las-fotos-a-avif-desde-la-version-con-fotos-en-avif">Convertir las fotos a AVIF (desde la versión con fotos en AVIF)</a><a href="#instalacion-nas-ugreen--copias-de-seguridad">Copias de seguridad</a><a href="#instalacion-nas-ugreen--cargar-datos-existentes">Cargar datos existentes</a><a href="#instalacion-nas-ugreen--pasar-a-la-carpeta-contenido">Pasar a la carpeta contenido</a><a href="#instalacion-nas-ugreen--pasar-del-volumen-interno-a-la-carpeta-del-nas">Pasar del volumen interno a la carpeta del NAS</a><a href="#instalacion-nas-ugreen--problemas-frecuentes">Problemas frecuentes</a><a href="#instalacion-nas-ugreen--seguridad">Seguridad</a></nav>
       <p>Guía paso a paso para instalar, actualizar y mantener la aplicación en un NAS UGREEN con UGOS Pro y Docker. Para quien administra el NAS: no hace falta el código fuente ni saber programar, pero sí entrar por SSH y escribir algunos comandos.</p>
-<p>Corresponde a la versión 2.2.0 de la aplicación, a 6 de octubre de 2026.</p>
+<p>Corresponde a la versión 2.3.1 de la aplicación, a 7 de octubre de 2026. Para una instalación nueva bastan los apartados "Requisitos", "Estructura de carpetas" e "Instalación"; los apartados "Pasar a la carpeta contenido", "Pasar del volumen interno a la carpeta del NAS" y "Convertir las fotos a AVIF" son solo para instalaciones hechas con versiones anteriores.</p>
+<p><strong>Usa la versión 2.3.1 o posterior.</strong> En la 2.3.0 la base de datos no se guardaba en la carpeta <code>contenido/datos</code> del NAS sino dentro del contenedor, y se perdía al actualizar.</p>
 <h2 id="instalacion-nas-ugreen--que-se-instala">Qué se instala</h2>
 <p>La aplicación son dos contenedores Docker que se descargan ya construidos de GitHub Container Registry (GHCR):</p>
 <div class="tabla"><table><thead><tr><th>Contenedor</th><th>Imagen</th><th>Qué hace</th></tr></thead><tbody>

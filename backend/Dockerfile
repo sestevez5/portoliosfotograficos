@@ -34,6 +34,10 @@ COPY assets ./assets
 
 # Datos de la aplicación (base de datos SQLite en BD/, logos, miniaturas y fotos de perfil) en
 # /app/datos y fotos en /app/fotos: las dos se montan desde el host (ver docker-compose.yml).
+# Las dos rutas se fijan aquí: por defecto la aplicación usaría /app/contenido/datos y
+# /app/contenido/fotos (la estructura de desarrollo), que no están montadas y se perderían al
+# recrear el contenedor.
+ENV DATOS_DIR=/app/datos
 ENV FOTOS_DIR=/app/fotos
 RUN mkdir -p /app/datos /app/fotos
 EXPOSE 3000

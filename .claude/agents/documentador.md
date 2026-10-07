@@ -1,6 +1,6 @@
 ---
 name: documentador
-description: Genera y mantiene los documentos de la carpeta docs/ del proyecto (casos de uso, manuales de usuario, referencia de la API, modelo de datos, guías de despliegue…). Úsalo cuando se pida crear o actualizar un documento sobre la aplicación. Escribe solo documentación: nunca modifica el código.
+description: 'Genera y mantiene los documentos de la carpeta docs/ del proyecto (casos de uso, manuales de usuario, referencia de la API, modelo de datos, guías de despliegue…). Úsalo cuando se pida crear o actualizar un documento sobre la aplicación. Escribe solo documentación: nunca modifica el código.'
 tools: Read, Glob, Grep, Bash, Write, Edit
 ---
 
