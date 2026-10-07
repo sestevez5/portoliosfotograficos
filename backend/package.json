@@ -1,6 +1,6 @@
 {
   "name": "portfolio-backend",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "description": "API sencilla que sirve el catálogo de colecciones/fotos y las imágenes estáticas del portfolio fotográfico.",
