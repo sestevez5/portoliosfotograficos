@@ -26,7 +26,7 @@ import { normalizarNombre } from '../utils/normalizar-nombre.js';
 import { borrarMiniaturas } from './miniatura.service.js';
 
 // Alta, edición, eliminación y cambio de nombre de portfolios (las colecciones, en coleccion.service.ts). Su
-// nombreNormalizado se calcula a partir del nombre y es el nombre de su carpeta en datos/fotos:
+// nombreNormalizado se calcula a partir del nombre y es el nombre de su carpeta en fotos:
 // estas funciones crean, renombran y eliminan la carpeta en la misma transacción que la BD (si la
 // operación con la carpeta falla, la BD no cambia). Los parámetros fotografo y portfolio son
 // segmentos de URL. Validan antes las reglas de negocio dentro de su operación y lanzan

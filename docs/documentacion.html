@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Documentación · Portfolio fotográfico 2.0.0</title>
+<title>Documentación · Portfolio fotográfico 2.3.0</title>
 <style>
   :root {
     --fondo: #f6f5f1; --superficie: #ffffff; --texto: #1b1b1c; --apagado: #6d6b66; --borde: #dedbd3; --codigo: #efede7;
@@ -104,14 +104,14 @@
 <body>
 <header class="cabecera">
   <p class="cabecera__titulo"><a href="#inicio">Portfolio fotográfico · Documentación</a></p>
-  <p class="cabecera__datos">Versión de la aplicación <strong>2.0.0</strong> · Generado el 30 de septiembre de 2026 · 2 documentos</p>
+  <p class="cabecera__datos">Versión de la aplicación <strong>2.3.0</strong> · Generado el 7 de octubre de 2026 · 3 documentos</p>
 </header>
 <div class="pagina">
   <nav class="menu" aria-label="Documentos">
     <a class="menu__inicio" href="#inicio" data-doc="inicio">Índice</a>
     <section class="menu__seccion">
       <h2>Documentación técnica</h2>
-      <p class="menu__vacio">Aún no hay documentos</p>
+      <ul><li><a href="#instalacion-nas-ugreen" data-doc="instalacion-nas-ugreen">Instalación en un NAS UGREEN</a></li></ul>
     </section>
 <section class="menu__seccion">
       <h2>Documentación funcional</h2>
@@ -124,7 +124,7 @@
       <section class="indice__seccion">
       <h2>Documentación técnica</h2>
       <p>Cómo está hecha la aplicación y cómo se mantiene.</p>
-      <p class="indice__vacio">Aún no hay documentos en esta sección.</p>
+      <div class="indice__documentos"><a class="ficha" href="#instalacion-nas-ugreen"><strong>Instalación en un NAS UGREEN</strong><span>Guía paso a paso para instalar, actualizar y mantener la aplicación en un NAS UGREEN con UGOS Pro y Docker. Para quien administra el NAS: no hace falta el código fuente ni saber programar, pero sí entrar por SSH y escribir algunos comandos.</span></a></div>
     </section>
 <section class="indice__seccion">
       <h2>Documentación funcional</h2>
@@ -132,7 +132,95 @@
       <div class="indice__documentos"><a class="ficha" href="#casos-de-uso"><strong>Casos de uso</strong><span>Lista de todo lo que un usuario puede hacer hoy en la aplicación, con una descripción breve y las condiciones para poder hacerlo. Pensada para quien necesita saber qué hace la aplicación sin leer el código.</span></a><a class="ficha" href="#reglas-de-negocio"><strong>Reglas de negocio</strong><span>Catálogo de todo lo que la aplicación no permite: cada regla con su código, lo que exige, el mensaje que recibe el usuario y las operaciones en las que se comprueba. Para quien necesita saber qué restricciones aplica la aplicación, y para quien las mantiene.</span></a></div>
     </section>
     </section>
-    <article class="documento" id="casos-de-uso" data-documento>
+    <article class="documento" id="instalacion-nas-ugreen" data-documento>
+      <p class="documento__seccion">Documentación técnica</p>
+      <h1>Instalación en un NAS UGREEN</h1>
+      <nav class="apartados" aria-label="Apartados de Instalación en un NAS UGREEN"><a href="#instalacion-nas-ugreen--que-se-instala">Qué se instala</a><a href="#instalacion-nas-ugreen--requisitos">Requisitos</a><a href="#instalacion-nas-ugreen--estructura-de-carpetas">Estructura de carpetas</a><a href="#instalacion-nas-ugreen--instalacion">Instalación</a><a href="#instalacion-nas-ugreen--actualizar-a-una-version-nueva">Actualizar a una versión nueva</a><a href="#instalacion-nas-ugreen--convertir-las-fotos-a-avif-desde-la-version-con-fotos-en-avif">Convertir las fotos a AVIF (desde la versión con fotos en AVIF)</a><a href="#instalacion-nas-ugreen--copias-de-seguridad">Copias de seguridad</a><a href="#instalacion-nas-ugreen--cargar-datos-existentes">Cargar datos existentes</a><a href="#instalacion-nas-ugreen--pasar-a-la-carpeta-contenido">Pasar a la carpeta contenido</a><a href="#instalacion-nas-ugreen--pasar-del-volumen-interno-a-la-carpeta-del-nas">Pasar del volumen interno a la carpeta del NAS</a><a href="#instalacion-nas-ugreen--problemas-frecuentes">Problemas frecuentes</a><a href="#instalacion-nas-ugreen--seguridad">Seguridad</a></nav>
+      <p>Guía paso a paso para instalar, actualizar y mantener la aplicación en un NAS UGREEN con UGOS Pro y Docker. Para quien administra el NAS: no hace falta el código fuente ni saber programar, pero sí entrar por SSH y escribir algunos comandos.</p>
+<p>Corresponde a la versión 2.2.0 de la aplicación, a 6 de octubre de 2026.</p>
+<h2 id="instalacion-nas-ugreen--que-se-instala">Qué se instala</h2>
+<p>La aplicación son dos contenedores Docker que se descargan ya construidos de GitHub Container Registry (GHCR):</p>
+<div class="tabla"><table><thead><tr><th>Contenedor</th><th>Imagen</th><th>Qué hace</th></tr></thead><tbody>
+<tr><td data-col="Contenedor"><code>frontend</code></td><td data-col="Imagen"><code>ghcr.io/sestevez5/portoliosfotograficos-frontend:latest</code></td><td data-col="Qué hace">Sirve la web (nginx) y reenvía <code>/api/</code> y <code>/photos/</code> al backend. Es el único que publica un puerto en el NAS.</td></tr>
+<tr><td data-col="Contenedor"><code>backend</code></td><td data-col="Imagen"><code>ghcr.io/sestevez5/portoliosfotograficos-backend:latest</code></td><td data-col="Qué hace">API, base de datos SQLite, fotos, miniaturas y logos. Solo es accesible desde el <code>frontend</code>.</td></tr>
+</tbody></table></div>
+<p>En el NAS solo hacen falta tres cosas: el fichero <code>docker-compose.yml</code> del repositorio, un fichero <code>.env</code> con la configuración y dos carpetas, una para las fotos y otra para los datos de la aplicación.</p>
+<p>Las imágenes se publican para procesadores x86-64 (Intel/AMD), que es lo que llevan los NAS UGREEN de la serie DXP.</p>
+<h2 id="instalacion-nas-ugreen--requisitos">Requisitos</h2>
+<ul><li>NAS UGREEN con UGOS Pro y un volumen de almacenamiento creado (en esta guía, <code>/volume1</code>).</li><li>Una cuenta de administrador del NAS.</li><li>La aplicación <strong>Docker</strong> instalada desde el Centro de aplicaciones de UGOS Pro.</li><li>Un ordenador en la misma red, con un cliente SSH (en Windows, la terminal o PowerShell ya lo traen: comando <code>ssh</code>).</li><li>Si las imágenes de GHCR son privadas, un token de GitHub con el permiso <code>read:packages</code> (ver "Acceso a las imágenes").</li></ul>
+<h2 id="instalacion-nas-ugreen--estructura-de-carpetas">Estructura de carpetas</h2>
+<p>Todo va en una carpeta del proyecto dentro de la carpeta compartida <code>docker</code> que crea la aplicación Docker. El contenido de la aplicación va en su carpeta <code>contenido</code>, con dos carpetas hermanas:</p>
+<div class="tabla"><table><thead><tr><th>Ruta en el NAS</th><th>Contenido</th></tr></thead><tbody>
+<tr><td data-col="Ruta en el NAS"><code>/volume1/docker/portfolio-fotografico/</code></td><td data-col="Contenido"><code>docker-compose.yml</code> y <code>.env</code></td></tr>
+<tr><td data-col="Ruta en el NAS"><code>/volume1/docker/portfolio-fotografico/contenido/fotos/</code></td><td data-col="Contenido">Fotos de las colecciones, en AVIF: <code>&lt;fotógrafo&gt;/&lt;portfolio&gt;/&lt;colección&gt;/&lt;fichero&gt;</code> (<code>FOTOS_PATH</code>)</td></tr>
+<tr><td data-col="Ruta en el NAS"><code>/volume1/docker/portfolio-fotografico/contenido/datos/</code></td><td data-col="Contenido">Datos internos: base de datos (<code>BD/portfolio.db</code>), <code>logos/</code>, <code>miniaturas/</code> y <code>avatares/</code> (<code>DATOS_PATH</code>)</td></tr>
+</tbody></table></div>
+<p>Las carpetas <code>fotos</code> y <code>datos</code> van juntas a propósito, dentro de <code>contenido</code>: una instantánea o una copia de esa carpeta guarda a la vez la base de datos y las fotos, que tienen que corresponderse. La de datos <strong>no</strong> va dentro de la de fotos.</p>
+<p>Las dos tienen que poder escribirse desde el contenedor: la aplicación crea, renombra y borra carpetas de fotos, y escribe la base de datos y las miniaturas. El backend se ejecuta como <code>root</code> dentro del contenedor, así que basta con crearlas como se indica abajo.</p>
+<h2 id="instalacion-nas-ugreen--instalacion">Instalación</h2>
+<h3>1. Activar SSH</h3>
+<ol><li>En UGOS Pro, abre <strong>Panel de control → Terminal</strong> y activa <strong>SSH</strong> (puerto 22 por defecto).</li><li>Desde el ordenador, conéctate con una cuenta de administrador: <code>ssh &lt;usuario&gt;@&lt;ip-del-nas&gt;</code>.</li></ol>
+<p>Todos los comandos de Docker se ejecutan con <code>sudo</code> (pide la contraseña de esa cuenta).</p>
+<h3>2. Crear las carpetas</h3>
+<ol><li>Crea la carpeta del proyecto y, dentro de <code>contenido</code>, las de fotos y datos: <code>sudo mkdir -p /volume1/docker/portfolio-fotografico/contenido/fotos /volume1/docker/portfolio-fotografico/contenido/datos</code></li><li>Entra en ella: <code>cd /volume1/docker/portfolio-fotografico</code></li></ol>
+<p>También se pueden crear desde el gestor de archivos de UGOS Pro, dentro de la carpeta compartida <code>docker</code>.</p>
+<h3>3. Copiar docker-compose.yml y crear .env</h3>
+<ol><li>Copia a la carpeta del proyecto el fichero <code>docker-compose.yml</code> de la raíz del repositorio (rama <code>main</code>). Puedes subirlo con el gestor de archivos de UGOS Pro o descargarlo directamente en el NAS: <code>sudo wget -O docker-compose.yml https://raw.githubusercontent.com/sestevez5/portoliosfotograficos/main/docker-compose.yml</code> (si el repositorio es privado, súbelo con el gestor de archivos). <strong>No</strong> copies <code>docker-compose.override.yml</code>: solo sirve para construir las imágenes en el equipo de desarrollo.</li><li>Crea en la misma carpeta el fichero <code>.env</code> (puedes partir de <code>.env.example</code> del repositorio) con estas variables:</li></ol>
+<div class="tabla"><table><thead><tr><th>Variable</th><th>Valor en el NAS</th><th>Para qué sirve</th></tr></thead><tbody>
+<tr><td data-col="Variable"><code>FOTOS_PATH</code></td><td data-col="Valor en el NAS"><code>/volume1/docker/portfolio-fotografico/contenido/fotos</code></td><td data-col="Para qué sirve">Carpeta de las fotos. Obligatoria: sin ella el <code>backend</code> no arranca.</td></tr>
+<tr><td data-col="Variable"><code>DATOS_PATH</code></td><td data-col="Valor en el NAS"><code>/volume1/docker/portfolio-fotografico/contenido/datos</code></td><td data-col="Para qué sirve">Carpeta de la base de datos, logos, miniaturas y fotos de perfil. Si se deja sin definir, estos datos van en un volumen interno de Docker (<code>datos-internos</code>), que no se ve en el NAS ni entra en sus copias. En el NAS, defínela siempre.</td></tr>
+<tr><td data-col="Variable"><code>FRONTEND_PORT</code></td><td data-col="Valor en el NAS"><code>8080</code> (o cualquier puerto libre del NAS)</td><td data-col="Para qué sirve">Puerto por el que se abre la web.</td></tr>
+</tbody></table></div>
+<p>Cada variable va en una línea, con el formato <code>NOMBRE=valor</code> y sin espacios alrededor del <code>=</code>. Para editarlo por SSH: <code>sudo vi .env</code> (o <code>sudo nano .env</code> si está disponible).</p>
+<h3>4. Acceso a las imágenes</h3>
+<p>Si los paquetes de GHCR son públicos, no hay que hacer nada. Si son privados, inicia sesión una sola vez en el NAS:</p>
+<ol><li>En GitHub, crea un token clásico (<strong>Settings → Developer settings → Personal access tokens</strong>) con el permiso <code>read:packages</code>.</li><li>En el NAS: <code>sudo docker login ghcr.io -u &lt;usuario-de-github&gt;</code> y, como contraseña, pega el token.</li></ol>
+<p>Docker guarda la credencial y no hace falta repetirlo en cada actualización.</p>
+<h3>5. Descargar y arrancar</h3>
+<p>Desde la carpeta del proyecto:</p>
+<ol><li><code>sudo docker compose pull</code> — descarga las dos imágenes.</li><li><code>sudo docker compose up -d</code> — crea y arranca los contenedores. El <code>frontend</code> espera a que el <code>backend</code> esté sano.</li><li><code>sudo docker compose ps</code> — los dos deben aparecer en marcha y el <code>backend</code> como <code>healthy</code>.</li></ol>
+<p>Si <code>docker compose</code> no existe, prueba con <code>docker-compose</code> (versión antigua del comando).</p>
+<p>Los contenedores llevan <code>restart: unless-stopped</code>: vuelven a arrancar solos al reiniciar el NAS. Una vez creados, también aparecen en la aplicación Docker de UGOS Pro, desde donde se pueden ver, parar, arrancar y consultar sus registros.</p>
+<h3>6. Primer uso</h3>
+<ol><li>Abre <code>http://&lt;ip-del-nas&gt;:8080</code> (o el puerto que hayas puesto en <code>FRONTEND_PORT</code>).</li><li>La primera vez la web muestra la bienvenida del administrador: entra con el usuario <code>admin</code> y la contraseña <code>admin</code>, y cámbiala ahí mismo (después, en <code>/admin/contrasenya</code>).</li><li>La base de datos empieza vacía: los fotógrafos se dan de alta registrándose desde la web.</li></ol>
+<h2 id="instalacion-nas-ugreen--actualizar-a-una-version-nueva">Actualizar a una versión nueva</h2>
+<p>Cada versión publicada en <code>main</code> genera imágenes nuevas con la etiqueta <code>latest</code>. Para instalarla:</p>
+<ol><li>Lee la entrada de la versión en <code>CHANGELOG.md</code>, sobre todo sus <strong>Notas de despliegue</strong>.</li><li>Haz una copia de seguridad (ver abajo).</li><li>En la carpeta del proyecto: <code>sudo docker compose pull</code> y después <code>sudo docker compose up -d</code>.</li></ol>
+<p>Los datos se conservan: están en las carpetas del NAS, no en los contenedores. Si la versión cambia el esquema de la base de datos, la migración se aplica sola al arrancar el <code>backend</code>.</p>
+<p>Si una versión trae cambios en <code>docker-compose.yml</code> o en las variables de <code>.env</code>, sus notas de despliegue lo dicen: copia el <code>docker-compose.yml</code> nuevo antes de <code>pull</code>.</p>
+<h2 id="instalacion-nas-ugreen--convertir-las-fotos-a-avif-desde-la-version-con-fotos-en-avif">Convertir las fotos a AVIF (desde la versión con fotos en AVIF)</h2>
+<p>Desde esa versión las fotos se guardan en AVIF de alta resolución y la original no se conserva. Las fotos subidas antes siguen en su formato hasta que se convierten. La conversión <strong>borra las originales</strong>, así que primero haz una copia de seguridad (ver abajo) y después, en la carpeta del proyecto:</p>
+<ol><li><code>sudo docker compose exec backend node dist/scripts/convertir-fotos.js</code></li></ol>
+<p>Tarda unos segundos por foto y al final muestra cuánto ocupaban antes y cuánto ahora. Se puede hacer con la aplicación en marcha y, si se interrumpe, basta con repetirlo: solo convierte las que faltan.</p>
+<h2 id="instalacion-nas-ugreen--copias-de-seguridad">Copias de seguridad</h2>
+<ul><li><strong>Lo más sencillo y seguro</strong>: una instantánea de la carpeta compartida <code>docker</code> (o de la carpeta <code>contenido</code>) con la función de instantáneas de UGOS Pro. Copia a la vez la base de datos (con su fichero <code>-wal</code>) y las fotos, de forma coherente, aunque la aplicación esté en marcha.</li><li><strong>Copia de ficheros</strong>: copiar <code>contenido/datos/</code> con la aplicación en marcha <strong>no es seguro</strong> (con WAL, <code>portfolio.db</code> sola puede estar incompleta). Para el backend antes (<code>sudo docker compose stop backend</code>), copia la carpeta <code>contenido</code> entera y vuelve a arrancarlo (<code>sudo docker compose start backend</code>).</li><li><strong>Copia en caliente solo de la base de datos</strong>: <code>sudo docker compose exec backend node -e "require('better-sqlite3')('datos/BD/portfolio.db').backup('datos/BD/copia.db').then(() =&gt; console.log('ok'))"</code> deja la copia en <code>contenido/datos/BD/copia.db</code>, visible en el NAS.</li></ul>
+<p>Las miniaturas (<code>contenido/datos/miniaturas/</code>) y los logos no hace falta guardarlos: se regeneran solos cuando se piden.</p>
+<h2 id="instalacion-nas-ugreen--cargar-datos-existentes">Cargar datos existentes</h2>
+<p><strong>Una base de datos de otra instalación.</strong> Con el backend parado (<code>sudo docker compose stop backend</code>), copia <code>portfolio.db</code> a <code>contenido/datos/BD/</code> y su carpeta de fotos a <code>contenido/fotos/</code>, y arráncalo (<code>sudo docker compose start backend</code>). Copia solo <code>portfolio.db</code>, sin los ficheros <code>-wal</code> y <code>-shm</code>, después de haber parado la instalación de origen para que el WAL se consolide.</p>
+<p><strong>Un catálogo en JSON.</strong> Copia antes las fotos a <code>contenido/fotos/</code> con los nombres de carpeta normalizados (sin mayúsculas, tildes ni espacios) y después:</p>
+<ol><li><code>sudo docker compose cp catalogo.json backend:/tmp/catalogo.json</code></li><li><code>sudo docker compose exec backend node dist/scripts/importar-json.js /tmp/catalogo.json --anyadir</code></li></ol>
+<p>Sin <code>--anyadir</code> solo se importa si la base de datos está vacía; con <code>--reemplazar</code> se borra antes todo el catálogo (se conserva el administrador). Haz una copia de seguridad antes.</p>
+<h2 id="instalacion-nas-ugreen--pasar-a-la-carpeta-contenido">Pasar a la carpeta contenido</h2>
+<p>Las instalaciones hechas con versiones anteriores tienen las carpetas <code>fotos</code> y <code>datos</code> directamente en la carpeta del proyecto. Para llevarlas a <code>contenido</code>, desde la carpeta del proyecto:</p>
+<ol><li><code>sudo docker compose down</code> (para los contenedores; los datos no se borran)</li><li><code>sudo mkdir contenido</code></li><li><code>sudo mv fotos datos contenido/</code></li><li>En el <code>.env</code>, cambia las rutas: <code>FOTOS_PATH=/volume1/docker/portfolio-fotografico/contenido/fotos</code> y <code>DATOS_PATH=/volume1/docker/portfolio-fotografico/contenido/datos</code>.</li><li><code>sudo docker compose up -d</code></li></ol>
+<p>Si alguna de las dos no existe (por ejemplo, porque los datos estaban aún en el volumen interno), mueve solo la que haya y sigue el apartado siguiente para la otra.</p>
+<h2 id="instalacion-nas-ugreen--pasar-del-volumen-interno-a-la-carpeta-del-nas">Pasar del volumen interno a la carpeta del NAS</h2>
+<p>Las instalaciones anteriores a la 2.2.0 guardaban los datos en el volumen interno <code>datos-internos</code>. Para llevarlos a la carpeta <code>contenido/datos/</code>:</p>
+<ol><li><code>sudo docker compose stop backend</code></li><li><code>sudo mkdir -p /volume1/docker/portfolio-fotografico/contenido/datos</code></li><li><code>sudo docker compose cp backend:/app/datos/. /volume1/docker/portfolio-fotografico/contenido/datos/</code></li><li>Añade <code>DATOS_PATH=/volume1/docker/portfolio-fotografico/contenido/datos</code> al <code>.env</code>.</li><li><code>sudo docker compose up -d</code></li></ol>
+<p>Cuando hayas comprobado que todo está bien, el volumen antiguo se puede borrar desde la aplicación Docker de UGOS Pro o con <code>sudo docker volume rm portfolio-fotografico_datos-internos</code> (el prefijo es el nombre de la carpeta del proyecto; <code>sudo docker volume ls</code> lo muestra).</p>
+<h2 id="instalacion-nas-ugreen--problemas-frecuentes">Problemas frecuentes</h2>
+<div class="tabla"><table><thead><tr><th>Síntoma</th><th>Causa probable y solución</th></tr></thead><tbody>
+<tr><td data-col="Síntoma"><code>Falta FOTOS_PATH en .env</code> al arrancar</td><td data-col="Causa probable y solución">El <code>.env</code> no está en la carpeta desde la que se ejecuta <code>docker compose</code>, o le falta la variable.</td></tr>
+<tr><td data-col="Síntoma"><code>denied</code> o <code>unauthorized</code> al hacer <code>pull</code></td><td data-col="Causa probable y solución">Las imágenes son privadas: haz <code>sudo docker login ghcr.io</code> con un token con <code>read:packages</code>.</td></tr>
+<tr><td data-col="Síntoma">El puerto ya está en uso</td><td data-col="Causa probable y solución">Otro servicio del NAS usa <code>FRONTEND_PORT</code>: cambia el valor en <code>.env</code> y repite <code>sudo docker compose up -d</code>.</td></tr>
+<tr><td data-col="Síntoma">El <code>backend</code> no llega a <code>healthy</code></td><td data-col="Causa probable y solución">Mira su registro: <code>sudo docker compose logs backend</code>. Si dice que la base de datos es de otra versión, se ha cargado una BD anterior a la versión 15 del esquema o de una versión más nueva de la aplicación.</td></tr>
+<tr><td data-col="Síntoma">La web carga pero las fotos no se ven</td><td data-col="Causa probable y solución">Las carpetas de <code>fotos/</code> no coinciden con los nombres de la base de datos (fotógrafo, portfolio y colección normalizados). Al arrancar, el registro del backend avisa de los fotógrafos sin carpeta.</td></tr>
+<tr><td data-col="Síntoma">Error al subir fotos o al crear portfolios</td><td data-col="Causa probable y solución">La carpeta de fotos no se puede escribir desde el contenedor: revisa sus permisos en UGOS Pro.</td></tr>
+</tbody></table></div>
+<h2 id="instalacion-nas-ugreen--seguridad">Seguridad</h2>
+<p>La aplicación está pensada para la red local. Antes de publicarla en Internet (redirección de puertos, proxy inverso o similar) hay que servirla por <strong>https</strong> —la cookie de sesión solo lleva <code>Secure</code> con https, y la cámara de la foto de perfil lo exige— y cambiar la contraseña del administrador. El CORS de la API acepta hoy cualquier origen.</p>
+    </article>
+<article class="documento" id="casos-de-uso" data-documento>
       <p class="documento__seccion">Documentación funcional</p>
       <h1>Casos de uso</h1>
       <nav class="apartados" aria-label="Apartados de Casos de uso"><a href="#casos-de-uso--actores">Actores</a><a href="#casos-de-uso--restricciones-comunes">Restricciones comunes</a><a href="#casos-de-uso--consulta-del-catalogo">Consulta del catálogo</a><a href="#casos-de-uso--cuenta-y-sesion">Cuenta y sesión</a><a href="#casos-de-uso--datos-del-fotografo">Datos del fotógrafo</a><a href="#casos-de-uso--portfolios">Portfolios</a><a href="#casos-de-uso--colecciones">Colecciones</a><a href="#casos-de-uso--fotos-de-una-coleccion">Fotos de una colección</a><a href="#casos-de-uso--administracion">Administración</a><a href="#casos-de-uso--fuera-de-alcance">Fuera de alcance</a></nav>
@@ -250,7 +338,7 @@
 <tr id="reglas-de-negocio--fotografo-primer-apellido-obligatorio"><td data-col="Código"><code>FOTOGRAFO_PRIMER_APELLIDO_OBLIGATORIO</code></td><td data-col="Qué exige">Todo fotógrafo tiene primer apellido.</td><td data-col="Mensaje">El primer apellido del fotógrafo es obligatorio.</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code></td></tr>
 <tr id="reglas-de-negocio--fotografo-nombre-informal-duplicado"><td data-col="Código"><code>FOTOGRAFO_NOMBRE_INFORMAL_DUPLICADO</code></td><td data-col="Qué exige">No puede haber dos fotógrafos cuyo nombre informal dé la misma dirección ("Ana Ruiz" y "ana  ruíz" coinciden).</td><td data-col="Mensaje">Ya existe otro fotógrafo con el mismo nombre informal ("{nombreInformal}" coincide con "{otro}").</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>CAMBIAR_NOMBRE_INFORMAL</code></td></tr>
 <tr id="reglas-de-negocio--fotografo-nombre-informal-reservado"><td data-col="Código"><code>FOTOGRAFO_NOMBRE_INFORMAL_RESERVADO</code></td><td data-col="Qué exige">La dirección de un fotógrafo no puede coincidir con una que usa la propia aplicación: <code>admin</code>, <code>api</code>, <code>configuracion</code>, <code>gestion</code>, <code>perfil</code>, <code>photos</code> o <code>registro</code>.</td><td data-col="Mensaje">El nombre informal "{nombreInformal}" no se puede usar: su dirección coincide con una reservada por la aplicación ("{reservado}").</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>CAMBIAR_NOMBRE_INFORMAL</code></td></tr>
-<tr id="reglas-de-negocio--fotografo-carpeta-ocupada"><td data-col="Código"><code>FOTOGRAFO_CARPETA_OCUPADA</code></td><td data-col="Qué exige">La carpeta de fotos que le corresponde al fotógrafo no puede existir ya en el disco.</td><td data-col="Mensaje">Ya existe la carpeta "{carpeta}" en datos/fotos; no se puede usar para el fotógrafo "{nombreInformal}".</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>CAMBIAR_NOMBRE_INFORMAL</code></td></tr>
+<tr id="reglas-de-negocio--fotografo-carpeta-ocupada"><td data-col="Código"><code>FOTOGRAFO_CARPETA_OCUPADA</code></td><td data-col="Qué exige">La carpeta de fotos que le corresponde al fotógrafo no puede existir ya en el disco.</td><td data-col="Mensaje">Ya existe la carpeta "{carpeta}" en la carpeta de fotos; no se puede usar para el fotógrafo "{nombreInformal}".</td><td data-col="Se comprueba en"><code>REGISTRAR_USUARIO</code>, <code>CREAR_FOTOGRAFO</code>, <code>EDITAR_FOTOGRAFO</code>, <code>CAMBIAR_NOMBRE_INFORMAL</code></td></tr>
 <tr id="reglas-de-negocio--fotografo-eliminar-con-portfolios"><td data-col="Código"><code>FOTOGRAFO_ELIMINAR_CON_PORTFOLIOS</code></td><td data-col="Qué exige">Un fotógrafo con portfolios solo se elimina si se confirma expresamente. <strong>Es una pregunta de confirmación.</strong></td><td data-col="Mensaje">El usuario que intenta eliminar tiene portfolios creados. Si lo elimina, se perderán de forma permanente sus portfolios, colecciones y fotos. ¿Desea continuar?</td><td data-col="Se comprueba en"><code>ELIMINAR_FOTOGRAFO</code></td></tr>
 </tbody></table></div>
 <h2 id="reglas-de-negocio--portfolios">Portfolios</h2>

@@ -10,7 +10,7 @@ function normalizar(texto: string): string {
 // usuario de un fotógrafo: inicial del nombre + tres primeras letras del primer apellido
 // ("Santi Estévez" -> "sest"). Si ya está ocupado se añade un número: "sest2", "sest3"...
 // Se calcula una sola vez al dar de alta al fotógrafo y queda guardado, porque es el nombre
-// de su carpeta en datos/fotos. Es interno: no se muestra ni forma parte de las URL.
+// de su carpeta en fotos. Es interno: no se muestra ni forma parte de las URL.
 export function generarUsuario(
   nombre: string,
   primerApellido: string,

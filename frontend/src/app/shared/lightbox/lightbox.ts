@@ -1,9 +1,9 @@
 import { Component, HostListener, input, output } from '@angular/core';
 import { Foto } from '../../core/models/catalogo.model';
-import { FotoReducida } from '../foto-reducida/foto-reducida';
+import { ANCHO_GRANDE, conAncho } from '../foto-reducida/foto-reducida';
 
+// Muestra siempre la versión grande de la foto (3840 px de lado largo como máximo), la de pantalla completa.
 @Component({
-  imports: [FotoReducida],
   selector: 'app-lightbox',
   styleUrl: './lightbox.scss',
   templateUrl: './lightbox.html',
@@ -14,6 +14,8 @@ export class Lightbox {
 
   readonly closeRequested = output<void>();
   readonly indexChange = output<number>();
+
+  protected readonly grande = (url: string) => conAncho(url, ANCHO_GRANDE);
 
   protected get current(): Foto {
     return this.photos()[this.index()];

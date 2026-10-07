@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
-import { ANCHOS_MINIATURA, miniatura } from '../services/miniatura.service.js';
+import { ANCHOS_MINIATURA, type AnchoMiniatura, miniatura } from '../services/miniatura.service.js';
 
 // Middleware para /photos, delante de express.static: si la petición lleva ?ancho=<ancho> sirve la
-// miniatura de la foto a ese ancho (ver services/miniatura.service.ts); sin ?ancho, la foto original.
-// Si la miniatura no se puede generar (p. ej. un fichero dañado), se sirve la original.
+// versión AVIF de la foto a ese ancho (ver services/miniatura.service.ts); sin ?ancho, la foto tal cual.
+// Si la miniatura no se puede generar (p. ej. un fichero dañado), se sirve la foto.
 export function servirMiniaturas(req: Request, res: Response, next: NextFunction): void {
   if (req.query.ancho === undefined) {
     next();
@@ -23,7 +23,7 @@ export function servirMiniaturas(req: Request, res: Response, next: NextFunction
     return;
   }
 
-  miniatura(relativa, ancho).then(
+  miniatura(relativa, ancho as AnchoMiniatura).then(
     (fichero) => {
       if (!fichero) {
         next(); // no existe: express.static responde 404
@@ -32,11 +32,19 @@ export function servirMiniaturas(req: Request, res: Response, next: NextFunction
       // Un día en caché: si se cambia una foto por otra con el mismo nombre, se verá al día siguiente.
       // Las de una colección oculta (ver fotos-visibles.routes.ts), solo en la caché de quien puede verla.
       res.set('Cache-Control', `${res.locals.fotoOculta ? 'private' : 'public'}, max-age=86400`);
-      res.sendFile(fichero);
+      res.sendFile(fichero, { headers: { 'Content-Type': 'image/avif' } }); // express no conoce .avif
     },
     (error: Error) => {
       console.warn(`Aviso: no se ha podido generar la miniatura de ${relativa} a ${ancho} px:`, error.message);
       next();
     },
   );
+}
+
+// Para express.static en /photos: express no conoce la extensión .avif y serviría las fotos como
+// application/octet-stream.
+export function tipoAvif(res: Response, ruta: string): void {
+  if (ruta.toLowerCase().endsWith('.avif')) {
+    res.setHeader('Content-Type', 'image/avif');
+  }
 }

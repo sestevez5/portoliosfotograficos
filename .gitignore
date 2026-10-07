@@ -7,9 +7,10 @@ Thumbs.db
 .env
 .env.pre
 
-# Datos del catálogo (base de datos en BD/, fotos y logos): viven solo en cada instalación (el NAS
-# los monta como volumen). El repositorio refleja siempre una base de datos vacía.
-backend/datos/
+# Contenido de la aplicación: datos (base de datos en BD/, logos, miniaturas y fotos de perfil) y fotos de
+# las colecciones. Vive solo en cada instalación (el NAS lo monta desde sus carpetas). El repositorio refleja
+# siempre una base de datos vacía.
+backend/contenido/
 *.db
 *.db-wal
 *.db-shm

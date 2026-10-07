@@ -5,6 +5,43 @@ Todos los cambios relevantes del proyecto se documentan en este fichero.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [Versionado Semántico](https://semver.org/lang/es/) (`MAYOR.MENOR.PARCHE`).
 
+## [Sin publicar]
+
+## [2.3.0] - 2026-10-07
+
+### Añadido
+
+- `npm run fotos:convertir` (en Docker, `node dist/scripts/convertir-fotos.js`): convierte a AVIF las fotos guardadas
+  en su formato original y borra las originales.
+- Guía de instalación en un NAS UGREEN en la documentación técnica (`docs/tecnica/instalacion-nas-ugreen.md`).
+
+### Cambiado
+
+- **Las fotos se guardan en AVIF y la original no se conserva**: al subirla, cada foto se convierte a AVIF de alta
+  resolución (3840 px de lado largo como máximo, calidad 80, sin metadatos: EXIF ni ubicación GPS) y se guarda con su
+  nombre y la extensión `.avif` ("Playa.jpg" -> "Playa.avif"). Para las cuadrículas y portadas hay una miniatura AVIF
+  de 960 px (calidad 75); el visor muestra la foto a pantalla completa. Calidades elegidas comparando al 100 % con las
+  originales, también fotos con mucho grano: no se aprecian diferencias. Con las fotos de prueba (311 JPEG ya
+  exportados a 3840 px, con mucho grano), el espacio pasa de 280 MB a 105 MB, más 13 MB de miniaturas; con fotos directas de cámara el
+  ahorro es mucho mayor. Subir una foto tarda unos segundos más (se convierte en el momento).
+- Ya no se generan las miniaturas JPEG de 480, 960, 1600 y 2400 px (`?ancho=` admite 960 y 3840).
+- **Carpeta `contenido`**: las carpetas de fotos y de datos van juntas dentro de una carpeta `contenido`, en el NAS
+  (`<proyecto>/contenido/fotos` y `<proyecto>/contenido/datos`; ver `.env.example`) y en desarrollo
+  (`backend/contenido/fotos` y `backend/contenido/datos`, que sustituyen a `backend/datos` y `backend/datos/fotos`).
+
+### Notas de despliegue
+
+- **Convertir las fotos existentes, que borra las originales**: antes, copia de seguridad de las carpetas de fotos y
+  de datos. Después, con la versión nueva en marcha: `docker compose exec backend node dist/scripts/convertir-fotos.js`
+  (en desarrollo, `npm run fotos:convertir`). Tarda unos segundos por foto; si se interrumpe, se vuelve a ejecutar.
+  Hasta entonces las fotos antiguas se siguen viendo (su versión grande se genera aparte la primera vez).
+- Al arrancar, el backend borra de `datos/miniaturas` lo que ya no se usa (los JPEG de versiones anteriores).
+- **Mover las carpetas a `contenido`** (opcional en el NAS: las rutas salen de `FOTOS_PATH` y `DATOS_PATH`, así que
+  la instalación sigue funcionando sin moverlas): `docker compose down`, `mkdir contenido`, `mv fotos datos contenido/`,
+  cambiar las dos rutas en `.env` y `docker compose up -d`. Ver "Pasar a la carpeta contenido" en la guía del NAS.
+- En desarrollo, mover `backend/datos` a `backend/contenido/datos` y `backend/datos/fotos` a `backend/contenido/fotos`
+  **con el backend parado** (si no, al no encontrar la base de datos crea una nueva vacía).
+
 ## [2.2.0] - 2026-10-06
 
 ### Cambiado
@@ -215,6 +252,7 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
+[2.3.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.3.0
 [2.2.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.2.0
 [2.1.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.1.0
 [2.0.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.0.0

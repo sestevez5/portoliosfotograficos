@@ -8,14 +8,19 @@ detallada de la arquitectura (modelo de datos, API, reglas de negocio, despliegu
 La aplicación tiene dos partes independientes: `backend/` (API en Node.js + Express + SQLite) y `frontend/`
 (Angular). El catálogo vive en una base de datos SQLite y las fotos son ficheros en carpetas:
 
+Todo el contenido está en `backend/contenido/`, con dos carpetas hermanas, igual que en el NAS:
+
 ```
-backend/datos/
-├── BD/portfolio.db          base de datos (fotógrafos, portfolios, colecciones, fotos, tags)
-├── logos/                   logos de los fotógrafos (se generan solos)
-└── fotos/<fotógrafo>/<portfolio>/<colección>/<fichero>.jpg
+backend/contenido/
+├── datos/                   datos internos de la aplicación
+│   ├── BD/portfolio.db      base de datos (fotógrafos, portfolios, colecciones, fotos, tags)
+│   ├── logos/               logos de los fotógrafos (se generan solos)
+│   ├── miniaturas/960/      miniaturas de las fotos (se generan solas)
+│   └── avatares/            fotos de perfil
+└── fotos/<fotógrafo>/<portfolio>/<colección>/<fichero>.avif     fotos de las colecciones
 ```
 
-**La carpeta `backend/datos` no está en el repositorio** (está en `.gitignore`). Cada entorno tiene sus propios
+**La carpeta `backend/contenido` no está en el repositorio** (está en `.gitignore`). Cada entorno tiene sus propios
 datos y nunca se suben a git. Al clonar, no tendrás ni fotos ni base de datos: la base de datos se crea vacía la
 primera vez que arranca el backend.
 
@@ -62,7 +67,7 @@ npm start
 Abre http://localhost:4200. La primera vez aparece la **bienvenida del primer uso**: identifícate como administrador
 con usuario `admin` y contraseña `admin` (puedes cambiarla ahí mismo o más tarde en
 http://localhost:4200/admin/contrasenya). Después la aplicación estará vacía: la base de datos se acaba de crear en
-`backend/datos/BD/portfolio.db`.
+`backend/contenido/datos/BD/portfolio.db`.
 
 ### Cargar datos de prueba
 
@@ -74,11 +79,11 @@ crea las carpetas. Todavía no se pueden subir fotos desde la web ("Gestionar fo
 **b) Con un catálogo en JSON (incluye fotos).** Coloca las imágenes en carpetas con los nombres normalizados:
 
 ```
-backend/datos/fotos/ana-ejemplo/viajes/mar/01.jpg
-backend/datos/fotos/ana-ejemplo/viajes/mar/02.jpg
+backend/contenido/fotos/ana-ejemplo/viajes/mar/01.jpg
+backend/contenido/fotos/ana-ejemplo/viajes/mar/02.jpg
 ```
 
-Crea un fichero, por ejemplo `catalogo.json`, **fuera** de `backend/datos/fotos` (todo lo que hay ahí se sirve en la
+Crea un fichero, por ejemplo `catalogo.json`, **fuera** de `backend/contenido/fotos` (todo lo que hay ahí se sirve en la
 web):
 
 ```json
@@ -122,16 +127,16 @@ Las carpetas tienen que existir ya con el nombre normalizado ("Ana Ejemplo" → 
 
 ### Usar otra carpeta de datos
 
-Por defecto el backend usa `backend/datos`. Para trabajar con otra (p. ej. una copia de datos reales para
-reproducir un fallo, sin tocar la tuya), indica la variable `DATOS_DIR` al arrancar:
+Por defecto el backend usa `backend/contenido/datos` y `backend/contenido/fotos`. Para trabajar con otras (p. ej. una copia de datos
+reales para reproducir un fallo, sin tocar las tuyas), indica las variables `DATOS_DIR` y `FOTOS_DIR` al arrancar:
 
 ```bash
 cd backend
-DATOS_DIR=../../datos-copia npm run dev                  # bash, macOS, Linux, Git Bash
-$env:DATOS_DIR="..\..\datos-copia"; npm run dev          # PowerShell
+DATOS_DIR=../../copia/datos FOTOS_DIR=../../copia/fotos npm run dev                          # bash, macOS, Linux, Git Bash
+$env:DATOS_DIR="..\..\copia\datos"; $env:FOTOS_DIR="..\..\copia\fotos"; npm run dev   # PowerShell
 ```
 
-Dentro de esa carpeta se usan las mismas subcarpetas `BD/`, `fotos/` y `logos/`. El frontend en desarrollo siempre
+Dentro de la de datos se usan las mismas subcarpetas `BD/`, `logos/`, `miniaturas/` y `avatares/`. Si solo indicas `DATOS_DIR`, las fotos se buscan en `<DATOS_DIR>/fotos`. El frontend en desarrollo siempre
 llama a la API en `localhost:3000`, así que solo puede haber un backend de desarrollo a la vez.
 
 ### Comprobar tus cambios
@@ -177,7 +182,7 @@ FRONTEND_PORT=8081
 - `COMPOSE_PROJECT_NAME` separa este entorno de cualquier otro: sus contenedores y su volumen de datos se llaman
   `portfolio-pre_…`, así que su base de datos no se mezcla con ninguna otra.
 - `FOTOS_PATH` es la ruta absoluta de la carpeta de fotos de preproducción. Créala antes (puede estar vacía) y no uses
-  la de desarrollo (`backend/datos/fotos`): la preproducción crea, renombra y borra carpetas dentro.
+  la de desarrollo (`backend/contenido/fotos`): la preproducción crea, renombra y borra carpetas dentro.
 - `DATOS_PATH` no se define en preproducción: sin ella los datos van en el volumen interno. En Windows es lo
   recomendable, porque SQLite en modo WAL no es fiable sobre una carpeta de Windows montada en Docker Desktop. En el
   NAS sí se define (carpeta junto a la de fotos; ver `.env.example`).
@@ -216,12 +221,12 @@ docker compose --env-file .env.pre exec backend node dist/scripts/importar-json.
 **c) Partir de una base de datos existente** (p. ej. la de tu desarrollo), junto con su carpeta de fotos:
 
 1. Para el backend de desarrollo (`npm run dev`) para que la base de datos quede completa en `portfolio.db`.
-2. Copia `backend/datos/fotos` a la carpeta `FOTOS_PATH`.
+2. Copia `backend/contenido/fotos` a la carpeta `FOTOS_PATH`.
 3. Carga la base de datos en el volumen:
 
 ```bash
 docker compose --env-file .env.pre stop backend
-docker compose --env-file .env.pre cp backend/datos/BD/portfolio.db backend:/app/datos/BD/portfolio.db
+docker compose --env-file .env.pre cp backend/contenido/datos/BD/portfolio.db backend:/app/datos/BD/portfolio.db
 docker compose --env-file .env.pre start backend
 ```
 

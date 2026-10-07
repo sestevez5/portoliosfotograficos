@@ -33,7 +33,7 @@ export const REGLAS = {
   FOTOGRAFO_NOMBRE_INFORMAL_DUPLICADO:
     'Ya existe otro fotógrafo con el mismo nombre informal ("{nombreInformal}" coincide con "{otro}").',
   FOTOGRAFO_CARPETA_OCUPADA:
-    'Ya existe la carpeta "{carpeta}" en datos/fotos; no se puede usar para el fotógrafo "{nombreInformal}".',
+    'Ya existe la carpeta "{carpeta}" en la carpeta de fotos; no se puede usar para el fotógrafo "{nombreInformal}".',
   FOTOGRAFO_NOMBRE_INFORMAL_RESERVADO:
     'El nombre informal "{nombreInformal}" no se puede usar: su dirección coincide con una reservada por la aplicación ("{reservado}").',
   // Se incumple si se intenta eliminar sin confirmar: la web la muestra como pregunta y, si el
@@ -114,6 +114,7 @@ export const OPERACIONES = {
   ORDENAR_FOTOS: 'Cambiar el orden de las fotos de la colección "{coleccion}" del portfolio "{portfolio}"',
   CAMBIAR_TITULO_FOTO: 'Cambiar el título de la foto "{nombreFichero}" de la colección "{coleccion}" del portfolio "{portfolio}"',
   ELIMINAR_FOTO: 'Eliminar la foto "{nombreFichero}" de la colección "{coleccion}" del portfolio "{portfolio}"',
+  CONVERTIR_FOTO: 'Convertir a AVIF la foto "{nombreFichero}" de la colección "{coleccion}" del portfolio "{portfolio}"',
 } as const satisfies Record<string, string>;
 
 export type CodigoOperacion = keyof typeof OPERACIONES;

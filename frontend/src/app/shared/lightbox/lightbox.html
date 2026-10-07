@@ -8,7 +8,7 @@
   }
 
   <figure class="lightbox__content" (click)="$event.stopPropagation()">
-    <img [appFotoReducida]="current.url" [alt]="current.titulo ?? ''" />
+    <img [src]="grande(current.url)" [alt]="current.titulo ?? ''" />
     @if (current.titulo) {
       <figcaption>{{ current.titulo }}</figcaption>
     }

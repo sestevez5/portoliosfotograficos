@@ -20,7 +20,7 @@ export function normalizarNombre(nombre: string): string {
 }
 
 // Un nombre normalizado se usa como nombre de carpeta: debe ser un único segmento de ruta (sin
-// "/" ni "\", para que nunca apunte fuera de datos/fotos) y no empezar por "." (las carpetas con
+// "/" ni "\", para que nunca apunte fuera de fotos) y no empezar por "." (las carpetas con
 // punto son internas, como la papelera, y no se sirven en /photos).
 export function esNombreNormalizadoValido(normalizado: string): boolean {
   return !!normalizado && !/[\\/]/.test(normalizado) && !normalizado.startsWith('.');

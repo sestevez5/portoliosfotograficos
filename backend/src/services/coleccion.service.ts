@@ -27,7 +27,7 @@ import { cargarFotografo, cargarPortfolio, opcional, type ResultadoRenombre } fr
 
 // Alta, edición, eliminación y cambio de nombre de colecciones, igual que los portfolios
 // (portfolio.service.ts): su nombreNormalizado se calcula a partir del nombre y es el nombre de su
-// carpeta dentro de la de su portfolio (datos/fotos/<fotógrafo>/<portfolio>/<colección>); estas
+// carpeta dentro de la de su portfolio (fotos/<fotógrafo>/<portfolio>/<colección>); estas
 // funciones crean, renombran y eliminan la carpeta en la misma transacción que la BD (si la
 // operación con la carpeta falla, la BD no cambia). Los parámetros fotografo, portfolio y coleccion son
 // segmentos de URL. Validan antes las reglas de negocio dentro de su operación y lanzan

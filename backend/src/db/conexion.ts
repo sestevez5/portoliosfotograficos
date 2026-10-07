@@ -15,7 +15,7 @@ import { normalizarNombre } from '../utils/normalizar-nombre.js';
 // colecciones.nombreNormalizado (de nombre, "Montaña" -> "montanya"). Son únicas (el fotógrafo en
 // todo el catálogo, el portfolio dentro de su fotógrafo y la colección dentro de su portfolio) y
 // son a la vez el identificador en las URL y el nombre de la carpeta: las fotos están en
-// datos/fotos/<nombreInformalNormalizado>/<portfolio.nombreNormalizado>/<coleccion.nombreNormalizado>/.
+// fotos/<nombreInformalNormalizado>/<portfolio.nombreNormalizado>/<coleccion.nombreNormalizado>/.
 // El nombreInformalNormalizado es además el nombre del logo en datos/logos. Las calcula la
 // aplicación al guardar el nombre y nunca se editan a mano: si cambiaran sin renombrar la
 // carpeta, las fotos dejarían de encontrarse.

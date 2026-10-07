@@ -1,7 +1,7 @@
 import { existsSync, renameSync, rmSync, statSync } from 'node:fs';
 import path from 'node:path';
 
-// Las carpetas de datos/fotos se llaman como el nombre normalizado de su fotógrafo, portfolio o
+// Las carpetas de fotos se llaman como el nombre normalizado de su fotógrafo, portfolio o
 // colección, y se renombran cuando este cambia.
 
 function mismaCarpeta(a: string, b: string): boolean {
