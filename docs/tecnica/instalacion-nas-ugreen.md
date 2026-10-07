@@ -4,7 +4,13 @@ Guía paso a paso para instalar, actualizar y mantener la aplicación en un NAS 
 quien administra el NAS: no hace falta el código fuente ni saber programar, pero sí entrar por SSH y escribir
 algunos comandos.
 
-Corresponde a la versión 2.2.0 de la aplicación, a 6 de octubre de 2026.
+Corresponde a la versión 2.3.1 de la aplicación, a 7 de octubre de 2026. Para una instalación nueva bastan los
+apartados "Requisitos", "Estructura de carpetas" e "Instalación"; los apartados "Pasar a la carpeta contenido",
+"Pasar del volumen interno a la carpeta del NAS" y "Convertir las fotos a AVIF" son solo para instalaciones hechas
+con versiones anteriores.
+
+**Usa la versión 2.3.1 o posterior.** En la 2.3.0 la base de datos no se guardaba en la carpeta `contenido/datos` del
+NAS sino dentro del contenedor, y se perdía al actualizar.
 
 ## Qué se instala
 
