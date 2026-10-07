@@ -150,7 +150,7 @@ test('una foto subida desde la web necesita un nombre de fichero válido y ser u
   const incumple = (codigo: CodigoRegla) => (error: unknown) =>
     error instanceof ReglaNegocioIncumplida && error.codigo === codigo;
   const alta = (nombreFichero: string, esImagen = true) => () =>
-    validar.altaFoto(1, 'carpeta-de-prueba-inexistente', nombreFichero, esImagen, 25);
+    validar.altaFoto(1, 'carpeta-de-prueba-inexistente', nombreFichero, 'foto.avif', esImagen, 25);
   for (const nombre of ['', ' foto.jpg', 'a/b.jpg', 'a\\b.jpg', '.oculta.jpg', `${'x'.repeat(201)}.jpg`]) {
     assert.throws(alta(nombre), incumple('FOTO_NOMBRE_FICHERO_NO_VALIDO'), nombre);
   }

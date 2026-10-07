@@ -125,7 +125,7 @@ function crearValidador(db: Database.Database) {
     },
 
     // Alta de un fotógrafo desde la aplicación, con su usuario: además de las reglas generales, su
-    // carpeta (datos/fotos/<nombreInformalNormalizado>) no puede existir ya, porque se va a crear.
+    // carpeta (fotos/<nombreInformalNormalizado>) no puede existir ya, porque se va a crear.
     altaFotografo(datos: DatosFotografo & DatosUsuario): void {
       this.fotografo(datos);
       this.usuario(datos);
@@ -226,7 +226,7 @@ function crearValidador(db: Database.Database) {
     },
 
     // Alta de una colección: además de las reglas generales, su carpeta (dentro de la del portfolio,
-    // carpetaPortfolio, relativa a datos/fotos) no puede existir ya, porque se va a crear.
+    // carpetaPortfolio, relativa a fotos) no puede existir ya, porque se va a crear.
     altaColeccion(idPortfolio: number, carpetaPortfolio: string, nombre: string): void {
       this.coleccion(idPortfolio, nombre);
       const carpeta = normalizarNombre(nombre);
@@ -238,7 +238,7 @@ function crearValidador(db: Database.Database) {
       exigir(numeroFotos === 0 || confirmado, 'COLECCION_ELIMINAR_CON_FOTOS');
     },
 
-    // carpetaPortfolio: ruta de la carpeta del portfolio relativa a datos/fotos.
+    // carpetaPortfolio: ruta de la carpeta del portfolio relativa a fotos.
     renombreColeccion(idPortfolio: number, idColeccion: number, carpetaPortfolio: string, carpetaActual: string, nombre: string): void {
       this.coleccion(idPortfolio, nombre, idColeccion);
       const carpeta = normalizarNombre(nombre);
@@ -258,14 +258,25 @@ function crearValidador(db: Database.Database) {
 
     // Foto subida desde la web: además de no repetirse en la colección, su nombre de fichero debe
     // servir como fichero dentro de la carpeta dla colección (carpetaColeccion, relativa a
-    // datos/fotos), que tampoco puede tenerlo ya, y debe ser una imagen de un formato admitido.
-    altaFoto(idColeccion: number, carpetaColeccion: string, nombreFichero: string, esImagen: boolean, maximoMB: number): void {
+    // fotos), que tampoco puede tenerlo ya, y debe ser una imagen de un formato admitido.
+    // nombreGuardado es el nombre con el que se guarda (en AVIF, ver utils/foto-avif.ts): es el que no
+    // puede repetirse en la colección.
+    altaFoto(
+      idColeccion: number,
+      carpetaColeccion: string,
+      nombreFichero: string,
+      nombreGuardado: string,
+      esImagen: boolean,
+      maximoMB: number,
+    ): void {
       exigir(esNombreFicheroValido(nombreFichero), 'FOTO_NOMBRE_FICHERO_NO_VALIDO', {
         nombreFichero,
         maximo: LONGITUD_MAXIMA_NOMBRE_FICHERO,
       });
-      this.foto(idColeccion, nombreFichero);
-      exigir(!existsSync(path.join(fotosDir, carpetaColeccion, nombreFichero)), 'FOTO_FICHERO_DUPLICADO', { nombreFichero });
+      this.foto(idColeccion, nombreGuardado);
+      exigir(!existsSync(path.join(fotosDir, carpetaColeccion, nombreGuardado)), 'FOTO_FICHERO_DUPLICADO', {
+        nombreFichero: nombreGuardado,
+      });
       exigir(esImagen, 'FOTO_FORMATO_NO_VALIDO', { nombreFichero, maximo: maximoMB });
     },
 

@@ -14,6 +14,7 @@
     "fotografo:renombrar": "tsx src/scripts/renombrar-fotografo.ts",
     "portfolio:renombrar": "tsx src/scripts/renombrar-portfolio.ts",
     "coleccion:renombrar": "tsx src/scripts/renombrar-portfolio.ts --coleccion",
+    "fotos:convertir": "tsx src/scripts/convertir-fotos.ts",
     "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {

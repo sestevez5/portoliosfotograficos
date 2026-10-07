@@ -334,7 +334,7 @@ catalogoRouter.put('/admin/contrasenya', express.json({ limit: '5kb' }), (req, r
   res.status(204).end();
 });
 
-// Alta de un fotógrafo. Crea también su carpeta en datos/fotos. Si se incumple una regla de
+// Alta de un fotógrafo. Crea también su carpeta en fotos. Si se incumple una regla de
 // negocio responde 422 (ver gestionar-errores.ts).
 catalogoRouter.post('/fotografos', express.json({ limit: '20kb' }), (req, res) => {
   exigirAdministrador(req);
@@ -647,24 +647,30 @@ catalogoRouter.delete('/fotografos/:fotografo/portfolios/:portfolio/colecciones/
 // ---------------- Fotos de una colección ("Gestionar fotos") ----------------
 // También las mantiene el fotógrafo propietario. Una petición por foto: el cuerpo es la imagen tal
 // cual (Content-Type: image/jpeg, image/png o image/webp; el formato se comprueba por su contenido)
-// y el nombre del fichero va en ?nombreFichero=. Se añade al final de las dla colección y responde
-// 201 con la foto; 422 si incumple una regla (nombre no válido o repetido, no es una imagen…).
+// y el nombre del fichero va en ?nombreFichero=. Se guarda convertida a AVIF (Playa.jpg -> Playa.avif),
+// al final de las dla colección, y responde 201 con la foto; 422 si incumple una regla (nombre no válido o repetido, no es una imagen…).
 catalogoRouter.post(
   '/fotografos/:fotografo/portfolios/:portfolio/colecciones/:coleccion/fotos',
   express.raw({ type: 'image/*', limit: `${TAMANYO_MAXIMO_FOTO_COLECCION_MB + 1}mb` }),
-  (req, res) => {
-    exigirDuenyoOAdministrador(req, req.params.fotografo);
-    const nombreFichero = req.query.nombreFichero;
-    if (typeof nombreFichero !== 'string') {
-      res.status(400).json({ message: "Falta el parámetro 'nombreFichero'" });
-      return;
-    }
+  // Asíncrona (la foto se convierte a AVIF): express 4 no recoge los errores de una promesa, así que
+  // se pasan a gestionarErrores con next.
+  async (req, res, next) => {
+    try {
+      exigirDuenyoOAdministrador(req, req.params.fotografo);
+      const nombreFichero = req.query.nombreFichero;
+      if (typeof nombreFichero !== 'string') {
+        res.status(400).json({ message: "Falta el parámetro 'nombreFichero'" });
+        return;
+      }
 
-    const { fotografo, portfolio, coleccion } = req.params;
-    const datos = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
-    const foto = anyadirFoto(fotografo, portfolio, coleccion, nombreFichero, datos);
-    const f = obtenerFotografo(fotografo)!;
-    res.status(201).json(toFoto(obtenerColeccion(f.idFotografo, portfolio, coleccion)!, foto));
+      const { fotografo, portfolio, coleccion } = req.params;
+      const datos = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+      const foto = await anyadirFoto(fotografo, portfolio, coleccion, nombreFichero, datos);
+      const f = obtenerFotografo(fotografo)!;
+      res.status(201).json(toFoto(obtenerColeccion(f.idFotografo, portfolio, coleccion)!, foto));
+    } catch (error) {
+      next(error);
+    }
   },
 );
 

@@ -344,6 +344,18 @@ const consultas = {
     'SELECT idFoto, nombreFichero, titulo, orden, ancho, alto FROM fotos WHERE idColeccion = ? AND nombreFichero = ?',
   ),
 
+  // Las fotos guardadas aún en su formato original (anteriores a la conversión a AVIF), con su carpeta.
+  fotosSinConvertir: db.prepare(`
+    SELECT f.idFoto, f.idColeccion, f.nombreFichero, a.nombre AS coleccion, p.nombre AS portfolio,
+      ft.nombreInformalNormalizado AS carpetaFotografo, p.nombreNormalizado AS carpetaPortfolio,
+      a.nombreNormalizado AS carpetaColeccion
+    FROM fotos f JOIN colecciones a ON a.idColeccion = f.idColeccion
+      JOIN portfolios p ON p.idPortfolio = a.idPortfolio JOIN fotografos ft ON ft.idFotografo = p.idFotografo
+    WHERE lower(f.nombreFichero) NOT LIKE '%.avif'
+    ORDER BY f.idFoto`),
+  cambiarFicheroFoto: db.prepare(
+    'UPDATE fotos SET nombreFichero = @nombreFichero, ancho = @ancho, alto = @alto WHERE idFoto = @idFoto',
+  ),
   cambiarOrdenFoto: db.prepare('UPDATE fotos SET orden = @orden WHERE idFoto = @idFoto'),
 
   cambiarTituloFoto: db.prepare('UPDATE fotos SET titulo = @titulo WHERE idFoto = @idFoto'),
@@ -411,6 +423,26 @@ export function insertarFoto(idColeccion: number, foto: { nombreFichero: string;
   consultas.insertarFoto.run({ idColeccion, ...foto });
 }
 
+export interface FotoSinConvertir {
+  idFoto: number;
+  idColeccion: number;
+  nombreFichero: string;
+  coleccion: string;
+  portfolio: string;
+  carpetaFotografo: string;
+  carpetaPortfolio: string;
+  carpetaColeccion: string;
+}
+
+export function listarFotosSinConvertir(): FotoSinConvertir[] {
+  return consultas.fotosSinConvertir.all() as FotoSinConvertir[];
+}
+
+// Solo para services/foto.service.ts (conversión a AVIF), con el fichero en la misma transacción.
+export function cambiarFicheroFoto(idFoto: number, foto: { nombreFichero: string; ancho: number; alto: number }): void {
+  consultas.cambiarFicheroFoto.run({ idFoto, ...foto });
+}
+
 export function cambiarOrdenFoto(idFoto: number, orden: number): void {
   consultas.cambiarOrdenFoto.run({ idFoto, orden });
 }
@@ -431,7 +463,7 @@ export function listarTags(ve: Vista = VER_TODO): string[] {
 // arrancar solo se avisa (no se corrige nada automáticamente).
 for (const { nombreInformal, nombreInformalNormalizado } of listarFotografos()) {
   if (!existsSync(path.join(fotosDir, nombreInformalNormalizado))) {
-    console.warn(`Aviso: falta la carpeta datos/fotos/${nombreInformalNormalizado} de '${nombreInformal}'`);
+    console.warn(`Aviso: falta la carpeta fotos/${nombreInformalNormalizado} de '${nombreInformal}'`);
   }
 }
 
