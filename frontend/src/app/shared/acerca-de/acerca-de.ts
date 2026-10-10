@@ -9,7 +9,7 @@ function fechaLarga(fecha: string): string {
 }
 
 // Botón "?" de la franja superior. Abre "Acerca de" (versión de la aplicación y de la base de datos,
-// cada una con su fecha, y el autor) y, desde ahí, el manual del fotógrafo en un diálogo a casi toda
+// cada una con su fecha, el autor y los colaboradores) y, desde ahí, el manual del fotógrafo en un diálogo a casi toda
 // la pantalla: al cerrarlo se vuelve a la aplicación, a la página en la que se estaba.
 @Component({
   selector: 'app-acerca-de',
@@ -28,6 +28,10 @@ function fechaLarga(fecha: string): string {
           <dd>{{ d.baseDatos.version }} · {{ fechaLarga(d.baseDatos.fecha) }}</dd>
           <dt>Autor</dt>
           <dd>{{ d.autor }}</dd>
+          @if (d.colaboradores.length) {
+            <dt>Colaboradores</dt>
+            <dd>{{ d.colaboradores.join(', ') }}</dd>
+          }
         </dl>
       } @else if (error()) {
         <p class="acerca-de__error" role="alert">No se han podido consultar las versiones.</p>

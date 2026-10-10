@@ -1,8 +1,11 @@
 {
   "name": "portfolio-backend",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "fechaVersion": "2026-10-10",
   "author": "Santi Estévez",
+  "contributors": [
+    "Mario Estévez"
+  ],
   "private": true,
   "type": "module",
   "description": "API sencilla que sirve el catálogo de colecciones/fotos y las imágenes estáticas del portfolio fotográfico.",

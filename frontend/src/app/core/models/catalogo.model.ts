@@ -23,6 +23,7 @@ export interface AcercaDe {
   aplicacion: { version: string; fecha: string };
   baseDatos: { version: number; fecha: string };
   autor: string;
+  colaboradores: string[];
 }
 
 // Datos EXIF de una foto, en forma legible (backend: utils/metadatos-foto.ts). Solo los que tenga.

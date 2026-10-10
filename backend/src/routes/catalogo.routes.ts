@@ -43,7 +43,7 @@ import { anyadirFoto, cambiarTituloFoto, eliminarFoto, ordenarFotos, TAMANYO_MAX
 import { cambiarPortadaPortfolio, cambiarVisibilidadPortfolio, crearPortfolio, editarPortfolio, eliminarPortfolio, ordenarPortfolios } from '../services/portfolio.service.js';
 import { AccesoRestringido, RecursoNoEncontrado } from '../errores.js';
 import { asegurarLogo } from '../services/logo.service.js';
-import { AUTOR, FECHA_VERSION_APLICACION, VERSION_APLICACION } from '../config/version.js';
+import { AUTOR, COLABORADORES, FECHA_VERSION_APLICACION, VERSION_APLICACION } from '../config/version.js';
 import { FECHA_ESQUEMA, VERSION_ESQUEMA } from '../db/conexion.js';
 import { resumirMetadatos } from '../utils/metadatos-foto.js';
 import type {
@@ -256,12 +256,13 @@ catalogoRouter.get('/estado', (_req, res) => {
 });
 
 // "Acerca de" (botón "?" de la franja superior): versión de la aplicación y del esquema de la base de
-// datos, cada una con su fecha (AAAA-MM-DD), y el autor. Libre, como el catálogo.
+// datos, cada una con su fecha (AAAA-MM-DD), el autor y los colaboradores. Libre, como el catálogo.
 catalogoRouter.get('/acerca-de', (_req, res) => {
   const acercaDe: AcercaDe = {
     aplicacion: { version: VERSION_APLICACION, fecha: FECHA_VERSION_APLICACION },
     baseDatos: { version: VERSION_ESQUEMA, fecha: FECHA_ESQUEMA },
     autor: AUTOR,
+    colaboradores: COLABORADORES,
   };
   res.json(acercaDe);
 });

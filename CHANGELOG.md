@@ -7,6 +7,18 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [2.5.0] - 2026-10-10
+
+### Añadido
+
+- "Acerca de" muestra una sección "Colaboradores" debajo de "Autor" (los nombres del campo `contributors` de
+  `backend/package.json`; si no hay ninguno, no se muestra). `GET /api/acerca-de` devuelve además `colaboradores`.
+
+### Notas de despliegue
+
+- Sin cambios en el esquema de la base de datos ni en la configuración: basta con
+  `docker compose pull && docker compose up -d`.
+
 ## [2.4.0] - 2026-10-10
 
 ### Añadido
@@ -335,6 +347,7 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
+[2.5.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.5.0
 [2.4.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.4.0
 [2.3.1]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.3.1
 [2.3.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.3.0

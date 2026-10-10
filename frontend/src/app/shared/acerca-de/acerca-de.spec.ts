@@ -30,6 +30,7 @@ describe('AcercaDe', () => {
       aplicacion: { version: '2.4.0', fecha: '2026-10-07' },
       baseDatos: { version: 18, fecha: '2026-10-10' },
       autor: 'Santi Estévez',
+      colaboradores: ['Mario Estévez'],
     });
     await fixture.whenStable();
     const texto = dialogo('acerca-de').textContent!;
@@ -37,6 +38,8 @@ describe('AcercaDe', () => {
     expect(texto).toContain('2.4.0 · 7 de octubre de 2026');
     expect(texto).toContain('18 · 10 de octubre de 2026');
     expect(texto).toContain('Santi Estévez');
+    expect(texto).toContain('Colaboradores');
+    expect(texto).toContain('Mario Estévez');
 
     boton('Cerrar').click();
     await fixture.whenStable();
@@ -46,7 +49,7 @@ describe('AcercaDe', () => {
   it('abre el manual del fotógrafo en su diálogo y, al cerrarlo, vuelve a la aplicación', async () => {
     const fixture = await crear();
     boton('Acerca de').click();
-    http.expectOne((r) => r.url.endsWith('/api/acerca-de')).flush({ aplicacion: { version: '1', fecha: '2026-01-01' }, baseDatos: { version: 1, fecha: '2026-01-01' }, autor: 'X' });
+    http.expectOne((r) => r.url.endsWith('/api/acerca-de')).flush({ aplicacion: { version: '1', fecha: '2026-01-01' }, baseDatos: { version: 1, fecha: '2026-01-01' }, autor: 'X', colaboradores: [] });
     expect(elemento.querySelector('iframe')).toBeNull(); // no se carga hasta abrirlo
 
     boton('Manual del fotógrafo').click();
