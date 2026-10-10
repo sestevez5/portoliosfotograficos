@@ -66,6 +66,7 @@ export interface AcercaDe {
   aplicacion: { version: string; fecha: string };
   baseDatos: { version: number; fecha: string };
   autor: string;
+  colaboradores: string[];
 }
 
 export interface FotoApi {

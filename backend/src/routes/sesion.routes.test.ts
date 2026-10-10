@@ -164,7 +164,7 @@ test('"Configuración": el tema preferido se guarda en el usuario y sale en la s
   assert.equal((await sesion(cookie)).temaPreferido, undefined);
 });
 
-test('"Acerca de" da la versión de la aplicación y la del esquema de la BD, con sus fechas, y el autor, sin sesión', async () => {
+test('"Acerca de" da la versión de la aplicación y la del esquema de la BD, con sus fechas, el autor y los colaboradores, sin sesión', async () => {
   const paquete = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
   const respuesta = await fetch(`${api}/acerca-de`);
   assert.equal(respuesta.status, 200);
@@ -173,6 +173,7 @@ test('"Acerca de" da la versión de la aplicación y la del esquema de la BD, co
     aplicacion: { version: paquete.version, fecha: paquete.fechaVersion },
     baseDatos: { version: db.pragma('user_version', { simple: true }), fecha: acercaDe.baseDatos.fecha },
     autor: 'Santi Estévez',
+    colaboradores: ['Mario Estévez'],
   });
   assert.match(acercaDe.aplicacion.fecha, /^\d{4}-\d{2}-\d{2}$/);
   assert.match(acercaDe.baseDatos.fecha, /^\d{4}-\d{2}-\d{2}$/);
