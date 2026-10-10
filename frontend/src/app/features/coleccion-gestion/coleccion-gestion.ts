@@ -1,11 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ColeccionResumen, PortfolioDetalle, ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
+import { ColeccionResumen, Visibilidad, PortfolioDetalle, ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
 import { CatalogoService } from '../../core/services/catalogo';
 import { OrdenPorArrastre } from '../../shared/orden-arrastre/orden-arrastre';
 import { FotoReducida } from '../../shared/foto-reducida/foto-reducida';
-import { OjoVisibilidad } from '../../shared/visibilidad/ojo-visibilidad';
+import { SelectorVisibilidad } from '../../shared/visibilidad/selector-visibilidad';
 
 // "Gestionar colecciones" de un portfolio, para su fotógrafo propietario
 // (/gestion/:fotografo/portfolios/:portfolio/colecciones/gestionar): las colecciones en una
@@ -14,7 +14,7 @@ import { OjoVisibilidad } from '../../shared/visibilidad/ojo-visibilidad';
 // estrella de cada colección elige la que da su portada al portfolio (pulsar la elegida la quita:
 // entonces es la primera) y el ojo indica si la ven los demás usuarios (pulsarlo la oculta o la muestra).
 @Component({
-  imports: [RouterLink, FotoReducida, OjoVisibilidad],
+  imports: [RouterLink, FotoReducida, SelectorVisibilidad],
   selector: 'app-coleccion-gestion',
   styleUrl: './coleccion-gestion.scss',
   templateUrl: './coleccion-gestion.html',
@@ -75,17 +75,20 @@ export class ColeccionGestion {
     });
   }
 
-  protected cambiarVisibilidad(coleccion: ColeccionResumen, visible: boolean): void {
-    const poner = (valor: boolean) =>
-      this.colecciones.update((lista) => lista.map((c) => (c.nombreNormalizado === coleccion.nombreNormalizado ? { ...c, visible: valor } : c)));
-    poner(visible); // se marca ya; si no se puede guardar, vuelve a como estaba
+  protected cambiarVisibilidad(coleccion: ColeccionResumen, visibilidad: Visibilidad): void {
+    const antes = coleccion.visibilidad;
+    const poner = (valor: Visibilidad) =>
+      this.colecciones.update((lista) =>
+        lista.map((c) => (c.nombreNormalizado === coleccion.nombreNormalizado ? { ...c, visibilidad: valor, visible: valor !== 'oculto' } : c)),
+      );
+    poner(visibilidad); // se marca ya; si no se puede guardar, vuelve a como estaba
     this.cambiandoVisibilidad.set(true);
     this.aviso.set(null);
-    this.catalogoService.cambiarVisibilidadColeccion(this.fotografo, this.portfolioSegmento, coleccion.nombreNormalizado, visible).subscribe({
+    this.catalogoService.cambiarVisibilidadColeccion(this.fotografo, this.portfolioSegmento, coleccion.nombreNormalizado, visibilidad).subscribe({
       next: () => this.cambiandoVisibilidad.set(false),
       error: (respuesta: HttpErrorResponse) => {
         this.cambiandoVisibilidad.set(false);
-        poner(!visible);
+        poner(antes);
         this.aviso.set({
           titulo: 'No se ha podido cambiar la visibilidad',
           mensaje: mensajeDeError(respuesta, 'No se ha podido cambiar la visibilidad de la colección.'),

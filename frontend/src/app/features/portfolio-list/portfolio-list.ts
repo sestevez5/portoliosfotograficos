@@ -1,18 +1,21 @@
 import { Component, inject } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { BehaviorSubject, catchError, combineLatest, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, map, of, switchMap } from 'rxjs';
 import { nombreCompleto } from '../../core/models/catalogo.model';
 import { CatalogoService } from '../../core/services/catalogo';
 import { SesionService } from '../../core/services/sesion';
+import { esVistaLimpia } from '../../core/services/vista-limpia';
 import { FotografoAcciones } from '../../shared/fotografo-acciones/fotografo-acciones';
 import { PortfolioAcciones } from '../../shared/portfolio-acciones/portfolio-acciones';
 import { TextoRecortado } from '../../shared/texto-recortado/texto-recortado';
+import { MarcaVisibilidad } from '../../shared/visibilidad/marca-visibilidad';
 import { FotoReducida } from '../../shared/foto-reducida/foto-reducida';
-import { MarcaOculto } from '../../shared/visibilidad/marca-oculto';
+import { Compartir } from '../../shared/compartir/compartir';
 
 @Component({
-  imports: [RouterLink, FotografoAcciones, PortfolioAcciones, TextoRecortado, FotoReducida, MarcaOculto],
+  imports: [RouterLink, FotografoAcciones, PortfolioAcciones, TextoRecortado, FotoReducida, MarcaVisibilidad, NgTemplateOutlet, Compartir],
   selector: 'app-portfolio-list',
   styleUrl: './portfolio-list.scss',
   templateUrl: './portfolio-list.html',
@@ -24,6 +27,13 @@ export class PortfolioList {
   protected readonly sesion = inject(SesionService);
 
   protected readonly nombreCompleto = nombreCompleto;
+
+  // Vista limpia (/:fotografo?limpia=true): sin enlace de vuelta, etiqueta (número de portfolios), número
+  // de colecciones, marcas de oculto ni mantenimiento. Los portfolios se abren en su página normal:
+  // ?limpia=true solo lo escribe el usuario, la navegación nunca lo añade.
+  protected readonly vistaLimpia = toSignal(this.route.queryParamMap.pipe(map(esVistaLimpia)), {
+    initialValue: esVistaLimpia(this.route.snapshot.queryParamMap),
+  });
 
   // Solo se ofrece "Volver" si se ha llegado navegando desde la portada, no al entrar
   // directamente por URL o al recargar (en ese caso no hay navegación previa).

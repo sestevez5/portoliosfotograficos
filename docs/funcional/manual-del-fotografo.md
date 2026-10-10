@@ -2,14 +2,14 @@
 
 Cómo se hace, paso a paso, cada gestión de la aplicación que está al alcance de un fotógrafo: ver el catálogo, su cuenta y sus datos, y el mantenimiento de sus portfolios, colecciones y fotos. Para fotógrafos.
 
-Corresponde a la versión 2.3.0 de la aplicación, a 7 de octubre de 2026. Las capturas de pantalla están hechas con datos inventados.
+Corresponde a la versión 2.3.1 de la aplicación y a los cambios posteriores, a 10 de octubre de 2026. Las capturas de pantalla están hechas con datos inventados. Este manual se puede abrir también desde la propia aplicación (ver "Acerca de la aplicación").
 
 ## Quién puede hacer qué
 
 | Usuario | Quién es | Qué puede hacer |
 |---|---|---|
 | **Visitante** | Cualquiera que entra sin iniciar sesión. | Ver el catálogo (lo que no esté oculto), cambiar el tema, registrarse e iniciar sesión. |
-| **Fotógrafo** | Quien se ha registrado y ha iniciado sesión. | Lo mismo que el visitante y, además, mantener lo suyo: sus datos, su foto de perfil, sus portfolios, sus colecciones y sus fotos. Ve también lo que él mismo ha ocultado. |
+| **Fotógrafo** | Quien se ha registrado y ha iniciado sesión. | Lo mismo que el visitante y, además, mantener lo suyo: sus datos, su foto de perfil, sus portfolios, sus colecciones y sus fotos. Ve y entra también en lo que él mismo ha ocultado o bloqueado. |
 
 Los botones de mantenimiento ("Editar", "Eliminar", "Gestionar portfolios", "+ Nuevo portfolio", etc.) solo aparecen a quien puede usarlos. Si alguien escribe a mano la dirección de una página de mantenimiento sin tener permiso, la aplicación le devuelve a la portada.
 
@@ -18,7 +18,7 @@ Los botones de mantenimiento ("Editar", "Eliminar", "Gestionar portfolios", "+ N
 En la franja superior de todas las páginas están:
 
 - A la izquierda, "Portfolios fotográficos.", que lleva siempre a la portada.
-- A la derecha, el selector de tema ("Oscuro" / "Claro") y, según haya sesión o no, "Iniciar sesión" o el menú del usuario (su foto o sus iniciales, su nombre y una flecha).
+- A la derecha, el selector de tema ("Oscuro" / "Claro"), en la página de una colección el del marco de las fotos ("Con marco" / "Sin marco"); según haya sesión o no, "Iniciar sesión" o el menú del usuario (su foto o sus iniciales, su nombre y una flecha), y, al final, el botón "?" ("Acerca de").
 
 En las páginas de un fotógrafo, de sus portfolios y de sus colecciones aparece además, bajo la franja, la firma del fotógrafo (su logo); pulsarla lleva a su página.
 
@@ -29,7 +29,7 @@ Cada nombre (de fotógrafo, de portfolio o de colección) forma parte de la dire
 ### Cómo recorrer fotógrafos, portfolios y colecciones
 
 1. Entra en la portada. Verás el título "Fotógrafos" y una tarjeta por fotógrafo, con su nombre, su descripción y cuántos portfolios y colecciones tiene. Si has iniciado sesión como fotógrafo, tu tarjeta está resaltada y lleva la marca "Tú".
-2. Pulsa la tarjeta de un fotógrafo. Su página ("Portfolios de …") muestra una tarjeta por portfolio, con su portada, su nombre, su descripción y su número de colecciones. Si el portfolio aún no tiene fotos, en lugar de la portada pone "Sin fotos" o "Sin colecciones".
+2. Pulsa la tarjeta de un fotógrafo. Su página ("Portfolios de …") muestra una tarjeta por portfolio: un recuadro con su nombre sobre su foto de portada, muy tenue, de fondo, y, debajo, su descripción y su número de colecciones. La portada es la de la colección marcada con la estrella en "Gestionar colecciones" (o, si no hay ninguna marcada, la de la primera colección).
 3. Pulsa un portfolio. Su página ("Portfolio: …") muestra sus colecciones, cada una con su portada (o "Sin fotos") y su nombre.
 4. Pulsa una colección. Su página ("Colección: "…"") muestra todas sus fotos en una cuadrícula.
 5. Para volver atrás usa los enlaces de la parte superior: "← Fotógrafos" (solo si llegaste desde la portada), "← Portfolios" o "← (nombre del portfolio)".
@@ -44,6 +44,26 @@ Cada nombre (de fotógrafo, de portfolio o de colección) forma parte de la dire
 
 Si una dirección no corresponde a nada (o a algo que está oculto para ti), verás "Fotógrafo no encontrado", "Portfolio no encontrado" o "Colección no encontrada", con un enlace para volver.
 
+### Cómo enseñar una página sin la aplicación (vista limpia)
+
+Para mostrar a alguien un fotógrafo, un portfolio o una colección como si no formara parte de la aplicación, añade `?limpia=true` al final de su dirección, por ejemplo `/ana-ruiz?limpia=true`, `/ana-ruiz/viajes?limpia=true` o `/ana-ruiz/viajes/montanya?limpia=true`.
+
+1. Escribe la dirección con `?limpia=true` en el navegador.
+2. La página se ve sin la franja superior, con la firma del fotógrafo sin enlace, y sin "Volver", sin la línea con el número de portfolios, colecciones o fotos, sin las marcas de oculto y sin ningún botón de mantenimiento.
+3. Si desde ahí abres un portfolio o una colección, la nueva página se ve normal, con toda la aplicación: `?limpia=true` solo lo pone quien escribe la dirección, nunca la navegación.
+4. Al volver ("← Portfolios", "← (nombre del portfolio)" o la firma del fotógrafo), la página a la que vuelves se ve como la viste: si la abriste con `?limpia=true`, vuelve a verse limpia.
+
+En cualquier otra página (la portada, los formularios…), `?limpia=true` no cambia nada.
+
+### Cómo compartir una página
+
+1. En la página de un fotógrafo, de un portfolio o de una colección, pulsa el icono de compartir (tres puntos unidos), a la derecha del título.
+2. Se abre "Comparte este enlace si quieres compartir esta página", con el enlace de la página en su vista limpia (termina en `?limpia=true`): quien lo abra verá la página sin la aplicación.
+3. Pulsa el icono de copiar, a la derecha del enlace. Aparece "Enlace copiado." y ya puedes pegarlo donde quieras. Si el navegador no permite copiarlo, el enlace queda seleccionado para que lo copies a mano.
+4. Pulsa "Cerrar" (o la tecla Escape).
+
+En la vista limpia el icono de compartir no aparece.
+
 ### Cómo ver las fotos a pantalla completa
 
 1. En la página de una colección, pulsa cualquier foto. Se abre el visor con la foto en grande y, si la tiene, su título debajo.
@@ -51,6 +71,13 @@ Si una dirección no corresponde a nada (o a algo que está oculto para ti), ver
 3. Cierra el visor con "×", con la tecla Escape o pulsando fuera de la foto.
 
 ![El visor: la foto en grande con su título, las flechas para pasar de foto y "×" para cerrar](imagenes/manual-de-usuario/visor.webp)
+
+### Cómo ver las fotos con marco o sin él
+
+1. En la página de una colección, en la franja superior, pulsa "Con marco" o "Sin marco". Este selector solo aparece en las páginas de las colecciones.
+2. Con marco, cada foto lleva un borde del color opuesto al fondo: blanco con el tema oscuro y negro con el claro. Se aplica a las miniaturas de la colección y al visor a pantalla completa.
+
+El navegador recuerda la elección para las siguientes visitas, en todas las colecciones.
 
 ### Cómo cambiar entre el tema oscuro y el claro
 
@@ -61,7 +88,7 @@ Si una dirección no corresponde a nada (o a algo que está oculto para ti), ver
 
 ![La página de un portfolio con el tema claro](imagenes/manual-de-usuario/tema-claro.webp)
 
-Si has iniciado sesión y tienes un tema preferido en "Configuración", ese tema se aplica cada vez que inicias sesión, aunque antes hubieras elegido el otro en la franja superior.
+Si has iniciado sesión y tienes un tema preferido en tu cuenta (ver "Cómo editar tu cuenta"), ese tema se aplica cada vez que inicias sesión, aunque antes hubieras elegido el otro en la franja superior.
 
 ## Cuenta y sesión
 
@@ -96,7 +123,6 @@ La sesión dura 30 días en ese navegador, salvo que la cierres antes.
 1. Pulsa tu nombre en la franja superior para abrir el menú del usuario.
 2. Pulsa "Salir". La sesión se cierra y la aplicación vuelve a la portada.
 
-![El menú del usuario, con "Mi perfil", "Configuración" y "Salir"](imagenes/manual-de-usuario/menu-usuario.webp)
 
 El menú del usuario se cierra sin hacer nada pulsando fuera de él o con la tecla Escape.
 
@@ -104,20 +130,28 @@ El menú del usuario se cierra sin hacer nada pulsando fuera de él o con la tec
 
 1. Pulsa tu nombre en la franja superior y elige "Mi perfil".
 2. En "Cuenta" verás tu usuario, tu correo, tu rol, si tienes contraseña, tu tema preferido, la fecha de alta y la del último acceso.
-3. En "Fotógrafo" verás tu nombre informal, tu nombre completo, tu descripción, cuántos portfolios y colecciones tienes, y tu firma.
-4. Desde aquí puedes ir a "Configuración", a "Ver mi página" o a "Editar mis datos y foto".
+3. En "Datos personales y preferencias" verás tu nombre informal, tu nombre completo, tu descripción, cuántos portfolios y colecciones tienes, y tu firma.
+4. Desde aquí puedes ir a "Editar cuenta" (en "Cuenta"), a "Ver mi página" o a "Editar mis datos y foto" (en "Datos personales y preferencias").
 
-![La página "Mi perfil" de un fotógrafo](imagenes/manual-de-usuario/mi-perfil.webp)
+### Cómo editar tu cuenta (usuario, contraseña y tema preferido)
+
+1. En "Mi perfil", pulsa "Editar cuenta", en la sección "Cuenta".
+2. En "Cuenta", cambia tu "Usuario" si quieres: de 3 a 30 caracteres, con letras sin tildes, números, ".", "_" o "-" (se guarda en minúsculas). Con él, o con tu correo, inicias sesión.
+3. Para cambiar también la contraseña, pulsa "Cambiar contraseña", justo debajo del usuario, y escribe tu "Contraseña actual" y la "Contraseña nueva" (al menos 8 caracteres y distinta de la actual), repitiéndola en "Repetir contraseña nueva". Si te arrepientes, "No cambiar la contraseña" la deja como estaba.
+4. En "Preferencias", elige el "Tema preferido": "Sin preferencia", "Oscuro" o "Claro". Se aplica cada vez que inicias sesión, en cualquier navegador.
+5. Pulsa "Guardar cambios": se guarda todo a la vez (usuario, contraseña y tema) y la aplicación vuelve a "Mi perfil". "Cancelar" vuelve sin guardar nada.
+
+Si algo no es válido no se guarda nada y aparece el aviso "No se han podido guardar los cambios" con el motivo: que el usuario ya lo usa otra persona o no tiene un formato válido, que la contraseña actual no es correcta, o que la nueva es demasiado corta o igual que la actual. El usuario del administrador ("admin") no se puede cambiar.
+
+Al cambiar la contraseña sigues con la sesión iniciada en este navegador, pero se cierran las que tuvieras abiertas en otros: allí tendrás que volver a entrar, ya con la nueva.
+
+### Cómo cambiar la contraseña
+
+Se cambia en "Editar cuenta", con "Cambiar contraseña", bajo el usuario (ver "Cómo editar tu cuenta").
 
 ### Cómo elegir el tema preferido
 
-1. Pulsa tu nombre en la franja superior y elige "Configuración".
-2. En "Tema por defecto", elige "Oscuro" (fondo oscuro y neutro, para que las fotos destaquen) o "Claro" (papel cálido y tinta casi negra).
-3. Pulsa "Guardar". Aparece "Configuración guardada. Se aplicará cada vez que inicies sesión." y el tema se aplica en el momento.
-
-![La página "Configuración", con los dos temas](imagenes/manual-de-usuario/configuracion.webp)
-
-El tema preferido se guarda en tu cuenta, así que se aplica al iniciar sesión en cualquier navegador.
+El tema preferido se elige en "Editar cuenta" (ver "Cómo editar tu cuenta"): "Oscuro" (fondo oscuro y neutro, para que las fotos destaquen), "Claro" (papel cálido y tinta casi negra) o "Sin preferencia". Se guarda en tu cuenta, así que se aplica al iniciar sesión en cualquier navegador.
 
 ### Cómo poner o cambiar la foto de perfil
 
@@ -142,11 +176,9 @@ Posibles avisos: "El archivo elegido no es una imagen.", "No se ha podido abrir 
 ### Cómo editar tus datos
 
 1. Abre el formulario con "Editar mis datos y foto" en "Mi perfil", con "Editar" en la cabecera de tu página de fotógrafo o con "Editar" en tu tarjeta de la portada.
-2. En "Editar fotógrafo", cambia lo que quieras: foto de perfil, nombre informal, nombre, apellidos, correo, descripción o contraseña.
-3. Para cambiar la contraseña, escribe la nueva (al menos 8 caracteres) y repítela. Si dejas el campo vacío, se mantiene la actual.
-4. Pulsa "Guardar cambios". La aplicación vuelve a tu página de fotógrafo. "Cancelar" vuelve sin guardar.
+2. En "Editar fotógrafo", cambia lo que quieras: foto de perfil, nombre informal, nombre, apellidos, correo o descripción. La contraseña no se cambia aquí, sino en "Editar cuenta" (ver "Cómo cambiar la contraseña").
+3. Pulsa "Guardar cambios". La aplicación vuelve a tu página de fotógrafo. "Cancelar" vuelve sin guardar.
 
-![El formulario "Editar fotógrafo"](imagenes/manual-de-usuario/editar-fotografo.webp)
 
 Si cambias el nombre informal, cambian también la dirección de tu página y tu firma. Si algo se rechaza, verás el aviso "No se han podido guardar los cambios" con lo que se intentaba y el motivo (por ejemplo, que ya existe otro fotógrafo con ese nombre informal o que el correo ya lo usa otro usuario).
 
@@ -196,16 +228,24 @@ Se rechaza, con el aviso "No se ha podido crear el portfolio", si el fotógrafo 
 2. Verás los portfolios numerados en su orden actual. Arrastra cada uno al lugar que quieres que ocupe: los demás se desplazan mientras arrastras.
 3. Suelta el portfolio. El nuevo orden se guarda en ese momento y es el que verán todos en la página del fotógrafo.
 
-![La página "Gestionar portfolios": los portfolios numerados, cada uno con su ojo de visibilidad](imagenes/manual-de-usuario/gestionar-portfolios.webp)
+![La página "Gestionar portfolios": los portfolios numerados (la captura es de antes de los tres estados de visibilidad)](imagenes/manual-de-usuario/gestionar-portfolios.webp)
 
 Para cancelar un arrastre, pulsa Escape antes de soltar: todo vuelve a su sitio. Si el orden no se puede guardar (por ejemplo, porque otra persona ha cambiado los portfolios mientras tanto), aparece "No se ha podido guardar el nuevo orden" y vuelve el orden anterior; recarga la página y repite. Ordenar arrastrando no funciona en pantallas táctiles.
 
-### Cómo ocultar o mostrar un portfolio
+### Cómo elegir quién ve un portfolio y quién puede entrar
 
-1. En "Gestionar portfolios", busca el ojo a la derecha del nombre del portfolio.
-2. Pulsa el ojo. Si estaba abierto (visible para cualquiera), pasa a estar tachado: el portfolio queda oculto para los demás usuarios, con todas sus colecciones. Púlsalo otra vez para volver a mostrarlo.
+Cada portfolio tiene uno de estos tres estados para los demás usuarios (tú lo ves y entras siempre):
 
-Un portfolio oculto lo sigues viendo tú, con la marca "Oculto" (un ojo tachado) en la esquina de su portada y en la cabecera de su página. Para los demás usuarios no existe: no aparece en la página del fotógrafo, no cuenta en los totales y su dirección responde "Portfolio no encontrado".
+| Estado | Icono | Qué ven los demás usuarios |
+|---|---|---|
+| **Visible** | Ojo | Lo ven y pueden entrar. |
+| **Bloqueado** | Candado | Lo ven en tu página, con su nombre y un candado ("Bloqueado"), pero sin foto de portada y sin poder entrar: la tarjeta no se puede pulsar y, si escriben su dirección, ven "Acceso restringido". Tampoco pueden entrar en ninguna de sus colecciones ni ver sus fotos. |
+| **Oculto** | Ojo tachado | No lo ven: no aparece en tu página, no cuenta en los totales y su dirección responde "Portfolio no encontrado". Sus colecciones también quedan ocultas. |
+
+1. En "Gestionar portfolios", busca los tres iconos a la derecha del nombre del portfolio: el ojo, el candado y el ojo tachado. El resaltado es el estado actual.
+2. Pulsa el del estado que quieras. Se guarda en ese momento.
+
+Un portfolio bloqueado u oculto lo sigues viendo tú, con la marca "Bloqueado" (el candado) u "Oculto" (el ojo tachado) en la esquina de su portada y en la cabecera de su página.
 
 ## Colecciones
 
@@ -216,20 +256,16 @@ Estas tareas solo se pueden hacer con las colecciones propias. Con la sesión in
 ### Cómo crear una colección
 
 1. En la página del portfolio, pulsa "+ Nueva colección".
-2. Escribe el "Nombre" (obligatorio; será también su dirección en la web), y si quieres una "Descripción" y unos "Tags" separados por comas (p. ej. "paisaje, nieve").
+2. Escribe el "Nombre" (obligatorio; será también su dirección en la web) y, si quieres, una "Descripción".
 3. Pulsa "Crear colección". La colección se añade al final de las del portfolio y la aplicación abre su página.
 
-Se rechaza, con el aviso "No se ha podido crear la colección", si el portfolio ya tiene otra colección con el mismo nombre (con las mismas equivalencias que en los portfolios) o si un tag está repetido.
+Se rechaza, con el aviso "No se ha podido crear la colección", si el portfolio ya tiene otra colección con el mismo nombre (con las mismas equivalencias que en los portfolios).
 
-### Cómo editar una colección y sus tags
+### Cómo editar una colección
 
 1. Pulsa "Editar" en la tarjeta de la colección (página del portfolio) o en la cabecera de la página de la colección.
-2. Cambia el "Nombre", la "Descripción" o los "Tags". Para quitar todos los tags, deja el campo vacío.
+2. Cambia el "Nombre" o la "Descripción".
 3. Pulsa "Guardar cambios". "Cancelar" vuelve sin guardar.
-
-![El formulario "Editar colección", con los tags separados por comas](imagenes/manual-de-usuario/editar-coleccion.webp)
-
-Los tags se guardan con la colección, pero hoy no se muestran en ninguna página de la aplicación.
 
 ### Cómo eliminar una colección
 
@@ -242,7 +278,7 @@ Los tags se guardan con la colección, pero hoy no se muestran en ninguna págin
 1. En la página del portfolio, pulsa "Gestionar colecciones".
 2. Arrastra cada colección al lugar que quieres que ocupe y suéltala. El orden se guarda al soltarla.
 
-![La página "Gestionar colecciones": la estrella rellena marca la colección que da la portada al portfolio y el ojo tachado, la colección oculta](imagenes/manual-de-usuario/gestionar-colecciones.webp)
+![La página "Gestionar colecciones": la estrella rellena marca la colección que da la portada al portfolio (la captura es de antes de los tres estados de visibilidad)](imagenes/manual-de-usuario/gestionar-colecciones.webp)
 
 Funciona igual que ordenar portfolios: Escape cancela el arrastre y, si no se puede guardar, aparece "No se ha podido guardar el nuevo orden" y vuelve el orden anterior.
 
@@ -253,12 +289,14 @@ Funciona igual que ordenar portfolios: Escape cancela el arrastre y, si no se pu
 
 Mientras no elijas ninguna, la portada del portfolio es la de la primera colección. Si eliminas la colección elegida, vuelve a usarse la primera.
 
-### Cómo ocultar o mostrar una colección
+### Cómo elegir quién ve una colección y quién puede entrar
 
-1. En "Gestionar colecciones", pulsa el ojo a la derecha de la colección.
-2. Tachado significa oculta para los demás usuarios; abierto, visible para cualquiera.
+Las colecciones tienen los mismos tres estados que los portfolios: **visible** (el ojo: cualquiera la ve y entra), **bloqueada** (el candado: los demás la ven en el portfolio, con su nombre y el candado, pero sin portada y sin poder entrar ni ver sus fotos; si escriben su dirección, ven "Acceso restringido") y **oculta** (el ojo tachado: no la ven, no cuenta en los totales y su dirección responde "Colección no encontrada").
 
-Una colección oculta la sigues viendo tú, con la marca "Oculta". Para los demás usuarios no aparece en el portfolio, no cuenta en los totales, su dirección responde "Colección no encontrada" y sus fotos no se pueden abrir. Si el portfolio está oculto, sus colecciones también lo están para los demás aunque su ojo esté abierto; la página lo recuerda con el texto "Este portfolio está oculto: los demás usuarios tampoco ven sus colecciones, aunque estén visibles."
+1. En "Gestionar colecciones", pulsa el icono del estado que quieras a la derecha de la colección: el ojo, el candado o el ojo tachado.
+2. Se guarda en ese momento. Tú la sigues viendo, con la marca "Bloqueada" u "Oculta".
+
+Lo que elijas para el portfolio vale también para sus colecciones: si el portfolio está oculto, los demás tampoco ven sus colecciones, y si está bloqueado, no pueden entrar en ninguna, aunque ellas estén visibles. La página lo recuerda con un aviso.
 
 ## Fotos
 
@@ -277,8 +315,12 @@ Todas estas tareas se hacen en "Gestionar fotos", la página de mantenimiento de
 1. En "Gestionar fotos", arrastra las fotos desde tu equipo hasta la zona "Arrastra aquí las fotos", o pulsa "elígelas en tu equipo" y selecciónalas. Puedes añadir varias a la vez.
 2. Las fotos se suben de una en una, en el orden en que las añadiste. Mientras tanto, la lista muestra "En espera" o "Subiendo…" junto a cada una, y arriba "Subiendo N fotos…".
 3. Cada foto subida aparece al final de la cuadrícula de la colección.
+4. Cuando terminan de subirse todas, aparece el diálogo "Fotos subidas" ("Se han añadido las N fotos a la colección."). Pulsa "Aceptar". Si alguna no se ha podido añadir, el diálogo no aparece: esa foto se queda en la lista con el motivo.
 
-Se admiten imágenes JPEG, PNG o WebP de hasta 25 MB cada una. La aplicación guarda cada foto en formato AVIF, con el mismo nombre y la extensión `.avif` ("Playa.jpg" se guarda como "Playa.avif"), reducida si su lado largo pasa de 3840 píxeles y sin sus metadatos (por ejemplo, la ubicación GPS). La foto original no se conserva.
+Se admiten imágenes JPEG, PNG o WebP de hasta 25 MB cada una. La aplicación guarda cada foto en formato AVIF, con el mismo nombre y la extensión `.avif` ("Playa.jpg" se guarda como "Playa.avif") y reducida si su lado largo pasa de 3840 píxeles. La foto original no se conserva, pero sí:
+
+- **Su perfil de color**: los colores de las fotos de gama amplia (Display P3 de los móviles, Adobe RGB de las cámaras) se respetan tal cual.
+- **Sus datos EXIF** (cámara, objetivo, exposición, fecha, autor, copyright…), dentro de la foto, **salvo la ubicación GPS**, para que no la pueda leer quien descargue la foto. La aplicación guarda además una copia de todos estos datos, ubicación incluida, que no se muestra a nadie.
 
 Si una foto no se puede añadir, se queda en la lista con el motivo, por ejemplo:
 
@@ -316,6 +358,12 @@ Escape cancela el arrastre. No se puede reordenar mientras se suben o se elimina
 
 1. En "Gestionar fotos", pulsa "Eliminar" debajo de la foto, a la derecha.
 2. En el diálogo "Eliminar foto" ("Se eliminará esta foto de forma permanente. ¿Desea continuar?"), pulsa "Sí, eliminar" o "Cancelar".
+
+## Acerca de la aplicación
+
+1. Pulsa el botón "?" de la franja superior. Se abre "Acerca de", con la versión de la aplicación y la de su base de datos (cada una con su fecha) y su autor.
+2. Pulsa "Manual del fotógrafo" para abrir este manual sin salir de la aplicación. Ciérralo con "×" o con la tecla Escape para volver a donde estabas.
+3. Cierra "Acerca de" con "Cerrar" o con la tecla Escape.
 
 ## Cuando algo se rechaza
 

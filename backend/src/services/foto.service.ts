@@ -21,7 +21,7 @@ import { apartarCarpeta, vaciarPapelera } from '../utils/carpetas.js';
 import { convertirAAvif, nombreAvif } from '../utils/foto-avif.js';
 import { leerImagen } from '../utils/imagen.js';
 import { cargarColeccion } from './coleccion.service.js';
-import { borrarMiniaturas } from './miniatura.service.js';
+import { borrarMiniaturas, prepararMiniatura } from './miniatura.service.js';
 
 // Alta y eliminación de las fotos de una colección desde la web ("Gestionar fotos"). Cada foto es
 // un fichero en la carpeta dla colección (fotos/<fotógrafo>/<portfolio>/<colección>/<nombreFichero>)
@@ -84,9 +84,11 @@ export async function anyadirFoto(
   comprobar();
 
   enTransaccion(() => {
-    insertarFoto(actual.idColeccion, { nombreFichero: nombreGuardado, ancho: avif.ancho, alto: avif.alto });
+    insertarFoto(actual.idColeccion, { nombreFichero: nombreGuardado, ancho: avif.ancho, alto: avif.alto, metadatos: avif.metadatos });
     escribirFoto(path.join(fotosDir, carpeta, nombreGuardado), avif.datos);
   });
+  // La miniatura, ya ahora: así se ve al instante en las cuadrículas.
+  await prepararMiniatura(path.join(carpeta, nombreGuardado));
   return obtenerFoto(actual.idColeccion, nombreGuardado)!;
 }
 
@@ -114,7 +116,7 @@ export async function convertirFotoGuardada(foto: FotoSinConvertir): Promise<{ a
   const antes = statSync(original).size;
   enOperacion('CONVERTIR_FOTO', operacion, () =>
     enTransaccion(() => {
-      cambiarFicheroFoto(foto.idFoto, { nombreFichero: nombre, ancho: avif.ancho, alto: avif.alto });
+      cambiarFicheroFoto(foto.idFoto, { nombreFichero: nombre, ancho: avif.ancho, alto: avif.alto, metadatos: avif.metadatos });
       escribirFoto(path.join(fotosDir, carpeta, nombre), avif.datos);
     }),
   );

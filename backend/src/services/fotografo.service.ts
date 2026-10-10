@@ -25,7 +25,7 @@ import { normalizarNombre } from '../utils/normalizar-nombre.js';
 import { generarUsuario } from '../utils/usuario.js';
 import { rutaFotoPerfil } from './foto-perfil.service.js';
 import { rutaLogo } from './logo.service.js';
-import { borrarMiniaturas } from './miniatura.service.js';
+import { borrarMiniaturas, moverMiniaturas } from './miniatura.service.js';
 
 // Alta, edición y eliminación de fotógrafos. La carpeta fotos/<nombreInformalNormalizado>
 // de cada fotógrafo debe existir y llamarse siempre así: estas funciones la crean, la renombran y
@@ -124,15 +124,16 @@ function modificar(
     rmSync(rutaLogo(actual.nombreInformalNormalizado), { force: true });
   }
   if (normalizado !== actual.nombreInformalNormalizado) {
-    borrarMiniaturas(actual.nombreInformalNormalizado);
+    moverMiniaturas(actual.nombreInformalNormalizado, normalizado);
   }
   return obtenerFotografo(normalizado)!;
 }
 
-// Edición desde la aplicación. Una contraseña vacía conserva la actual.
+// Edición desde la aplicación. No cambia la contraseña (aunque llegue): eso se hace en "Editar
+// cuenta", con la actual (editarCuenta() en sesion.service.ts).
 export function editarFotografo(fotografo: string, cambios: FotografoAlta): FotografoFila {
   const actual = cargar(fotografo);
-  return modificar(actual, limpiar(cambios), cambios.contrasenya || undefined, {
+  return modificar(actual, limpiar(cambios), undefined, {
     codigo: 'EDITAR_FOTOGRAFO',
     datos: { nombreInformal: actual.nombreInformal },
   });

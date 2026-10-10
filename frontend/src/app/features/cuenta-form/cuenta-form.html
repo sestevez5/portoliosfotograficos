@@ -1,0 +1,104 @@
+<section class="hero">
+  <a class="back-link" routerLink="/perfil">&larr; Mi perfil</a>
+  <h1>Editar cuenta</h1>
+  <p>Los campos marcados con * son obligatorios.</p>
+</section>
+
+<form class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate [attr.aria-busy]="cargando()">
+  @if (reglaIncumplida(); as regla) {
+    <div class="aviso" role="alert" appAvisoVisible>
+      <p class="aviso__titulo">No se han podido guardar los cambios</p>
+      @if (regla.operacion) {
+        <p><span class="aviso__etiqueta">Se intentaba:</span> {{ regla.operacion.descripcion }}</p>
+      }
+      <p><span class="aviso__etiqueta">Motivo:</span> {{ regla.regla.mensaje }}</p>
+    </div>
+  }
+  @if (errorGeneral(); as error) {
+    <div class="aviso" role="alert" appAvisoVisible>
+      <p class="aviso__titulo">No se han podido guardar los cambios</p>
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  <p class="seccion">Cuenta</p>
+  <div class="campo">
+    <label for="usuario">Usuario *</label>
+    <input id="usuario" formControlName="usuario" autocomplete="username" />
+    <small class="ayuda">
+      @if (esAdministrador()) {
+        El nombre de usuario del administrador no se puede cambiar.
+      } @else {
+        De 3 a 30 caracteres: letras sin tildes, números, ".", "_" o "-". Con él (o con tu correo) inicias sesión.
+      }
+    </small>
+    @if (mostrarError(formulario.controls.usuario, 'required')) {
+      <small class="error">Indica un nombre de usuario.</small>
+    }
+    @if (mostrarError(formulario.controls.usuario, 'pattern')) {
+      <small class="error">El nombre de usuario solo admite de 3 a 30 letras sin tildes, números, ".", "_" o "-".</small>
+    }
+  </div>
+
+  <!-- La contraseña, dentro de "Cuenta", bajo el usuario. -->
+  @if (!cambiandoContrasenya()) {
+    <div>
+      <button type="button" class="boton" (click)="abrirCambioContrasenya()">Cambiar contraseña</button>
+    </div>
+  } @else {
+    <div class="contrasenya" formGroupName="contrasenya">
+      <div class="campo">
+        <label for="contrasenyaActual">Contraseña actual *</label>
+        <input id="contrasenyaActual" type="password" formControlName="contrasenyaActual" autocomplete="current-password" />
+        @if (mostrarError(contrasenya.controls.contrasenyaActual, 'required')) {
+          <small class="error">Indica tu contraseña actual.</small>
+        }
+      </div>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="contrasenyaNueva">Contraseña nueva *</label>
+          <input id="contrasenyaNueva" type="password" formControlName="contrasenyaNueva" autocomplete="new-password" />
+          <small class="ayuda">Al menos {{ longitudMinima }} caracteres, distinta de la actual.</small>
+          @if (mostrarError(contrasenya.controls.contrasenyaNueva, 'required')) {
+            <small class="error">Indica la contraseña nueva.</small>
+          }
+          @if (mostrarError(contrasenya.controls.contrasenyaNueva, 'minlength')) {
+            <small class="error">La contraseña debe tener al menos {{ longitudMinima }} caracteres.</small>
+          }
+        </div>
+        <div class="campo">
+          <label for="repetirContrasenya">Repetir contraseña nueva *</label>
+          <input id="repetirContrasenya" type="password" formControlName="repetirContrasenya" autocomplete="new-password" />
+          @if (contrasenya.hasError('contrasenyasDistintas') && contrasenya.controls.repetirContrasenya.touched) {
+            <small class="error">Las contraseñas no coinciden.</small>
+          }
+        </div>
+      </div>
+
+      <small class="ayuda">Se cambia al pulsar "Guardar cambios", junto con lo demás. Se cerrarán tus sesiones en otros navegadores.</small>
+      <div>
+        <button type="button" class="boton" (click)="cancelarCambioContrasenya()">No cambiar la contraseña</button>
+      </div>
+    </div>
+  }
+
+  <p class="seccion">Preferencias</p>
+  <fieldset class="campo opciones">
+    <legend>Tema preferido</legend>
+    @for (tema of temas; track tema.valor) {
+      <label class="casilla">
+        <input type="radio" formControlName="temaPreferido" [value]="tema.valor" />
+        {{ tema.texto }}
+      </label>
+    }
+    <small class="ayuda">Se aplica cada vez que inicias sesión, en cualquier navegador.</small>
+  </fieldset>
+
+  <div class="acciones">
+    <button type="submit" class="boton boton--principal" [disabled]="guardando() || cargando()">
+      {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+    </button>
+    <a class="boton" routerLink="/perfil">Cancelar</a>
+  </div>
+</form>

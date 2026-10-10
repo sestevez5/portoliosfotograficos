@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, statSync, utimesSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -12,7 +12,7 @@ const datos = mkdtempSync(path.join(tmpdir(), 'portfolio-datos-'));
 process.env.DATOS_DIR = datos;
 
 const { servirMiniaturas, tipoAvif } = await import('./miniaturas.routes.js');
-const { borrarAnchosObsoletos, borrarMiniaturas } = await import('../services/miniatura.service.js');
+const { borrarAnchosObsoletos, borrarMiniaturas, moverMiniaturas } = await import('../services/miniatura.service.js');
 const { fotosDir, miniaturasDir } = await import('../config/rutas.js');
 
 const app = express();
@@ -129,4 +129,24 @@ test('una foto guardada en AVIF es ya la versión grande: ?ancho=3840 la sirve t
   // La miniatura, con el mismo nombre en la carpeta de 960.
   assert.equal((await medidas(await fetch(`${base}/ana-uno/viajes/mar/guardada.avif?ancho=960`))).width, 960);
   assert.ok(existsSync(path.join(miniaturasDir, '960', 'ana-uno', 'viajes', 'mar', 'guardada.avif')));
+});
+
+test('al renombrar una carpeta, sus miniaturas se mueven con ella y se sirven al instante', async () => {
+  const otra = path.join(fotosDir, 'bea-dos', 'viajes', 'rio');
+  mkdirSync(otra, { recursive: true });
+  await jpeg(2000, 1000, path.join(otra, 'agua.jpg'));
+  await (await fetch(`${base}/bea-dos/viajes/rio/agua.jpg?ancho=960`)).arrayBuffer();
+  const antes = path.join(miniaturasDir, '960', 'bea-dos', 'viajes', 'rio', 'agua.jpg.avif');
+  assert.ok(existsSync(antes));
+
+  // Como hace la aplicación al renombrar el fotógrafo: su carpeta de fotos y luego sus miniaturas.
+  renameSync(path.join(fotosDir, 'bea-dos'), path.join(fotosDir, 'beatriz-dos'));
+  moverMiniaturas('bea-dos', 'beatriz-dos');
+  const despues = path.join(miniaturasDir, '960', 'beatriz-dos', 'viajes', 'rio', 'agua.jpg.avif');
+  assert.ok(!existsSync(antes) && existsSync(despues));
+  const generada = statSync(despues).mtimeMs;
+
+  const respuesta = await fetch(`${base}/beatriz-dos/viajes/rio/agua.jpg?ancho=960`);
+  assert.deepEqual(await medidas(respuesta), { width: 960, height: 480, format: 'heif' });
+  assert.equal(statSync(despues).mtimeMs, generada); // la misma, sin volver a generarla
 });

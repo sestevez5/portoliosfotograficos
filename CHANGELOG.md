@@ -7,6 +7,59 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [2.4.0] - 2026-10-10
+
+### Añadido
+
+- **Vista limpia**: `?limpia=true` en la página de un fotógrafo, un portfolio o una colección la muestra sin la
+  aplicación (sin franja superior, navegación, totales ni mantenimiento). La navegación nunca lo añade y, al volver,
+  se respeta cómo se vio cada página.
+- Icono "compartir" junto al título del fotógrafo, el portfolio y la colección: diálogo con el enlace de la página en
+  su vista limpia y un botón para copiarlo.
+- Botón "?" ("Acerca de") en la franja superior: versión de la aplicación y de la base de datos con sus fechas, el
+  autor y el manual del fotógrafo en un diálogo. Nueva ruta `GET /api/acerca-de`.
+- "Editar cuenta" (`/perfil/cuenta`) desde "Mi perfil": nombre de usuario, contraseña (pide la actual y cierra las
+  demás sesiones) y tema preferido, todo con un único "Guardar cambios" (`PUT /api/perfil/cuenta`, o todo o nada).
+- **Tres estados de visibilidad** para portfolios y colecciones: visible, bloqueado (se ve con un candado pero no se
+  puede entrar: 403 `accesoRestringido` y sus fotos no se sirven) y oculto. Se eligen con un selector de tres iconos
+  en las páginas de gestión. La API acepta `{ visibilidad }`, sigue aceptando `{ visible }` y sigue devolviendo
+  `visible`.
+- **Fotos con marco**: "Con marco / Sin marco" en la franja superior de las páginas de colección (borde blanco en el
+  tema oscuro y negro en el claro, en las miniaturas y en el visor).
+- **Metadatos EXIF**: la foto AVIF guardada conserva su EXIF salvo la ubicación GPS; el EXIF completo (con GPS) se
+  guarda en la BD y la API da con cada foto un resumen sin la ubicación.
+- Aviso "Fotos subidas" al terminar una tanda de subidas sin errores.
+
+### Cambiado
+
+- Las fotos conservan su perfil de color RGB (Display P3, Adobe RGB…) en vez de pasarse a sRGB, también en las
+  miniaturas.
+- Las tarjetas de portfolio muestran su nombre sobre la portada, muy tenue; la descripción va justificada y en
+  cursiva.
+- "Mi perfil": la sección del fotógrafo se llama "Datos personales y preferencias", y la contraseña ya no se cambia en
+  el formulario del fotógrafo (se cambia en "Editar cuenta").
+- Se quita la página "Configuración": el tema se elige en "Editar cuenta" (`PUT /api/perfil/preferencias` se
+  mantiene). La web deja de mostrar los tags.
+- Al renombrar un fotógrafo, un portfolio o una colección, sus miniaturas se mueven con la carpeta en vez de borrarse
+  (antes la cuadrícula tardaba en cargar después de renombrar).
+
+### Corregido
+
+- El menú del usuario no se actualizaba al cambiar el nombre informal.
+- Un error inesperado del servidor aparecía en la web como "No se ha podido conectar con el servidor": ahora responde
+  500 con el mensaje en JSON.
+- En Windows, renombrar o eliminar una carpeta en uso daba un error genérico: ahora se reintenta y, si sigue en uso,
+  se rechaza con la regla `CARPETA_EN_USO` (sin cambiar la BD).
+- En el móvil, la franja superior se salía de la pantalla.
+
+### Notas de despliegue
+
+- El esquema de la base de datos pasa de la versión 17 a la 19 (17 -> 18: metadatos de las fotos; 18 -> 19:
+  visibilidad de tres estados). Se migra solo al arrancar, conservando los datos, pero conviene hacer antes una copia
+  de `portfolio.db` (ver "Copias de seguridad" en `CLAUDE.md`). Una vez migrada, una versión anterior ya no la abre.
+- Después, como siempre: `docker compose pull && docker compose up -d`.
+- Las fotos ya subidas no recuperan su EXIF ni su perfil de color (su original no se conservó).
+
 ## [2.3.1] - 2026-10-07
 
 ### Añadido
@@ -282,6 +335,7 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
+[2.4.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.4.0
 [2.3.1]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.3.1
 [2.3.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.3.0
 [2.2.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.2.0

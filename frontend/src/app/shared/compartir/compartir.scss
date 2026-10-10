@@ -1,0 +1,125 @@
+// Icono junto al título de la cabecera (un h1 grande), sin marco: no debe competir con él.
+.boton-compartir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color var(--transition);
+
+  svg {
+    width: 2.25rem;
+    height: 2.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-text);
+  }
+}
+
+// Diálogo, con el aspecto del de confirmación (shared/confirmacion/).
+.compartir {
+  width: min(34rem, calc(100vw - 2rem));
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  &::backdrop {
+    background: var(--color-velo);
+  }
+}
+
+.compartir__titulo {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  margin-bottom: var(--space-2);
+}
+
+.compartir__enlace {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.compartir__url {
+  flex: 1;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.compartir__copiar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    border-color var(--transition),
+    color var(--transition);
+
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+  }
+}
+
+.compartir__estado {
+  min-height: 1.25rem;
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.compartir__acciones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.boton {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color var(--transition),
+    color var(--transition);
+
+  &:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+  }
+}

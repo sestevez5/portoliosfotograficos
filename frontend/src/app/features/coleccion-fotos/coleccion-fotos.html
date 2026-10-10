@@ -144,4 +144,12 @@
     (aceptado)="confirmarEliminar()"
     (cancelado)="fotoAEliminar.set(null)"
   />
+
+  <!-- Al terminar una tanda de subidas sin errores. -->
+  <app-notificacion
+    [abierto]="exito() !== null"
+    titulo="Fotos subidas"
+    [mensaje]="mensajeExito(exito() ?? 0)"
+    (cerrado)="exito.set(null)"
+  />
 }

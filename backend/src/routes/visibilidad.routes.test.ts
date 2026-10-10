@@ -159,3 +159,55 @@ test('/photos solo sirve fotos de colecciones del catálogo, se escriba la ruta 
   assert.equal(await estado('/photos/ana/viajes/no-existe/01.jpg'), 404);
   assert.equal(await estado('/photos/ana/viajes'), 404);
 });
+
+// Bloqueado: se ve que existe (en los listados y los totales), pero no se puede entrar ni ver sus fotos.
+const visibilidad = (ruta: string, valor: string, cookie = ana) => peticion('PUT', `${ruta}/visibilidad`, cookie, { visibilidad: valor });
+const VIAJES = '/api/fotografos/ana/portfolios/viajes';
+
+test('una colección bloqueada se ve en su portfolio, pero no se puede entrar ni ver sus fotos', async () => {
+  assert.equal((await visibilidad(MAR, 'cerrada')).status, 400);
+  assert.equal((await visibilidad(MAR, 'bloqueado')).status, 204);
+
+  for (const cookie of [undefined, bea]) {
+    const respuesta = await peticion('GET', MAR, cookie);
+    assert.equal(respuesta.status, 403);
+    assert.equal((await respuesta.json()).tipo, 'accesoRestringido');
+    assert.equal(await estado(FOTO_MAR, cookie), 404);
+    // En su portfolio sale, con su estado y sin portada.
+    const mar = (await json(VIAJES, cookie)).colecciones.find((c: { nombreNormalizado: string }) => c.nombreNormalizado === 'mar');
+    assert.deepEqual([mar.visibilidad, mar.visible, mar.coverPhotoUrl], ['bloqueado', true, '']);
+    // Cuenta en los totales, pero no da su portada al portfolio (la siguiente, "Monte", no tiene fotos).
+    const fotografo = await json('/api/fotografos/ana', cookie);
+    assert.deepEqual([fotografo.portfolios[0].collectionCount, fotografo.portfolios[0].coverPhotoUrl], [2, '']);
+    // Fuera de su portfolio (todo el catálogo, tags) no sale.
+    assert.ok(!(await json('/api/colecciones', cookie)).some((c: { nombreNormalizado: string }) => c.nombreNormalizado === 'mar'));
+    assert.deepEqual(await json('/api/tags', cookie), []);
+  }
+
+  for (const cookie of [ana, admin]) {
+    assert.equal((await json(MAR, cookie)).visibilidad, 'bloqueado');
+    assert.equal(await estado(FOTO_MAR, cookie), 200);
+  }
+  assert.equal((await visibilidad(MAR, 'visible')).status, 204);
+  assert.equal(await estado(FOTO_MAR), 200);
+});
+
+test('un portfolio bloqueado se ve en su fotógrafo, pero no se puede entrar en él ni en sus colecciones', async () => {
+  assert.equal((await visibilidad(VIAJES, 'bloqueado')).status, 204);
+
+  for (const cookie of [undefined, bea]) {
+    assert.equal(await estado(VIAJES, cookie), 403);
+    assert.equal(await estado(MAR, cookie), 403); // aunque la colección sea visible
+    assert.equal(await estado(FOTO_MAR, cookie), 404);
+    const viajes = (await json('/api/fotografos/ana', cookie)).portfolios.find((p: { nombreNormalizado: string }) => p.nombreNormalizado === 'viajes');
+    assert.deepEqual([viajes.visibilidad, viajes.coverPhotoUrl, viajes.collectionCount], ['bloqueado', '', 2]);
+  }
+  for (const cookie of [ana, admin]) {
+    assert.equal(await estado(VIAJES, cookie), 200);
+    assert.equal(await estado(MAR, cookie), 200);
+    assert.equal(await estado(FOTO_MAR, cookie), 200);
+  }
+  // Sigue valiendo { visible: true } (de antes de los tres estados).
+  assert.equal((await peticion('PUT', `${VIAJES}/visibilidad`, ana, { visible: true })).status, 204);
+  assert.equal((await json(VIAJES)).visibilidad, 'visible');
+});

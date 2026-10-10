@@ -1,33 +1,44 @@
 @if (coleccion(); as a) {
-  <a class="back-link" [routerLink]="['/', segmentoFotografo(), a.portfolio.nombreNormalizado]">&larr; {{ a.portfolio.nombre }}</a>
+  @if (!vistaLimpia()) {
+    <a class="back-link" [routerLink]="['/', segmentoFotografo()!, a.portfolio.nombreNormalizado]" [queryParams]="vistas.consulta(['/', segmentoFotografo()!, a.portfolio.nombreNormalizado])">&larr; {{ a.portfolio.nombre }}</a>
+  }
 
   <!-- Misma cabecera que la página del portfolio: datos a la izquierda, mantenimiento a la derecha
        y una línea separadora que la cierra antes de las fotos. -->
   <header class="cabecera">
     <div class="cabecera__datos">
-      <span class="cabecera__etiqueta">
-        Colección · {{ a.fotos.length }} {{ a.fotos.length === 1 ? 'foto' : 'fotos' }}
-        @if (!a.visible) {
-          · <app-marca-oculto texto="Oculta" />
+      @if (!vistaLimpia()) {
+        <span class="cabecera__etiqueta">
+          Colección · {{ a.fotos.length }} {{ a.fotos.length === 1 ? 'foto' : 'fotos' }}
+          @if (a.visibilidad !== 'visible') {
+            · <app-marca-visibilidad [visibilidad]="a.visibilidad" [femenina]="true" />
+          }
+        </span>
+      }
+      <div class="cabecera__titulo">
+        <h1>Colección: "{{ a.nombre }}"</h1>
+        @if (!vistaLimpia()) {
+          <app-compartir />
         }
-      </span>
-      <h1>Colección: "{{ a.nombre }}"</h1>
+      </div>
       @if (a.descripcion) {
         <p class="cabecera__descripcion" appTextoRecortado>{{ a.descripcion }}</p>
       }
     </div>
-    <app-coleccion-acciones
-      class="cabecera__gestion"
-      [fotografo]="segmentoFotografo()!"
-      [portfolio]="a.portfolio.nombreNormalizado"
-      [coleccion]="a"
-      (eliminado)="alEliminar(a.portfolio.nombreNormalizado)"
-    />
+    @if (!vistaLimpia()) {
+      <app-coleccion-acciones
+        class="cabecera__gestion"
+        [fotografo]="segmentoFotografo()!"
+        [portfolio]="a.portfolio.nombreNormalizado"
+        [coleccion]="a"
+        (eliminado)="alEliminar(a.portfolio.nombreNormalizado)"
+      />
+    }
   </header>
 
   <!-- Gestión de las fotos dla colección (añadir y eliminar). Solo para quien puede gestionar lo
        de este fotógrafo (no se elimina: no se muestra). -->
-  @if (sesion.puedeGestionar(segmentoFotografo())) {
+  @if (!vistaLimpia() && sesion.puedeGestionar(segmentoFotografo())) {
     <div class="cabecera-barra">
       <a
         class="cabecera-barra__boton"
@@ -53,11 +64,15 @@
       (indexChange)="lightboxIndex.set($event)"
     />
   }
+} @else if (restringido()) {
+  <app-acceso-restringido que="Esta colección" [volver]="['/', segmentoFotografo()!]" textoVolver="Ver los portfolios del fotógrafo" />
 } @else if (coleccion() === null) {
   <header class="cabecera">
     <div class="cabecera__datos">
       <h1>Colección no encontrada</h1>
-      <p><a [routerLink]="['/', segmentoFotografo()]">Ver los portfolios del fotógrafo</a></p>
+      @if (!vistaLimpia()) {
+        <p><a [routerLink]="['/', segmentoFotografo()!]" [queryParams]="vistas.consulta(['/', segmentoFotografo()!])">Ver los portfolios del fotógrafo</a></p>
+      }
     </div>
   </header>
 }

@@ -33,34 +33,67 @@
   color: var(--color-text);
 }
 
+// El recuadro (del mismo tamaño que el de las colecciones) lleva el nombre del portfolio, centrado,
+// sobre su portada muy tenue, de fondo: solo sugiere qué hay dentro, sin competir con el nombre.
 .portfolio-card__image {
   position: relative; // para la marca "Oculto"
-  aspect-ratio: 3 / 2;
-  overflow: hidden;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform var(--transition);
-  }
-}
-
-// En lugar de la portada: "Sin colecciones" o, si la colección de portada no tiene fotos, "Sin fotos".
-.portfolio-card__sin-portada {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: border-color var(--transition);
 }
 
-.portfolio-card__enlace:hover .portfolio-card__image img {
+.portfolio-card__portada {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.18;
+  transition:
+    opacity var(--transition),
+    transform var(--transition);
+}
+
+.portfolio-card__enlace:hover .portfolio-card__portada {
+  opacity: 0.28;
+  transform: scale(1.04);
+}
+
+.portfolio-card__nombre {
+  position: relative; // por encima de la portada
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
+  transition: transform var(--transition);
+}
+
+// Bloqueado para quien mira: no es un enlace (ni reacciona al pasar por encima) y lleva el candado
+// bajo el nombre.
+.portfolio-card__enlace--bloqueado {
+  cursor: default;
+
+  .portfolio-card__image {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .portfolio-card__nombre {
+    color: var(--color-text-muted);
+  }
+}
+
+.portfolio-card__enlace:not(.portfolio-card__enlace--bloqueado):hover .portfolio-card__image {
+  border-color: var(--color-text-muted);
+}
+
+.portfolio-card__enlace:not(.portfolio-card__enlace--bloqueado):hover .portfolio-card__nombre {
   transform: scale(1.04);
 }
 
@@ -69,9 +102,17 @@
   flex-direction: column;
   gap: var(--space-1);
 
-  h2 {
-    font-size: 1.5rem;
+  &:empty {
+    display: none;
   }
+}
+
+// La descripción del portfolio, justificada y en cursiva (con guiones al partir palabras, para que
+// la justificación no deje huecos grandes entre ellas).
+.portfolio-card__descripcion {
+  font-style: italic;
+  text-align: justify;
+  hyphens: auto;
 }
 
 .empty-state {

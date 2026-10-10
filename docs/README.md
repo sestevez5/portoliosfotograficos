@@ -15,7 +15,7 @@ node docs/generar-html.mjs
 
 Cómo está hecha la aplicación y cómo se mantiene.
 
-- [Instalación en un NAS UGREEN](tecnica/instalacion-nas-ugreen.md) — instalar, actualizar, hacer copias y mantener la aplicación en un NAS UGREEN con UGOS Pro y Docker. Para quien administra el NAS.
+- [Instalación en un NAS UGREEN](tecnica/instalacion-nas-ugreen.md) — instalar (con la interfaz de la aplicación Docker o por SSH), actualizar, hacer copias y mantener la aplicación en un NAS UGREEN con UGOS Pro y Docker. Para quien administra el NAS.
 
 ## Documentación funcional (`funcional/`)
 

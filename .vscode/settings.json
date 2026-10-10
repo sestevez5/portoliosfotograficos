@@ -1,0 +1,11 @@
+{
+  // backend/contenido son los datos de la instalación local (BD, fotos, miniaturas), no código. Si VS Code
+  // vigila sus carpetas, en Windows las deja abiertas y la aplicación no puede renombrarlas ni moverlas
+  // (al cambiar el nombre de un fotógrafo, portfolio o colección, o al eliminarlo): regla CARPETA_EN_USO.
+  "files.watcherExclude": {
+    "**/backend/contenido/**": true
+  },
+  "search.exclude": {
+    "**/backend/contenido/**": true
+  }
+}

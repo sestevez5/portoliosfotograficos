@@ -40,12 +40,6 @@
     <textarea id="descripcion" formControlName="descripcion" rows="3"></textarea>
   </div>
 
-  <div class="campo">
-    <label for="tags">Tags</label>
-    <input id="tags" formControlName="tags" />
-    <small class="ayuda">Separados por comas, p. ej. "paisaje, nieve".</small>
-  </div>
-
   <div class="acciones">
     <button type="submit" class="boton boton--principal" [disabled]="enviando() || cargando()">
       @if (editando) {

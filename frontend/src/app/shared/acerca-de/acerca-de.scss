@@ -1,0 +1,187 @@
+// Botón "?" redondo de la franja superior: con el borde y el signo en el color del texto, para que se
+// vea bien; al pasar por encima se invierte.
+.boton-ayuda {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  padding: 0;
+  border: 1.5px solid var(--color-text-muted);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color var(--transition),
+    background var(--transition),
+    color var(--transition);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--color-text);
+    background: var(--color-text);
+    color: var(--color-bg);
+  }
+}
+
+// Diálogo "Acerca de", con el aspecto del de confirmación (shared/confirmacion/).
+.acerca-de {
+  width: min(28rem, calc(100vw - 2rem));
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  &::backdrop {
+    background: var(--color-velo);
+  }
+}
+
+.acerca-de__titulo {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-1);
+}
+
+.acerca-de__aplicacion {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.acerca-de__datos {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-2);
+  margin-bottom: var(--space-3);
+
+  dt {
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.acerca-de__cargando,
+.acerca-de__error {
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.acerca-de__error {
+  color: var(--color-peligro-texto);
+}
+
+.acerca-de__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.boton {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color var(--transition),
+    color var(--transition),
+    background var(--transition);
+
+  &:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+  }
+}
+
+.boton--principal {
+  border-color: var(--color-text);
+  color: var(--color-text);
+
+  &:hover {
+    background: var(--color-text);
+    color: var(--color-bg);
+  }
+}
+
+// El manual, en un diálogo a casi toda la pantalla, con una barra para cerrarlo.
+.manual {
+  width: calc(100vw - 2rem);
+  height: calc(100vh - 2rem);
+  max-width: 72rem;
+  max-height: none;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &::backdrop {
+    background: var(--color-velo);
+  }
+}
+
+.manual__barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.manual__titulo {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.manual__cerrar {
+  padding: 0 var(--space-1);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-text);
+  }
+}
+
+.manual__pagina {
+  flex: 1;
+  width: 100%;
+  border: none;
+}
+
+@media (max-width: 40rem) {
+  .manual {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    border: none;
+  }
+}

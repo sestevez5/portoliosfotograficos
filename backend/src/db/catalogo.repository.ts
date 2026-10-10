@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fotosDir } from '../config/rutas.js';
 import { validadorCatalogo } from '../reglas/index.js';
+import type { Visibilidad } from '../types/catalogo.js';
 import { abrirBaseDatos } from './conexion.js';
 
 const db = abrirBaseDatos();
@@ -33,8 +34,7 @@ export interface PortfolioFila {
   nombre: string;
   descripcion: string | null;
   idColeccionPortada: number | null;
-  // 0 = oculto a los demás usuarios
-  visible: number;
+  visibilidad: Visibilidad;
   // nombreNormalizado de la colección de portada (idColeccionPortada), o null si no hay.
   coleccionPortada: string | null;
 }
@@ -61,7 +61,7 @@ export interface ColeccionResumenFila {
   tags: string[];
   coverFilename: string | null;
   photoCount: number;
-  visible: number;
+  visibilidad: Visibilidad;
 }
 
 export interface ColeccionFila {
@@ -74,9 +74,9 @@ export interface ColeccionFila {
   nombre: string;
   descripcion: string | null;
   idFotoPortada: number | null;
-  // 0 = oculta a los demás usuarios (la colección; si lo está su portfolio, portfolioVisible = 0)
-  visible: number;
-  portfolioVisible: number;
+  // La de la colección y la de su portfolio (la que manda es la más restrictiva de las dos).
+  visibilidad: Visibilidad;
+  portfolioVisibilidad: Visibilidad;
   tags: string[];
 }
 
@@ -87,6 +87,8 @@ export interface FotoFila {
   orden: number;
   ancho: number | null;
   alto: number | null;
+  // EXIF completo en JSON (con la ubicación GPS), o null (utils/metadatos-foto.ts).
+  metadatos: string | null;
 }
 
 // Nombre de archivo de la portada de una colección: la foto idFotoPortada o, si no hay, la
@@ -116,17 +118,24 @@ const COLECCION_FROM = `
   JOIN portfolios p ON p.idPortfolio = a.idPortfolio
   JOIN fotografos f ON f.idFotografo = p.idFotografo`;
 
-// Visibilidad: un portfolio o una colección ocultos (visible = 0) solo los ven su fotógrafo y el
-// administrador; para los demás es como si no existieran (ni en los listados, ni en los totales, ni
-// como portada). Un portfolio oculto oculta todas sus colecciones. Las consultas de lectura reciben
-// en @ve quién mira: VER_TODO (el administrador, y los servicios, que ya han comprobado el
-// permiso), el nombreInformalNormalizado de un fotógrafo (ve también lo oculto suyo) o null (solo
-// lo visible). "f", "p" y "a" son los alias de fotografos, portfolios y colecciones.
+// Visibilidad (Visibilidad en types/catalogo.ts) de un portfolio o una colección para los demás
+// usuarios (su fotógrafo y el administrador lo ven y entran siempre):
+// - 'oculto': como si no existiera (ni en los listados, ni en los totales, ni como portada).
+// - 'bloqueado': existe (sale en los listados y en los totales, con su nombre), pero no se puede
+//   entrar: no da portada, su página responde "acceso restringido" (403) y sus fotos no se sirven.
+// - 'visible': cualquiera lo ve y entra.
+// Lo de un portfolio vale para todas sus colecciones. Las consultas de lectura reciben en @ve quién
+// mira: VER_TODO (el administrador, y los servicios, que ya han comprobado el permiso), el
+// nombreInformalNormalizado de un fotógrafo (ve y entra también en todo lo suyo) o null (lo de los
+// demás). "f", "p" y "a" son los alias de fotografos, portfolios y colecciones. _VISIBLE: existe para
+// quien mira; _ACCESIBLE: además puede entrar (ver su contenido y sus fotos).
 export type Vista = string | null;
 export const VER_TODO = '';
 const VE_LO_OCULTO = `(@ve = '' OR f.nombreInformalNormalizado = @ve)`;
-const PORTFOLIO_VISIBLE = `(p.visible = 1 OR ${VE_LO_OCULTO})`;
-const COLECCION_VISIBLE = `(a.visible = 1 OR ${VE_LO_OCULTO})`;
+const PORTFOLIO_VISIBLE = `(p.visibilidad <> 'oculto' OR ${VE_LO_OCULTO})`;
+const COLECCION_VISIBLE = `(a.visibilidad <> 'oculto' OR ${VE_LO_OCULTO})`;
+const PORTFOLIO_ACCESIBLE = `(p.visibilidad = 'visible' OR ${VE_LO_OCULTO})`;
+const COLECCION_ACCESIBLE = `(a.visibilidad = 'visible' OR ${VE_LO_OCULTO})`;
 
 const consultas = {
   fotografos: db.prepare(`
@@ -141,45 +150,49 @@ const consultas = {
     `SELECT ${FOTOGRAFO_COLUMNAS} FROM fotografos f WHERE f.nombreInformalNormalizado = ${COMO_SEGMENTO('?')}`,
   ),
 
-  // La portada es la de la colección de portada o, si no hay (o quien mira no la ve), la de la
-  // primera colección que ve.
+  // La portada es la de la colección de portada o, si no hay (o quien mira no puede entrar en ella),
+  // la de la primera colección en la que puede entrar; un portfolio bloqueado para quien mira, sin
+  // portada.
   portfoliosDeFotografo: db.prepare(`
-    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, p.visible, ${COLECCION_PORTADA} AS coleccionPortada,
+    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, p.visibilidad, ${COLECCION_PORTADA} AS coleccionPortada,
       (SELECT count(*) FROM colecciones a WHERE a.idPortfolio = p.idPortfolio AND ${COLECCION_VISIBLE}) AS collectionCount,
       primero.nombreNormalizado AS coverCarpetaColeccion,
       (SELECT ${PORTADA_COLECCION} FROM colecciones a WHERE a.idColeccion = primero.idColeccion) AS coverFilename
     FROM portfolios p
     JOIN fotografos f ON f.idFotografo = p.idFotografo
-    LEFT JOIN colecciones primero ON primero.idColeccion = COALESCE(
-      (SELECT a.idColeccion FROM colecciones a WHERE a.idColeccion = p.idColeccionPortada AND ${COLECCION_VISIBLE}),
-      (SELECT a.idColeccion FROM colecciones a WHERE a.idPortfolio = p.idPortfolio AND ${COLECCION_VISIBLE} ORDER BY a.orden LIMIT 1)
+    LEFT JOIN colecciones primero ON ${PORTFOLIO_ACCESIBLE} AND primero.idColeccion = COALESCE(
+      (SELECT a.idColeccion FROM colecciones a WHERE a.idColeccion = p.idColeccionPortada AND ${COLECCION_ACCESIBLE}),
+      (SELECT a.idColeccion FROM colecciones a WHERE a.idPortfolio = p.idPortfolio AND ${COLECCION_ACCESIBLE} ORDER BY a.orden LIMIT 1)
     )
     WHERE p.idFotografo = @idFotografo AND ${PORTFOLIO_VISIBLE}
     ORDER BY p.orden`),
 
   portfolio: db.prepare(`
-    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, p.visible, ${COLECCION_PORTADA} AS coleccionPortada
+    SELECT p.idPortfolio, p.nombreNormalizado, p.nombre, p.descripcion, p.idColeccionPortada, p.visibilidad, ${COLECCION_PORTADA} AS coleccionPortada
     FROM portfolios p
     JOIN fotografos f ON f.idFotografo = p.idFotografo
     WHERE p.idFotografo = @idFotografo AND p.nombreNormalizado = ${COMO_SEGMENTO('@portfolio')} AND ${PORTFOLIO_VISIBLE}`),
 
-  // Filtros opcionales: NULL en un parámetro desactiva ese filtro.
+  // Filtros opcionales: NULL en un parámetro desactiva ese filtro. Las de un portfolio
+  // (@idPortfolio) incluyen las bloqueadas para quien mira, sin portada; las de todo el catálogo
+  // (/api/colecciones), solo aquellas en las que puede entrar.
   colecciones: db.prepare(`
     SELECT a.idColeccion, f.nombreInformalNormalizado AS carpetaFotografo, f.nombreInformal, p.nombre AS nombrePortfolio, p.nombreNormalizado AS carpetaPortfolio,
-      a.nombreNormalizado, a.nombre, a.descripcion, a.visible,
+      a.nombreNormalizado, a.nombre, a.descripcion, a.visibilidad,
       ${TAGS_COLECCION} AS tags,
-      ${PORTADA_COLECCION} AS coverFilename,
+      CASE WHEN ${PORTFOLIO_ACCESIBLE} AND ${COLECCION_ACCESIBLE} THEN ${PORTADA_COLECCION} END AS coverFilename,
       (SELECT count(*) FROM fotos WHERE idColeccion = a.idColeccion) AS photoCount
     ${COLECCION_FROM}
     WHERE (@idPortfolio IS NULL OR a.idPortfolio = @idPortfolio)
       AND (@tag IS NULL OR EXISTS (SELECT 1 FROM coleccionTags t WHERE t.idColeccion = a.idColeccion AND t.tag = @tag))
       AND ${PORTFOLIO_VISIBLE} AND ${COLECCION_VISIBLE}
+      AND (@idPortfolio IS NOT NULL OR (${PORTFOLIO_ACCESIBLE} AND ${COLECCION_ACCESIBLE}))
     ORDER BY f.idFotografo, p.orden, a.orden`),
 
   coleccion: db.prepare(`
     SELECT a.idColeccion, f.nombreInformalNormalizado AS carpetaFotografo, p.idPortfolio, p.nombre AS nombrePortfolio,
       p.nombreNormalizado AS carpetaPortfolio, a.nombreNormalizado, a.nombre, a.descripcion, a.idFotoPortada,
-      a.visible, p.visible AS portfolioVisible,
+      a.visibilidad, p.visibilidad AS portfolioVisibilidad,
       ${TAGS_COLECCION} AS tags
     ${COLECCION_FROM}
     WHERE f.idFotografo = @idFotografo
@@ -188,18 +201,18 @@ const consultas = {
       AND ${PORTFOLIO_VISIBLE} AND ${COLECCION_VISIBLE}`),
 
   fotosDeColeccion: db.prepare(`
-    SELECT idFoto, nombreFichero, titulo, orden, ancho, alto
+    SELECT idFoto, nombreFichero, titulo, orden, ancho, alto, metadatos
     FROM fotos WHERE idColeccion = ? ORDER BY orden`),
 
   tags: db.prepare(`
     SELECT DISTINCT t.tag FROM coleccionTags t JOIN colecciones a ON a.idColeccion = t.idColeccion
       JOIN portfolios p ON p.idPortfolio = a.idPortfolio
       JOIN fotografos f ON f.idFotografo = p.idFotografo
-    WHERE ${PORTFOLIO_VISIBLE} AND ${COLECCION_VISIBLE}`),
+    WHERE ${PORTFOLIO_ACCESIBLE} AND ${COLECCION_ACCESIBLE}`),
 
-  cambiarVisibilidadPortfolio: db.prepare('UPDATE portfolios SET visible = @visible WHERE idPortfolio = @idPortfolio'),
+  cambiarVisibilidadPortfolio: db.prepare('UPDATE portfolios SET visibilidad = @visibilidad WHERE idPortfolio = @idPortfolio'),
 
-  cambiarVisibilidadColeccion: db.prepare('UPDATE colecciones SET visible = @visible WHERE idColeccion = @idColeccion'),
+  cambiarVisibilidadColeccion: db.prepare('UPDATE colecciones SET visibilidad = @visibilidad WHERE idColeccion = @idColeccion'),
 
   insertarUsuario: db.prepare(
     'INSERT INTO usuarios (usuario, email, passwordHash) VALUES (@usuario, @email, @passwordHash)',
@@ -247,6 +260,8 @@ const consultas = {
   ),
 
   guardarTemaPreferido: db.prepare('UPDATE usuarios SET temaPreferido = @tema WHERE idUsuario = @idUsuario'),
+  cambiarNombreUsuario: db.prepare('UPDATE usuarios SET usuario = @usuario WHERE idUsuario = @idUsuario'),
+  passwordHashDe: db.prepare('SELECT passwordHash FROM usuarios WHERE idUsuario = ?'),
 
   // fecha null = sin foto de perfil.
   guardarFotoActualizada: db.prepare('UPDATE usuarios SET fotoActualizada = @fecha WHERE idUsuario = @idUsuario'),
@@ -258,6 +273,7 @@ const consultas = {
     "SELECT idUsuario FROM sesiones WHERE tokenHash = ? AND fechaExpiracion > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
   ),
   eliminarSesion: db.prepare('DELETE FROM sesiones WHERE tokenHash = ?'),
+  eliminarOtrasSesiones: db.prepare('DELETE FROM sesiones WHERE idUsuario = ? AND tokenHash <> ?'),
   eliminarSesionesCaducadas: db.prepare(
     "DELETE FROM sesiones WHERE fechaExpiracion <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
   ),
@@ -335,13 +351,13 @@ const consultas = {
 
   // Las fotos nuevas van al final de las dla colección.
   insertarFoto: db.prepare(
-    `INSERT INTO fotos (idColeccion, nombreFichero, orden, ancho, alto)
+    `INSERT INTO fotos (idColeccion, nombreFichero, orden, ancho, alto, metadatos)
      VALUES (@idColeccion, @nombreFichero,
-       (SELECT COALESCE(max(orden) + 1, 0) FROM fotos WHERE idColeccion = @idColeccion), @ancho, @alto)`,
+       (SELECT COALESCE(max(orden) + 1, 0) FROM fotos WHERE idColeccion = @idColeccion), @ancho, @alto, @metadatos)`,
   ),
 
   foto: db.prepare(
-    'SELECT idFoto, nombreFichero, titulo, orden, ancho, alto FROM fotos WHERE idColeccion = ? AND nombreFichero = ?',
+    'SELECT idFoto, nombreFichero, titulo, orden, ancho, alto, metadatos FROM fotos WHERE idColeccion = ? AND nombreFichero = ?',
   ),
 
   // Las fotos guardadas aún en su formato original (anteriores a la conversión a AVIF), con su carpeta.
@@ -354,7 +370,7 @@ const consultas = {
     WHERE lower(f.nombreFichero) NOT LIKE '%.avif'
     ORDER BY f.idFoto`),
   cambiarFicheroFoto: db.prepare(
-    'UPDATE fotos SET nombreFichero = @nombreFichero, ancho = @ancho, alto = @alto WHERE idFoto = @idFoto',
+    'UPDATE fotos SET nombreFichero = @nombreFichero, ancho = @ancho, alto = @alto, metadatos = @metadatos WHERE idFoto = @idFoto',
   ),
   cambiarOrdenFoto: db.prepare('UPDATE fotos SET orden = @orden WHERE idFoto = @idFoto'),
 
@@ -419,7 +435,10 @@ export function obtenerFoto(idColeccion: number, nombreFichero: string): FotoFil
 
 // Solo para services/foto.service.ts, que valida antes las reglas de negocio y guarda o borra el
 // fichero en la misma transacción.
-export function insertarFoto(idColeccion: number, foto: { nombreFichero: string; ancho: number | null; alto: number | null }): void {
+export function insertarFoto(
+  idColeccion: number,
+  foto: { nombreFichero: string; ancho: number | null; alto: number | null; metadatos: string | null },
+): void {
   consultas.insertarFoto.run({ idColeccion, ...foto });
 }
 
@@ -439,7 +458,10 @@ export function listarFotosSinConvertir(): FotoSinConvertir[] {
 }
 
 // Solo para services/foto.service.ts (conversión a AVIF), con el fichero en la misma transacción.
-export function cambiarFicheroFoto(idFoto: number, foto: { nombreFichero: string; ancho: number; alto: number }): void {
+export function cambiarFicheroFoto(
+  idFoto: number,
+  foto: { nombreFichero: string; ancho: number; alto: number; metadatos: string | null },
+): void {
   consultas.cambiarFicheroFoto.run({ idFoto, ...foto });
 }
 
@@ -580,6 +602,16 @@ export function guardarTemaPreferido(idUsuario: number, tema: Tema | null): void
   consultas.guardarTemaPreferido.run({ idUsuario, tema });
 }
 
+// "Editar cuenta" (services/sesion.service.ts, que valida antes el nombre).
+export function cambiarNombreUsuario(idUsuario: number, usuario: string): void {
+  consultas.cambiarNombreUsuario.run({ idUsuario, usuario });
+}
+
+// Hash de la contraseña del usuario (null si no tiene), para comprobar la actual al cambiarla.
+export function passwordHashDe(idUsuario: number): string | null {
+  return (consultas.passwordHashDe.get(idUsuario) as { passwordHash: string | null } | undefined)?.passwordHash ?? null;
+}
+
 // Solo para services/foto-perfil.service.ts, que guarda o borra el fichero. fecha null = sin foto.
 export function guardarFotoActualizada(idUsuario: number, fecha: string | null): void {
   consultas.guardarFotoActualizada.run({ idUsuario, fecha });
@@ -596,6 +628,11 @@ export function idUsuarioDeSesion(tokenHash: string): number | undefined {
 
 export function eliminarSesion(tokenHash: string): void {
   consultas.eliminarSesion.run(tokenHash);
+}
+
+// Cierra las demás sesiones del usuario (p. ej. al cambiar su contraseña), salvo la indicada.
+export function eliminarOtrasSesiones(idUsuario: number, tokenHashActual: string): void {
+  consultas.eliminarOtrasSesiones.run(idUsuario, tokenHashActual);
 }
 
 // ---------------- Fotógrafos ----------------
@@ -724,12 +761,12 @@ export function cambiarColeccionPortada(idPortfolio: number, idColeccion: number
   consultas.cambiarColeccionPortada.run({ idPortfolio, idColeccion });
 }
 
-export function cambiarVisibilidadPortfolio(idPortfolio: number, visible: boolean): void {
-  consultas.cambiarVisibilidadPortfolio.run({ idPortfolio, visible: visible ? 1 : 0 });
+export function cambiarVisibilidadPortfolio(idPortfolio: number, visibilidad: Visibilidad): void {
+  consultas.cambiarVisibilidadPortfolio.run({ idPortfolio, visibilidad });
 }
 
-export function cambiarVisibilidadColeccion(idColeccion: number, visible: boolean): void {
-  consultas.cambiarVisibilidadColeccion.run({ idColeccion, visible: visible ? 1 : 0 });
+export function cambiarVisibilidadColeccion(idColeccion: number, visibilidad: Visibilidad): void {
+  consultas.cambiarVisibilidadColeccion.run({ idColeccion, visibilidad });
 }
 
 export function cambiarOrdenColeccion(idColeccion: number, orden: number): void {

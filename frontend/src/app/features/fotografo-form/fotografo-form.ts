@@ -55,7 +55,6 @@ export class FotografoForm implements OnDestroy {
   protected readonly fotografoEditado = this.ruta.paramMap.get('fotografo');
   protected readonly editando = this.fotografoEditado !== null;
   protected readonly registro = this.ruta.data['modo'] === 'registro';
-  protected readonly tieneContrasenya = signal(false);
   protected readonly cargando = signal(this.editando);
 
   protected readonly longitudMinima = LONGITUD_MINIMA_CONTRASENYA;
@@ -99,9 +98,9 @@ export class FotografoForm implements OnDestroy {
     if (this.fotografoEditado) {
       this.catalogoService.getFotografoEdicion(this.fotografoEditado).subscribe({
         next: (datos) => {
-          const { tieneContrasenya, fotoUrl, ...valores } = datos;
+          // La contraseña no se edita aquí, sino en "Editar cuenta".
+          const { tieneContrasenya: _, fotoUrl, ...valores } = datos;
           this.formulario.patchValue(valores);
-          this.tieneContrasenya.set(tieneContrasenya);
           this.fotoUrl.set(fotoUrl);
           this.cargando.set(false);
         },
@@ -125,7 +124,8 @@ export class FotografoForm implements OnDestroy {
     }
   }
 
-  // Si el fotógrafo es el que tiene la sesión iniciada, su foto del menú se actualiza.
+  // Si el fotógrafo es el que tiene la sesión iniciada, sus datos del menú (foto, nombre informal,
+  // correo) se actualizan.
   private refrescarSesionSiEsSuya(fotografo: string): void {
     if (this.sesion.usuario()?.fotografo?.nombreInformalNormalizado === fotografo) {
       this.sesion.cargar();
@@ -204,8 +204,8 @@ export class FotografoForm implements OnDestroy {
     }
 
     const { repetirContrasenya: _, usuario, ...valores } = this.formulario.getRawValue();
-    // Los opcionales vacíos no se envían (al editar, eso los deja vacíos; la contraseña vacía
-    // conserva la actual).
+    // Los opcionales vacíos no se envían (al editar, eso los deja vacíos). Al editar no hay
+    // contraseña: se cambia en "Editar cuenta".
     const alta: FotografoAlta = {
       nombreInformal: valores.nombreInformal,
       nombre: valores.nombre,
@@ -225,7 +225,10 @@ export class FotografoForm implements OnDestroy {
           .registrar({ ...alta, usuario: usuario.trim(), email: valores.email.trim(), contrasenya: valores.contrasenya })
           .pipe(map((registrado) => registrado.fotografo!.nombreInformalNormalizado))
       : (this.fotografoEditado
-          ? this.catalogoService.editarFotografo(this.fotografoEditado, alta)
+          ? this.catalogoService
+              .editarFotografo(this.fotografoEditado, alta)
+              // Su nombre informal y su correo del menú (con el nombre anterior: puede haber cambiado).
+              .pipe(tap(() => this.refrescarSesionSiEsSuya(this.fotografoEditado!)))
           : this.catalogoService.crearFotografo(alta)
         ).pipe(map((fotografo: FotografoPublico) => fotografo.nombreInformalNormalizado));
     peticion.pipe(switchMap((fotografo) => (this.editando ? of(fotografo) : this.subirFotoPendiente(fotografo)))).subscribe({

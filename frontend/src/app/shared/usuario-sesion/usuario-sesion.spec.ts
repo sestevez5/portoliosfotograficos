@@ -45,10 +45,7 @@ describe('UsuarioSesion', () => {
     const menu = elemento.querySelector('[role="menu"]')!;
     expect(menu.textContent).toContain('santi@example.com');
     const enlaces = [...menu.querySelectorAll('a')].map((a) => [a.textContent!.trim(), a.getAttribute('href')]);
-    expect(enlaces).toEqual([
-      ['Mi perfil', '/perfil'],
-      ['Configuración', '/configuracion'],
-    ]);
+    expect(enlaces).toEqual([['Mi perfil', '/perfil']]);
   });
 
   it('el menú se cierra con Escape y al pulsar fuera', async () => {

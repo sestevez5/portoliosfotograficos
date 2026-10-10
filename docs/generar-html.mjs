@@ -6,12 +6,16 @@
 //
 // Hay que volver a ejecutarlo cada vez que se crea o cambia un documento. El Markdown admitido es el
 // que usan los documentos: títulos (#, ##, ###), párrafos, listas (- y 1.), tablas, `código`,
-// **negrita**, *cursiva*, [enlaces](destino) e imágenes en una línea propia: ![texto](ruta). La ruta de
+// **negrita**, *cursiva*, [enlaces](destino), bloques de código entre líneas ``` (se copian tal cual,
+// con su sangría) e imágenes en una línea propia: ![texto](ruta). La ruta de
 // una imagen es relativa a la carpeta del documento; se incrusta como data URI (la página sigue siendo
 // un único fichero) dentro de una figura cuyo pie es el texto alternativo.
 //
 // Los documentos de SUELTOS (al final) se publican además en su propia página, docs/<documento>.html.
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+// Los de EN_LA_APLICACION se copian también a frontend/public/ayuda/<documento>.html, desde donde la web
+// los muestra (el manual del fotógrafo, en "Acerca de"): así van en la imagen Docker del frontend,
+// que solo se construye con la carpeta frontend/.
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -68,7 +72,7 @@ function convertir(id, markdown, carpeta) {
   let titulo = id;
   const apartados = [];
   const cuerpo = [];
-  const nuevoBloque = /^(#{1,3} |\||- |\d+\. |!\[)/;
+  const nuevoBloque = /^(#{1,3} |\||- |\d+\. |!\[|```)/;
   for (let i = 0; i < lineas.length; ) {
     const l = lineas[i];
     if (!l.trim()) {
@@ -98,6 +102,12 @@ function convertir(id, markdown, carpeta) {
       cuerpo.push(
         `<div class="tabla"><table${clase ? ` class="${clase}"` : ''}><thead><tr>${cabecera.map((c) => `<th>${enLinea(c)}</th>`).join('')}</tr></thead><tbody>\n${filas.map(fila).join('\n')}\n</tbody></table></div>`,
       );
+    } else if (l.startsWith('```')) {
+      const codigo = [];
+      i++;
+      while (i < lineas.length && !lineas[i].startsWith('```')) codigo.push(lineas[i++]);
+      i++; // cierre
+      cuerpo.push(`<pre><code>${esc(codigo.join('\n'))}</code></pre>`);
     } else if (IMAGEN.test(l)) {
       const [, alt, ruta] = l.match(IMAGEN);
       cuerpo.push(
@@ -207,6 +217,8 @@ const estilos = `  :root {
   figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--borde); border-radius: 4px; }
   figcaption { margin-top: 0.45rem; color: var(--apagado); font-size: 0.85rem; }
   code { padding: 0.1em 0.35em; background: var(--codigo); font: 0.875em Consolas, "Cascadia Mono", monospace; }
+  pre { margin: 1rem 0 1.5rem; padding: 0.9rem 1rem; overflow-x: auto; background: var(--codigo); border: 1px solid var(--borde); border-radius: 4px; }
+  pre code { padding: 0; background: none; line-height: 1.5; }
 
   .cabecera {
     position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1.5rem;
@@ -355,6 +367,7 @@ for (const s of secciones) {
 // para dárselos a quien solo necesita ese (p. ej. el manual del fotógrafo). Mismo estilo, sin menú ni
 // índice; los apartados del documento hacen de índice.
 const SUELTOS = ['manual-del-fotografo'];
+const EN_LA_APLICACION = ['manual-del-fotografo'];
 for (const id of SUELTOS) {
   const seccion = secciones.find((s) => s.documentos.some((d) => d.id === id));
   if (!seccion) throw new Error(`No existe el documento ${id}, que debe publicarse en su propia página.`);
@@ -387,4 +400,10 @@ ${estilos}
 `;
   writeFileSync(path.join(docs, `${id}.html`), pagina);
   console.log(`docs/${id}.html generado (página suelta de "${d.titulo}").`);
+  if (EN_LA_APLICACION.includes(id)) {
+    const ayuda = path.join(docs, '..', 'frontend', 'public', 'ayuda');
+    mkdirSync(ayuda, { recursive: true });
+    writeFileSync(path.join(ayuda, `${id}.html`), pagina);
+    console.log(`frontend/public/ayuda/${id}.html generado (se muestra en la aplicación).`);
+  }
 }

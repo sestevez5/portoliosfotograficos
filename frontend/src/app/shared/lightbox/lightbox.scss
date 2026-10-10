@@ -26,7 +26,21 @@
     width: auto;
     object-fit: contain;
   }
+}
 
+// "Con marco" (data-marco="con" en <html>, core/services/marco.ts): un borde del color opuesto al
+// fondo, algo más grueso que en las miniaturas y proporcional a la pantalla. Se descuenta del tamaño
+// máximo para que la foto con su marco quepa igual.
+$marco-visor: clamp(0.25rem, 0.6vmin, 0.5rem);
+
+:host-context([data-marco='con']) .lightbox__content img {
+  box-sizing: content-box;
+  max-width: calc(100% - 2 * #{$marco-visor});
+  max-height: calc(90vh - 2 * #{$marco-visor});
+  border: $marco-visor solid var(--color-marco);
+}
+
+.lightbox__content {
   figcaption {
     color: var(--color-text-muted);
     font-size: 0.875rem;

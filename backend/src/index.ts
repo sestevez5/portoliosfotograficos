@@ -5,7 +5,7 @@ import { fotosDir } from './config/rutas.js';
 import { gestionarErrores } from './gestionar-errores.js';
 import { soloFotosVisibles } from './routes/fotos-visibles.routes.js';
 import { servirMiniaturas, tipoAvif } from './routes/miniaturas.routes.js';
-import { borrarAnchosObsoletos } from './services/miniatura.service.js';
+import { borrarAnchosObsoletos, generarMiniaturasPendientes } from './services/miniatura.service.js';
 
 const PORT = process.env.PORT ?? 3000;
 
@@ -25,4 +25,6 @@ app.use(gestionarErrores);
 
 app.listen(PORT, () => {
   console.log(`API del portfolio escuchando en http://localhost:${PORT}`);
+  // En segundo plano: la API ya responde mientras tanto.
+  void generarMiniaturasPendientes();
 });

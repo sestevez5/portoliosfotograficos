@@ -1,11 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { FotografoDetalle, PortfolioResumen, ReglaNegocioIncumplida, nombreCompleto } from '../../core/models/catalogo.model';
+import { FotografoDetalle, PortfolioResumen, Visibilidad, ReglaNegocioIncumplida, nombreCompleto } from '../../core/models/catalogo.model';
 import { CatalogoService } from '../../core/services/catalogo';
 import { OrdenPorArrastre } from '../../shared/orden-arrastre/orden-arrastre';
 import { FotoReducida } from '../../shared/foto-reducida/foto-reducida';
-import { OjoVisibilidad } from '../../shared/visibilidad/ojo-visibilidad';
+import { SelectorVisibilidad } from '../../shared/visibilidad/selector-visibilidad';
 
 // "Gestionar portfolios" de un fotógrafo, para él mismo (/gestion/:fotografo/portfolios/ordenar): sus
 // portfolios en una cuadrícula, que se ordenan arrastrándolos al lugar que deben ocupar, igual que
@@ -13,7 +13,7 @@ import { OjoVisibilidad } from '../../shared/visibilidad/ojo-visibilidad';
 // vuelve al anterior. El ojo de cada portfolio indica si lo ven los demás usuarios (pulsarlo lo
 // oculta, con todas sus colecciones, o lo muestra).
 @Component({
-  imports: [RouterLink, FotoReducida, OjoVisibilidad],
+  imports: [RouterLink, FotoReducida, SelectorVisibilidad],
   selector: 'app-portfolio-orden',
   styleUrl: './portfolio-orden.scss',
   templateUrl: './portfolio-orden.html',
@@ -68,17 +68,20 @@ export class PortfolioOrden {
     });
   }
 
-  protected cambiarVisibilidad(portfolio: PortfolioResumen, visible: boolean): void {
-    const poner = (valor: boolean) =>
-      this.portfolios.update((lista) => lista.map((p) => (p.nombreNormalizado === portfolio.nombreNormalizado ? { ...p, visible: valor } : p)));
-    poner(visible); // se marca ya; si no se puede guardar, vuelve a como estaba
+  protected cambiarVisibilidad(portfolio: PortfolioResumen, visibilidad: Visibilidad): void {
+    const antes = portfolio.visibilidad;
+    const poner = (valor: Visibilidad) =>
+      this.portfolios.update((lista) =>
+        lista.map((p) => (p.nombreNormalizado === portfolio.nombreNormalizado ? { ...p, visibilidad: valor, visible: valor !== 'oculto' } : p)),
+      );
+    poner(visibilidad); // se marca ya; si no se puede guardar, vuelve a como estaba
     this.cambiandoVisibilidad.set(true);
     this.aviso.set(null);
-    this.catalogoService.cambiarVisibilidadPortfolio(this.fotografoSegmento, portfolio.nombreNormalizado, visible).subscribe({
+    this.catalogoService.cambiarVisibilidadPortfolio(this.fotografoSegmento, portfolio.nombreNormalizado, visibilidad).subscribe({
       next: () => this.cambiandoVisibilidad.set(false),
       error: (respuesta: HttpErrorResponse) => {
         this.cambiandoVisibilidad.set(false);
-        poner(!visible);
+        poner(antes);
         this.aviso.set({
           titulo: 'No se ha podido cambiar la visibilidad',
           mensaje: mensajeDeError(respuesta, 'No se ha podido cambiar la visibilidad del portfolio.'),

@@ -73,8 +73,11 @@
     flex-wrap: wrap;
   }
 
+  // En pantallas estrechas los controles (tema, marco, sesión, "?") bajan a otra línea si no caben.
   .barra-sesion__derecha {
-    gap: var(--space-2);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-1) var(--space-2);
   }
 
   .brand {

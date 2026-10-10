@@ -8,10 +8,12 @@ import { normalizarNombre } from '../utils/normalizar-nombre';
 // codificación %C3%B1 de la "ñ" con mayúsculas.
 export const urlCanonica: CanActivateFn = (_route, state) => {
   const router = inject(Router);
-  const segmentos = (router.parseUrl(state.url).root.children[PRIMARY_OUTLET]?.segments ?? []).map((s) => s.path);
+  const url = router.parseUrl(state.url);
+  const segmentos = (url.root.children[PRIMARY_OUTLET]?.segments ?? []).map((s) => s.path);
   const canonicos = segmentos.map(normalizarNombre);
   if (canonicos.every((s, i) => s === segmentos[i])) {
     return true;
   }
-  return router.createUrlTree(['/', ...canonicos]);
+  // Conserva los parámetros de consulta (p. ej. ?limpia=true, la vista limpia).
+  return router.createUrlTree(['/', ...canonicos], { queryParams: url.queryParams });
 };

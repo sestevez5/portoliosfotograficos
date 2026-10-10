@@ -1,18 +1,24 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { SinSesion } from '../errores.js';
 import {
+  cambiarContrasenya,
+  cambiarNombreUsuario,
+  eliminarOtrasSesiones,
   eliminarSesion,
+  enTransaccion,
   guardarTemaPreferido,
   idUsuarioDeSesion,
   insertarSesion,
   obtenerPerfil,
   obtenerUsuarioSesion,
+  passwordHashDe,
   registrarAcceso,
   usuarioParaIniciarSesion,
+  validar,
 } from '../db/catalogo.repository.js';
 import { enOperacion, exigir } from '../reglas/index.js';
-import type { Perfil, Preferencias, UsuarioSesion } from '../types/catalogo.js';
-import { verificarContrasenya } from '../utils/contrasenya.js';
+import type { CuentaEdicion, Perfil, Preferencias, UsuarioSesion } from '../types/catalogo.js';
+import { hashContrasenya, verificarContrasenya } from '../utils/contrasenya.js';
 import { urlFotoPerfil } from './foto-perfil.service.js';
 
 // Sesiones: al iniciar sesión se genera un token aleatorio que el navegador guarda en una cookie
@@ -79,7 +85,7 @@ export function cerrarSesion(token: string | undefined): void {
   }
 }
 
-// Para lo que solo tiene sentido con la sesión iniciada ("Mi perfil", "Configuración"): el
+// Para lo que solo tiene sentido con la sesión iniciada ("Mi perfil", "Editar cuenta"): el
 // idUsuario de la sesión, o SinSesion (401) si no hay.
 function exigirSesion(token: string | undefined): number {
   const idUsuario = token ? idUsuarioDeSesion(hashToken(token)) : undefined;
@@ -119,7 +125,44 @@ export function perfilDeSesion(token: string | undefined): Perfil {
   } as Perfil;
 }
 
-// "Configuración": el tema que prefiere el usuario de la sesión (null = sin preferencia).
+// El tema que prefiere el usuario de la sesión (null = sin preferencia); PUT /api/perfil/preferencias.
 export function guardarPreferencias(token: string | undefined, preferencias: Preferencias): void {
   guardarTemaPreferido(exigirSesion(token), preferencias.temaPreferido);
+}
+
+// "Editar cuenta" ("Mi perfil"): el nombre de usuario (se guarda en minúsculas, con las mismas reglas
+// que al registrarse), las preferencias y, si se indica (cuenta.contrasenya), la contraseña del
+// usuario de la sesión. Todo se valida antes y se guarda junto, en una transacción: o todo o nada. El
+// nombre del administrador no se puede cambiar: es el usuario especial "admin".
+//
+// La contraseña exige la actual y una nueva válida y distinta. Al cambiarla se cierran las demás
+// sesiones del usuario (otros navegadores), por si la cambia porque alguien la conocía; la de quien la
+// cambia sigue abierta.
+export function editarCuenta(token: string | undefined, cuenta: CuentaEdicion): void {
+  const idUsuario = exigirSesion(token);
+  const actual = obtenerPerfil(idUsuario)!;
+  const usuario = cuenta.usuario.trim().toLowerCase();
+  const { contrasenya } = cuenta;
+  enOperacion('EDITAR_CUENTA', { usuario: actual.usuario }, () => {
+    exigir(usuario !== '', 'USUARIO_OBLIGATORIO');
+    exigir(actual.rol !== 'administrador' || usuario === actual.usuario, 'USUARIO_ADMINISTRADOR_NO_RENOMBRABLE', {
+      usuario: actual.usuario,
+    });
+    validar.usuario({ usuario }, idUsuario);
+    if (contrasenya) {
+      const hash = passwordHashDe(idUsuario);
+      exigir(!!hash && verificarContrasenya(contrasenya.contrasenyaActual, hash), 'USUARIO_CONTRASENYA_ACTUAL_INCORRECTA');
+      exigir(contrasenya.contrasenyaNueva !== '', 'USUARIO_CONTRASENYA_OBLIGATORIA');
+      validar.usuario({ contrasenya: contrasenya.contrasenyaNueva });
+      exigir(contrasenya.contrasenyaNueva !== contrasenya.contrasenyaActual, 'USUARIO_CONTRASENYA_REPETIDA');
+    }
+  });
+  enTransaccion(() => {
+    cambiarNombreUsuario(idUsuario, usuario);
+    guardarTemaPreferido(idUsuario, cuenta.temaPreferido);
+    if (contrasenya) {
+      cambiarContrasenya(idUsuario, hashContrasenya(contrasenya.contrasenyaNueva));
+      eliminarOtrasSesiones(idUsuario, hashToken(token!));
+    }
+  });
 }

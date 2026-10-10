@@ -6,10 +6,12 @@
     @if (colecciones().length && !portada()) {
       <p>Marca con la estrella la colección cuya portada será la del portfolio. Mientras no elijas ninguna, es la primera.</p>
     }
-    @if (!p.visible) {
+    @if (p.visibilidad === 'oculto') {
       <p>Este portfolio está oculto: los demás usuarios tampoco ven sus colecciones, aunque estén visibles.</p>
+    } @else if (p.visibilidad === 'bloqueado') {
+      <p>Este portfolio está bloqueado: los demás usuarios lo ven, pero no pueden entrar en él ni en sus colecciones, aunque estén visibles.</p>
     } @else if (colecciones().length) {
-      <p>El ojo de cada colección indica si la puede ver cualquiera; púlsalo para ocultarla a los demás usuarios.</p>
+      <p>Elige qué ven los demás usuarios de cada colección: el ojo, que cualquiera la vea y entre; el candado, que la vean pero no puedan entrar; el ojo tachado, que no la vean.</p>
     }
     @if (colecciones().length > 1) {
       <p>Arrastra cada colección al lugar que quieres que ocupe. El orden se guarda al soltarla.</p>
@@ -34,7 +36,7 @@
     @for (coleccion of colecciones(); track coleccion.nombreNormalizado; let i = $index) {
       <figure
         class="tarjeta"
-        [class.tarjeta--oculta]="!coleccion.visible"
+        [class.tarjeta--oculta]="coleccion.visibilidad === 'oculto'"
         [class.tarjeta--arrastrada]="orden.arrastrado() === coleccion.nombreNormalizado"
         [class.tarjeta--ordenable]="puedeOrdenar()"
         [attr.draggable]="puedeOrdenar()"
@@ -70,9 +72,9 @@
             <span class="tarjeta__nombre" [title]="coleccion.nombre">{{ coleccion.nombre }}</span>
             <span class="tarjeta__meta">{{ coleccion.photoCount }} {{ coleccion.photoCount === 1 ? 'foto' : 'fotos' }}</span>
           </span>
-          <!-- Ojo: tachado si la colección está oculta a los demás usuarios; pulsarlo lo cambia. -->
-          <app-ojo-visibilidad
-            [visible]="coleccion.visible"
+          <!-- Visibilidad para los demás usuarios: visible (ojo), bloqueado (candado) u oculto (ojo tachado). -->
+          <app-selector-visibilidad
+            [visibilidad]="coleccion.visibilidad"
             [nombre]="coleccion.nombre"
             [desactivado]="cambiandoVisibilidad()"
             (cambiar)="cambiarVisibilidad(coleccion, $event)"

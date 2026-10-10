@@ -1,11 +1,17 @@
 # Instalación en un NAS UGREEN
 
 Guía paso a paso para instalar, actualizar y mantener la aplicación en un NAS UGREEN con UGOS Pro y Docker. Para
-quien administra el NAS: no hace falta el código fuente ni saber programar, pero sí entrar por SSH y escribir
-algunos comandos.
+quien administra el NAS: no hace falta el código fuente ni saber programar. Se puede instalar de dos formas:
+
+- **Con la interfaz de la aplicación Docker de UGOS Pro** (apartado "Instalación con la aplicación Docker"): todo
+  desde el navegador, sin escribir comandos.
+- **Por SSH** (apartado "Instalación por SSH"): con algunos comandos en una terminal. Es la forma que se usa en el
+  resto de la guía para las tareas de mantenimiento menos habituales.
+
+Las dos dejan la aplicación igual y se pueden combinar: lo instalado con una se puede gestionar después con la otra.
 
 Corresponde a la versión 2.3.1 de la aplicación, a 7 de octubre de 2026. Para una instalación nueva bastan los
-apartados "Requisitos", "Estructura de carpetas" e "Instalación"; los apartados "Pasar a la carpeta contenido",
+apartados "Requisitos", "Estructura de carpetas", uno de los dos de instalación y "Primer uso"; los apartados "Pasar a la carpeta contenido",
 "Pasar del volumen interno a la carpeta del NAS" y "Convertir las fotos a AVIF" son solo para instalaciones hechas
 con versiones anteriores.
 
@@ -31,8 +37,8 @@ Las imágenes se publican para procesadores x86-64 (Intel/AMD), que es lo que ll
 - NAS UGREEN con UGOS Pro y un volumen de almacenamiento creado (en esta guía, `/volume1`).
 - Una cuenta de administrador del NAS.
 - La aplicación **Docker** instalada desde el Centro de aplicaciones de UGOS Pro.
-- Un ordenador en la misma red, con un cliente SSH (en Windows, la terminal o PowerShell ya lo traen: comando
-  `ssh`).
+- Un ordenador en la misma red, con un navegador. Solo para la instalación por SSH, además, un cliente SSH (en
+  Windows, la terminal o PowerShell ya lo traen: comando `ssh`).
 - Si las imágenes de GHCR son privadas, un token de GitHub con el permiso `read:packages` (ver "Acceso a las
   imágenes").
 
@@ -55,7 +61,113 @@ Las dos tienen que poder escribirse desde el contenedor: la aplicación crea, re
 escribe la base de datos y las miniaturas. El backend se ejecuta como `root` dentro del contenedor, así que basta con
 crearlas como se indica abajo.
 
-## Instalación
+## Instalación con la aplicación Docker
+
+Todo se hace desde UGOS Pro, en el navegador. Los nombres de los menús pueden variar un poco según la versión de
+UGOS Pro y de su aplicación Docker.
+
+### 1. Crear las carpetas
+
+1. Abre el **Gestor de archivos** de UGOS Pro y entra en la carpeta compartida `docker`.
+2. Crea la carpeta `portfolio-fotografico`; dentro de ella, la carpeta `contenido`, y dentro de `contenido`, las
+   carpetas `fotos` y `datos`.
+
+Debe quedar como en "Estructura de carpetas": `docker/portfolio-fotografico/contenido/fotos` y
+`docker/portfolio-fotografico/contenido/datos`.
+
+### 2. Acceso a las imágenes
+
+Si los paquetes de GHCR son públicos, sáltate este paso. Si son privados:
+
+1. En GitHub, crea un token clásico (**Settings → Developer settings → Personal access tokens**) con el permiso
+   `read:packages`.
+2. En la aplicación Docker, busca la configuración de los registros de imágenes (en **Imagen** o en
+   **Configuración**, según la versión) y añade el registro `ghcr.io` con tu usuario de GitHub como usuario y el
+   token como contraseña.
+
+Si tu versión de la aplicación Docker no permite añadir registros con credenciales, haz este paso una sola vez por
+SSH (pasos 1 y 4 de "Instalación por SSH") y sigue después con la interfaz.
+
+### 3. Crear el proyecto
+
+En la aplicación Docker, abre **Proyecto** y pulsa **Crear**. Rellena:
+
+1. **Nombre del proyecto**: `portfolio-fotografico` (solo minúsculas, números y guiones).
+2. **Ruta de almacenamiento**: la carpeta `docker/portfolio-fotografico` creada en el paso 1. Ahí guarda la
+   aplicación Docker el fichero `docker-compose.yml` del proyecto.
+3. **Configuración de Compose**: elige escribirla (o pegarla) y copia este contenido completo.
+
+```
+services:
+  backend:
+    image: ghcr.io/sestevez5/portoliosfotograficos-backend:latest
+    restart: unless-stopped
+    volumes:
+      - /volume1/docker/portfolio-fotografico/contenido/fotos:/app/fotos
+      - /volume1/docker/portfolio-fotografico/contenido/datos:/app/datos
+    networks:
+      - portfolio
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/tags"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  frontend:
+    image: ghcr.io/sestevez5/portoliosfotograficos-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - portfolio
+
+networks:
+  portfolio:
+```
+
+Es el `docker-compose.yml` del repositorio con las rutas y el puerto ya escritos, en lugar de tomarlos del fichero
+`.env`, que la interfaz no siempre permite crear ni editar. Ajústalo si hace falta:
+
+- Si tu volumen no es `volume1` o la carpeta del proyecto se llama de otra forma, cambia las dos rutas de `volumes`:
+  solo la parte de la izquierda de los dos puntos; la de la derecha (`/app/fotos` y `/app/datos`) no se toca.
+- Si el puerto 8080 está ocupado en el NAS, cambia el primer `8080` de `ports` por otro libre.
+- Respeta los espacios del principio de cada línea: en este formato son significativos.
+
+Por último, pulsa **Implementar** (o **Aceptar** y después **Iniciar**). La aplicación Docker descarga las dos
+imágenes y crea y arranca los contenedores; la primera vez tarda unos minutos.
+
+### 4. Comprobar que está en marcha
+
+1. En **Proyecto**, `portfolio-fotografico` debe aparecer en ejecución.
+2. En **Contenedor** aparecen sus dos contenedores (`portfolio-fotografico-backend-1` y
+   `portfolio-fotografico-frontend-1`), los dos en marcha. Si alguno se para o se reinicia una y otra vez, ábrelo y
+   mira su registro (ver "Problemas frecuentes").
+
+Los contenedores llevan `restart: unless-stopped`: vuelven a arrancar solos al reiniciar el NAS. Sigue con "Primer
+uso".
+
+### Equivalencias con los comandos
+
+El resto de la guía indica las tareas de mantenimiento con comandos (`sudo docker compose …`, que se escriben por
+SSH en la carpeta del proyecto). Las más habituales también se hacen desde la aplicación Docker:
+
+| Comando | En la aplicación Docker |
+|---|---|
+| `sudo docker compose ps` | **Proyecto** o **Contenedor**: estado de cada contenedor. |
+| `sudo docker compose logs backend` | **Contenedor** → `portfolio-fotografico-backend-1` → registro. |
+| `sudo docker compose stop backend` / `start backend` | **Contenedor** → `portfolio-fotografico-backend-1` → detener / iniciar. |
+| `sudo docker compose down` / `up -d` | **Proyecto** → `portfolio-fotografico` → detener / iniciar. |
+| `sudo docker compose exec backend <comando>` | **Contenedor** → `portfolio-fotografico-backend-1` → **Terminal**: abre una terminal dentro del contenedor, ya en su carpeta `/app`, donde se escribe `<comando>` tal cual. |
+| `sudo docker compose pull` y `up -d` | Ver "Actualizar a una versión nueva". |
+
+Lo que copia ficheros entre el contenedor y el NAS (`docker compose cp`) no tiene equivalente en la interfaz: hazlo
+por SSH.
+
+## Instalación por SSH
 
 ### 1. Activar SSH
 
@@ -112,9 +224,9 @@ Si `docker compose` no existe, prueba con `docker-compose` (versión antigua del
 
 Los contenedores llevan `restart: unless-stopped`: vuelven a arrancar solos al reiniciar el NAS. Una vez creados,
 también aparecen en la aplicación Docker de UGOS Pro, desde donde se pueden ver, parar, arrancar y consultar sus
-registros.
+registros (ver "Equivalencias con los comandos").
 
-### 6. Primer uso
+## Primer uso
 
 1. Abre `http://<ip-del-nas>:8080` (o el puerto que hayas puesto en `FRONTEND_PORT`).
 2. La primera vez la web muestra la bienvenida del administrador: entra con el usuario `admin` y la contraseña
@@ -127,13 +239,22 @@ Cada versión publicada en `main` genera imágenes nuevas con la etiqueta `lates
 
 1. Lee la entrada de la versión en `CHANGELOG.md`, sobre todo sus **Notas de despliegue**.
 2. Haz una copia de seguridad (ver abajo).
-3. En la carpeta del proyecto: `sudo docker compose pull` y después `sudo docker compose up -d`.
+3. Descarga las imágenes nuevas y vuelve a crear los contenedores, por SSH o con la aplicación Docker (ver abajo).
+
+**Por SSH**, en la carpeta del proyecto: `sudo docker compose pull` y después `sudo docker compose up -d`.
+
+**Con la aplicación Docker**: en **Proyecto**, detén `portfolio-fotografico`; en **Imagen**, descarga de nuevo las
+dos imágenes con la etiqueta `latest` (o usa la opción de actualizar la imagen, si la tiene), y vuelve a implementar
+o iniciar el proyecto. Si tu versión ofrece **Reconstruir** en el proyecto, hace las tres cosas de una vez. Comprueba
+en **Contenedor** que los contenedores se han creado de nuevo (su fecha de creación es la de ahora): si no, siguen
+con la versión anterior.
 
 Los datos se conservan: están en las carpetas del NAS, no en los contenedores. Si la versión cambia el esquema de la
 base de datos, la migración se aplica sola al arrancar el `backend`.
 
 Si una versión trae cambios en `docker-compose.yml` o en las variables de `.env`, sus notas de despliegue lo dicen:
-copia el `docker-compose.yml` nuevo antes de `pull`.
+copia el `docker-compose.yml` nuevo antes de `pull`. Si instalaste con la aplicación Docker, edita la configuración
+de Compose del proyecto con esos cambios antes de volver a implementarlo, conservando tus rutas y tu puerto.
 
 ## Convertir las fotos a AVIF (desde la versión con fotos en AVIF)
 
@@ -142,6 +263,9 @@ siguen en su formato hasta que se convierten. La conversión **borra las origina
 seguridad (ver abajo) y después, en la carpeta del proyecto:
 
 1. `sudo docker compose exec backend node dist/scripts/convertir-fotos.js`
+
+Con la aplicación Docker, abre la **Terminal** del contenedor `portfolio-fotografico-backend-1` y escribe
+`node dist/scripts/convertir-fotos.js`.
 
 Tarda unos segundos por foto y al final muestra cuánto ocupaban antes y cuánto ahora. Se puede hacer con la aplicación
 en marcha y, si se interrumpe, basta con repetirlo: solo convierte las que faltan.
@@ -156,7 +280,8 @@ en marcha y, si se interrumpe, basta con repetirlo: solo convierte las que falta
   carpeta `contenido` entera y vuelve a arrancarlo (`sudo docker compose start backend`).
 - **Copia en caliente solo de la base de datos**:
   `sudo docker compose exec backend node -e "require('better-sqlite3')('datos/BD/portfolio.db').backup('datos/BD/copia.db').then(() => console.log('ok'))"`
-  deja la copia en `contenido/datos/BD/copia.db`, visible en el NAS.
+  deja la copia en `contenido/datos/BD/copia.db`, visible en el NAS. En la **Terminal** del contenedor del backend
+  de la aplicación Docker se escribe lo mismo, sin `sudo docker compose exec backend`.
 
 Las miniaturas (`contenido/datos/miniaturas/`) y los logos no hace falta guardarlos: se regeneran solos cuando se piden.
 
@@ -209,10 +334,11 @@ proyecto; `sudo docker volume ls` lo muestra).
 
 | Síntoma | Causa probable y solución |
 |---|---|
-| `Falta FOTOS_PATH en .env` al arrancar | El `.env` no está en la carpeta desde la que se ejecuta `docker compose`, o le falta la variable. |
-| `denied` o `unauthorized` al hacer `pull` | Las imágenes son privadas: haz `sudo docker login ghcr.io` con un token con `read:packages`. |
-| El puerto ya está en uso | Otro servicio del NAS usa `FRONTEND_PORT`: cambia el valor en `.env` y repite `sudo docker compose up -d`. |
-| El `backend` no llega a `healthy` | Mira su registro: `sudo docker compose logs backend`. Si dice que la base de datos es de otra versión, se ha cargado una BD anterior a la versión 15 del esquema o de una versión más nueva de la aplicación. |
+| `Falta FOTOS_PATH en .env` al arrancar | El `.env` no está en la carpeta desde la que se ejecuta `docker compose`, o le falta la variable. Con la aplicación Docker, usa la configuración de Compose de "Instalación con la aplicación Docker", que lleva las rutas escritas. |
+| La aplicación Docker no acepta la configuración de Compose | Revisa los espacios del principio de cada línea: tienen que ser espacios (no tabuladores) y estar alineados como en la guía. |
+| `denied` o `unauthorized` al hacer `pull` o al implementar el proyecto | Las imágenes son privadas: haz `sudo docker login ghcr.io` con un token con `read:packages`, o añade el registro `ghcr.io` con ese token en la aplicación Docker. |
+| El puerto ya está en uso | Otro servicio del NAS usa `FRONTEND_PORT`: cambia el valor en `.env` y repite `sudo docker compose up -d` (con la aplicación Docker, cambia el puerto en la configuración de Compose y vuelve a implementar el proyecto). |
+| El `backend` no llega a `healthy` | Mira su registro: `sudo docker compose logs backend` (o su registro en la aplicación Docker). Si dice que la base de datos es de otra versión, se ha cargado una BD anterior a la versión 15 del esquema o de una versión más nueva de la aplicación. |
 | La web carga pero las fotos no se ven | Las carpetas de `fotos/` no coinciden con los nombres de la base de datos (fotógrafo, portfolio y colección normalizados). Al arrancar, el registro del backend avisa de los fotógrafos sin carpeta. |
 | Error al subir fotos o al crear portfolios | La carpeta de fotos no se puede escribir desde el contenedor: revisa sus permisos en UGOS Pro. |
 

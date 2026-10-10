@@ -4,6 +4,7 @@ import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
+import exifReader from 'exif-reader';
 import express from 'express';
 import sharp from 'sharp';
 
@@ -237,8 +238,8 @@ test('convertir las fotos guardadas antes en su formato original: pasan a AVIF y
   // Una foto antigua, en JPEG, y otra con el mismo nombre en PNG: la segunda se queda con "-2".
   writeFileSync(path.join(carpeta, 'antigua.jpg'), await sharp({ create: { width: 5000, height: 2500, channels: 3, background: '#a08060' } }).jpeg().toBuffer());
   writeFileSync(path.join(carpeta, 'antigua.png'), await png(20, 10));
-  insertarFoto(idColeccion, { nombreFichero: 'antigua.jpg', ancho: 5000, alto: 2500 });
-  insertarFoto(idColeccion, { nombreFichero: 'antigua.png', ancho: 20, alto: 10 });
+  insertarFoto(idColeccion, { nombreFichero: 'antigua.jpg', ancho: 5000, alto: 2500, metadatos: null });
+  insertarFoto(idColeccion, { nombreFichero: 'antigua.png', ancho: 20, alto: 10, metadatos: null });
 
   const pendientes = listarFotosSinConvertir();
   assert.deepEqual(pendientes.map((foto) => foto.nombreFichero), ['antigua.jpg', 'antigua.png']);
@@ -254,4 +255,28 @@ test('convertir las fotos guardadas antes en su formato original: pasan a AVIF y
   assert.ok(!existsSync(path.join(carpeta, 'antigua.png')));
   const { width, height, format } = await sharp(path.join(carpeta, 'antigua.avif')).metadata();
   assert.deepEqual({ width, height, format }, { width: 3840, height: 1920, format: 'heif' });
+});
+
+test('una foto con EXIF lo conserva en el fichero (sin la ubicación) y la API da su resumen', async () => {
+  const jpeg = await sharp({ create: { width: 120, height: 80, channels: 3, background: '#406080' } })
+    .withExif({
+      IFD0: { Make: 'Canon', Model: 'Canon EOS R5' },
+      IFD2: { ExposureTime: '1/60', FNumber: '4/1', ISOSpeedRatings: '1600', DateTimeOriginal: '2026:01:02 20:15:00' },
+      IFD3: { GPSLatitudeRef: 'N', GPSLatitude: '40/1 25/1 0/1' },
+    })
+    .jpeg()
+    .toBuffer();
+  const respuesta = await subir('noche.jpg', jpeg, 'image/jpeg');
+  assert.equal(respuesta.status, 201);
+  const resumen = { camara: 'Canon EOS R5', apertura: 4, exposicion: '1/60 s', iso: 1600, fechaToma: '2026-01-02T20:15:00' };
+  assert.deepEqual((await respuesta.json()).metadatos, resumen);
+  const enLaColeccion = (await fotosDeLaColeccion()).find((foto) => foto.nombreFichero === 'noche.avif') as { metadatos?: unknown };
+  assert.deepEqual(enLaColeccion.metadatos, resumen);
+
+  // En el fichero, el EXIF sin la ubicación; en la BD, completo.
+  const exif = exifReader((await sharp(path.join(carpeta, 'noche.avif')).metadata()).exif!);
+  assert.equal(exif.Image?.Model, 'Canon EOS R5');
+  assert.deepEqual(exif.GPSInfo ?? {}, {});
+  const { metadatos } = db.prepare("SELECT metadatos FROM fotos WHERE nombreFichero = 'noche.avif'").get() as { metadatos: string };
+  assert.deepEqual(JSON.parse(metadatos).GPSInfo.GPSLatitude, [40, 25, 0]);
 });

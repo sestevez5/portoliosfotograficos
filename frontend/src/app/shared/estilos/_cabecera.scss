@@ -3,6 +3,9 @@
 // desvanece en los extremos, separándola de su contenido (portfolios, colecciones o fotos). Se incluye con
 // @use '../../shared/estilos/cabecera' en el SCSS de cada página (los estilos siguen siendo locales
 // al componente).
+// Tamaño del título (h1) de la cabecera.
+$tamanyo-titulo: clamp(2.5rem, 5vw, 3.75rem);
+
 .cabecera {
   position: relative;
   display: flex;
@@ -31,8 +34,23 @@
   }
 
   h1 {
-    font-size: clamp(2.5rem, 5vw, 3.75rem);
+    font-size: $tamanyo-titulo;
     line-height: 1.05;
+  }
+}
+
+// El título con, a su derecha, el icono de compartir (shared/compartir/).
+.cabecera__titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+
+  // Centrado con el texto a la vista: entre el centro de las mayúsculas (donde lo deja el centrado
+  // de flex) y el de las minúsculas, que en Cormorant está un 12 % del tamaño de letra más abajo.
+  app-compartir {
+    flex-shrink: 0;
+    transform: translateY(calc(#{$tamanyo-titulo} * 0.06));
   }
 }
 

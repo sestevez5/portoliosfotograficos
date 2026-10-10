@@ -28,16 +28,17 @@ export const routes: Routes = [
         loadComponent: () => import('./features/fotografo-form/fotografo-form').then((m) => m.FotografoForm),
       },
       // Páginas del usuario con la sesión iniciada (menú del usuario). Sin sesión, a la portada.
-      // "perfil" y "configuracion" están reservados igual que "admin".
+      // "perfil" está reservado igual que "admin".
       {
         path: 'perfil',
         canActivate: [conSesion],
         loadComponent: () => import('./features/perfil/perfil').then((m) => m.Perfil),
       },
+      // "Editar cuenta", desde "Mi perfil": usuario, preferencias y contraseña.
       {
-        path: 'configuracion',
+        path: 'perfil/cuenta',
         canActivate: [conSesion],
-        loadComponent: () => import('./features/configuracion/configuracion').then((m) => m.Configuracion),
+        loadComponent: () => import('./features/cuenta-form/cuenta-form').then((m) => m.CuentaForm),
       },
       // Rutas de administración: antes que las de parámetros. "admin" está reservado en el backend
       // (ningún fotógrafo puede tener esa dirección).
@@ -98,21 +99,25 @@ export const routes: Routes = [
         canActivate: [urlCanonica, puedeGestionarFotografo],
         loadComponent: () => import('./features/coleccion-fotos/coleccion-fotos').then((m) => m.ColeccionFotos),
       },
+      // Páginas del catálogo: admiten la vista limpia (?limpia=true; ver core/services/vista-limpia.ts).
       {
         path: ':fotografo',
         canActivate: [urlCanonica],
+        data: { admiteVistaLimpia: true },
         pathMatch: 'full',
         loadComponent: () => import('./features/portfolio-list/portfolio-list').then((m) => m.PortfolioList),
       },
       {
         path: ':fotografo/:portfolio',
         canActivate: [urlCanonica],
+        data: { admiteVistaLimpia: true },
         pathMatch: 'full',
         loadComponent: () => import('./features/coleccion-list/coleccion-list').then((m) => m.ColeccionList),
       },
       {
         path: ':fotografo/:portfolio/:coleccion',
         canActivate: [urlCanonica],
+        data: { admiteVistaLimpia: true },
         loadComponent: () => import('./features/coleccion-detail/coleccion-detail').then((m) => m.ColeccionDetail),
       },
       {
