@@ -1,7 +1,7 @@
 {
   "name": "portfolio-backend",
-  "version": "2.3.1",
-  "fechaVersion": "2026-10-07",
+  "version": "2.4.0",
+  "fechaVersion": "2026-10-10",
   "author": "Santi Estévez",
   "private": true,
   "type": "module",
