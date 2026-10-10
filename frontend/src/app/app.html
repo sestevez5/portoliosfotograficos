@@ -1,19 +1,34 @@
 <div class="site">
-  <!-- Franja superior estrecha: la marca a la izquierda; el tema y la sesión del usuario a la derecha. -->
-  <div class="barra-sesion">
-    <a class="brand" routerLink="/">Portfolios fotográficos<span>.</span></a>
-    <div class="barra-sesion__derecha">
-      <app-selector-tema />
-      <app-usuario-sesion />
+  <!-- Franja superior estrecha: la marca a la izquierda; el tema y la sesión del usuario a la derecha.
+       No se muestra en la vista limpia. -->
+  @if (!vistaLimpia()) {
+    <div class="barra-sesion">
+      <a class="brand" routerLink="/">Portfolios fotográficos<span>.</span></a>
+      <div class="barra-sesion__derecha">
+        <app-selector-tema />
+        <!-- El marco de las fotos solo tiene sentido en la página de una colección. -->
+        @if (enColeccion()) {
+          <app-selector-marco />
+        }
+        <app-usuario-sesion />
+        <app-acerca-de />
+      </div>
     </div>
-  </div>
+  }
 
-  <!-- Cabecera con el logo del fotógrafo de la página (solo si lo hay). -->
+  <!-- Cabecera con el logo del fotógrafo de la página (solo si lo hay). En la vista limpia el logo
+       no enlaza con su página. -->
   @if (fotografo(); as f) {
     <header class="site-header">
-      <a class="fotografo" [routerLink]="['/', f.nombreInformalNormalizado]">
-        <img class="fotografo__logo" [src]="f.logoUrl" [alt]="nombreCompleto(f)" />
-      </a>
+      @if (vistaLimpia()) {
+        <span class="fotografo">
+          <img class="fotografo__logo" [src]="f.logoUrl" [alt]="nombreCompleto(f)" />
+        </span>
+      } @else {
+        <a class="fotografo" [routerLink]="['/', f.nombreInformalNormalizado]" [queryParams]="vistas.consulta(['/', f.nombreInformalNormalizado])">
+          <img class="fotografo__logo" [src]="f.logoUrl" [alt]="nombreCompleto(f)" />
+        </a>
+      }
     </header>
   }
 

@@ -19,10 +19,10 @@ import {
 } from '../db/catalogo.repository.js';
 import { RecursoNoEncontrado } from '../errores.js';
 import { enOperacion, type CodigoOperacion, type DatosRegla } from '../reglas/index.js';
-import type { ColeccionAlta } from '../types/catalogo.js';
+import type { ColeccionAlta, Visibilidad } from '../types/catalogo.js';
 import { apartarCarpeta, renombrarCarpeta, vaciarPapelera } from '../utils/carpetas.js';
 import { normalizarNombre } from '../utils/normalizar-nombre.js';
-import { borrarMiniaturas } from './miniatura.service.js';
+import { borrarMiniaturas, moverMiniaturas } from './miniatura.service.js';
 import { cargarFotografo, cargarPortfolio, opcional, type ResultadoRenombre } from './portfolio.service.js';
 
 // Alta, edición, eliminación y cambio de nombre de colecciones, igual que los portfolios
@@ -92,7 +92,7 @@ function modificarColeccion(
     );
   });
   if (carpetaRenombrada) {
-    borrarMiniaturas(path.join(carpetaPortfolio, actual.nombreNormalizado));
+    moverMiniaturas(path.join(carpetaPortfolio, actual.nombreNormalizado), path.join(carpetaPortfolio, normalizado));
   }
 
   return {
@@ -141,12 +141,13 @@ export function cambiarPortada(fotografo: string, portfolio: string, coleccion: 
   cambiarFotoPortada(actual.idColeccion, fotos.find((foto) => foto.nombreFichero === nombreFichero)?.idFoto ?? null);
 }
 
-// Muestra u oculta una colección a los demás usuarios. Oculta, solo la ven (con sus fotos) su
-// fotógrafo y el administrador. Si su portfolio está oculto, no se ve aunque ella sea visible.
-export function cambiarVisibilidadColeccion(fotografo: string, portfolio: string, coleccion: string, visible: boolean): void {
+// Visibilidad de una colección para los demás usuarios ('visible', 'bloqueado' u 'oculto'; ver
+// "Visibilidad" en db/catalogo.repository.ts). Su fotógrafo y el administrador la ven y entran siempre.
+// Si su portfolio está oculto o bloqueado, ella también, aunque sea visible.
+export function cambiarVisibilidadColeccion(fotografo: string, portfolio: string, coleccion: string, visibilidad: Visibilidad): void {
   const { actual } = cargarColeccion(fotografo, portfolio, coleccion);
   enOperacion('CAMBIAR_VISIBILIDAD_COLECCION', { coleccion: actual.nombre, portfolio: actual.nombrePortfolio }, () =>
-    cambiarVisibilidadColeccionBD(actual.idColeccion, visible),
+    cambiarVisibilidadColeccionBD(actual.idColeccion, visibilidad),
   );
 }
 

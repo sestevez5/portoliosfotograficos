@@ -2,8 +2,8 @@ import { Service, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, shareReplay, tap } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { Credenciales, Perfil, RegistroFotografo, UsuarioSesion } from '../models/catalogo.model';
-import { Tema, TemaService } from './tema';
+import { Credenciales, CuentaEdicion, Perfil, RegistroFotografo, UsuarioSesion } from '../models/catalogo.model';
+import { TemaService } from './tema';
 
 // La logoUrl y la fotoUrl del backend son rutas relativas a la API.
 function conLogoAbsoluto<T extends { fotoUrl?: string; fotografo?: { logoUrl: string } }>(datos: T): T {
@@ -16,8 +16,8 @@ function conLogoAbsoluto<T extends { fotoUrl?: string; fotografo?: { logoUrl: st
 
 // Sesión del usuario. El token va en una cookie HttpOnly que gestiona el navegador (la página no
 // lo ve); aquí solo se sabe quién tiene la sesión iniciada. Al iniciarla se aplica su tema
-// preferido (Configuración). Todavía no se restringe nada con ella, salvo sus propias páginas
-// ("Mi perfil" y "Configuración", guard conSesion).
+// preferido ("Editar cuenta"). Todavía no se restringe nada con ella, salvo sus propias páginas
+// ("Mi perfil" y "Editar cuenta", guard conSesion).
 @Service()
 export class SesionService {
   private readonly http = inject(HttpClient);
@@ -98,15 +98,17 @@ export class SesionService {
     return this.http.get<Perfil>(`${this.baseUrl}/perfil`).pipe(map(conLogoAbsoluto));
   }
 
-  // "Configuración": guarda su tema preferido y lo aplica ya.
-  guardarTemaPreferido(tema: Tema): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/perfil/preferencias`, { temaPreferido: tema }).pipe(
+  // "Editar cuenta": su nombre de usuario, sus preferencias y, si se indica, su contraseña, todo junto
+  // (al cambiar la contraseña, el backend cierra sus demás sesiones; esta sigue abierta). Si va bien,
+  // se vuelve a consultar la sesión (el menú del usuario) y se aplica ya el tema preferido. 422 si
+  // incumple una regla.
+  editarCuenta(cuenta: CuentaEdicion): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/perfil/cuenta`, cuenta).pipe(
       tap(() => {
-        const usuario = this.usuario();
-        if (usuario) {
-          this.usuario.set({ ...usuario, temaPreferido: tema });
+        this.cargar();
+        if (cuenta.temaPreferido) {
+          this.tema.elegir(cuenta.temaPreferido);
         }
-        this.tema.elegir(tema);
       }),
     );
   }

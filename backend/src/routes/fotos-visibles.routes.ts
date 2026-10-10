@@ -30,7 +30,9 @@ export function soloFotosVisibles(req: Request, res: Response, next: NextFunctio
     res.status(404).end();
     return;
   }
-  if (c.visible === 1 && c.portfolioVisible === 1) {
+  // Solo de las colecciones en las que puede entrar cualquiera: las bloqueadas (o de un portfolio
+  // bloqueado), igual que las ocultas, solo para su fotógrafo y el administrador.
+  if (c.visibilidad === 'visible' && c.portfolioVisibilidad === 'visible') {
     next();
     return;
   }

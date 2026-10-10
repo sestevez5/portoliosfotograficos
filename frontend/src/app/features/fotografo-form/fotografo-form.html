@@ -121,16 +121,13 @@
     <small class="ayuda">Una línea sobre tu fotografía; será un texto que acompañará a tu nombre en tu página. No es obligatorio.</small>
   </div>
 
+  <!-- Solo en el alta y el registro: la contraseña se cambia en "Editar cuenta" ("Mi perfil"). -->
+  @if (!editando) {
   <div class="fila">
     <div class="campo">
       <label for="contrasenya">Contraseña{{ registro ? ' *' : '' }}</label>
       <input id="contrasenya" type="password" formControlName="contrasenya" autocomplete="new-password" />
-      <small class="ayuda">
-        Al menos {{ longitudMinima }} caracteres.
-        @if (editando) {
-          {{ tieneContrasenya() ? 'Déjala vacía para mantener la actual.' : 'Ahora no tiene contraseña.' }}
-        }
-      </small>
+      <small class="ayuda">Al menos {{ longitudMinima }} caracteres.</small>
       @if (mostrarError('contrasenya', 'required')) {
         <small class="error">Indica una contraseña.</small>
       }
@@ -146,6 +143,7 @@
       }
     </div>
   </div>
+  }
 
   <div class="acciones">
     <button type="submit" class="boton boton--principal" [disabled]="enviando() || cargando()">

@@ -1,5 +1,5 @@
 @if (fotografo(); as f) {
-  @if (desdeInicio) {
+  @if (desdeInicio && !vistaLimpia()) {
     <a class="back-link" routerLink="/">&larr; Fotógrafos</a>
   }
 
@@ -7,19 +7,28 @@
        mantenimiento a la derecha y una línea separadora que la cierra antes de sus portfolios. -->
   <header class="cabecera">
     <div class="cabecera__datos">
-      <span class="cabecera__etiqueta">
-        Fotógrafo · {{ f.portfolios.length }} {{ f.portfolios.length === 1 ? 'portfolio' : 'portfolios' }}
-      </span>
-      <h1>Portfolios de {{ nombreCompleto(f) }}</h1>
+      @if (!vistaLimpia()) {
+        <span class="cabecera__etiqueta">
+          Fotógrafo · {{ f.portfolios.length }} {{ f.portfolios.length === 1 ? 'portfolio' : 'portfolios' }}
+        </span>
+      }
+      <div class="cabecera__titulo">
+        <h1>Portfolios de {{ nombreCompleto(f) }}</h1>
+        @if (!vistaLimpia()) {
+          <app-compartir />
+        }
+      </div>
       @if (f.descripcion) {
         <p class="cabecera__descripcion descripcion-artistica" appTextoRecortado>{{ f.descripcion }}</p>
       }
     </div>
-    <app-fotografo-acciones class="cabecera__gestion" [fotografo]="f" (eliminado)="alEliminar()" />
+    @if (!vistaLimpia()) {
+      <app-fotografo-acciones class="cabecera__gestion" [fotografo]="f" (eliminado)="alEliminar()" />
+    }
   </header>
 
   <!-- Solo para quien puede gestionar lo de este fotógrafo (no se elimina: no se muestra). -->
-  @if (sesion.puedeGestionar(f.nombreInformalNormalizado)) {
+  @if (!vistaLimpia() && sesion.puedeGestionar(f.nombreInformalNormalizado)) {
     <div class="cabecera-barra">
       <a class="cabecera-barra__boton" [routerLink]="['/gestion', f.nombreInformalNormalizado, 'portfolios', 'ordenar']">Gestionar portfolios</a>
       <a class="cabecera-barra__boton" [routerLink]="['/gestion', f.nombreInformalNormalizado, 'portfolios', 'nuevo']">+ Nuevo portfolio</a>
@@ -29,34 +38,56 @@
   <section class="portfolio-grid">
     @for (portfolio of f.portfolios; track portfolio.nombreNormalizado) {
       <article class="portfolio-card">
-        <a class="portfolio-card__enlace" [routerLink]="['/', f.nombreInformalNormalizado, portfolio.nombreNormalizado]">
+        <!-- Bloqueado para quien mira (no es suyo): se ve, con un candado, pero no es un enlace. -->
+        @if (portfolio.visibilidad === 'bloqueado' && !sesion.puedeGestionar(f.nombreInformalNormalizado)) {
+          <div class="portfolio-card__enlace portfolio-card__enlace--bloqueado" title="Acceso restringido">
+            <ng-container [ngTemplateOutlet]="tarjeta" [ngTemplateOutletContext]="{ $implicit: portfolio, bloqueado: true }" />
+          </div>
+        } @else {
+          <a class="portfolio-card__enlace" [routerLink]="['/', f.nombreInformalNormalizado, portfolio.nombreNormalizado]">
+            <ng-container [ngTemplateOutlet]="tarjeta" [ngTemplateOutletContext]="{ $implicit: portfolio, bloqueado: false }" />
+          </a>
+        }
+        <ng-template #tarjeta let-portfolio let-bloqueado="bloqueado">
+          <!-- El nombre del portfolio sobre su portada, muy tenue, de fondo (si la tiene). -->
           <div class="portfolio-card__image">
-            <!-- Los ocultos solo llegan a quien puede verlos (su fotógrafo y el administrador). -->
-            @if (!portfolio.visible) {
-              <app-marca-oculto class="sobre-portada" />
-            }
             @if (portfolio.coverPhotoUrl) {
-              <img [appFotoReducida]="portfolio.coverPhotoUrl" tamanyos="(max-width: 40rem) 100vw, (max-width: 80rem) 50vw, 33vw" [alt]="portfolio.nombre" loading="lazy" />
-            } @else {
-              <span class="portfolio-card__sin-portada">{{ portfolio.collectionCount ? 'Sin fotos' : 'Sin colecciones' }}</span>
+              <img
+                class="portfolio-card__portada"
+                [appFotoReducida]="portfolio.coverPhotoUrl"
+                tamanyos="(max-width: 40rem) 100vw, (max-width: 80rem) 50vw, 33vw"
+                alt=""
+                loading="lazy"
+              />
+            }
+            <!-- Para su fotógrafo y el administrador: si los demás no lo ven o no pueden entrar. -->
+            @if (portfolio.visibilidad !== 'visible' && !bloqueado && !vistaLimpia()) {
+              <app-marca-visibilidad class="sobre-portada" [visibilidad]="portfolio.visibilidad" />
+            }
+            <h2 class="portfolio-card__nombre">{{ portfolio.nombre }}</h2>
+            @if (bloqueado) {
+              <app-marca-visibilidad class="restringido" visibilidad="bloqueado" />
             }
           </div>
           <div class="portfolio-card__info">
-            <h2>{{ portfolio.nombre }}</h2>
             @if (portfolio.descripcion) {
-              <p>{{ portfolio.descripcion }}</p>
+              <p class="portfolio-card__descripcion">{{ portfolio.descripcion }}</p>
             }
-            <span class="portfolio-card__meta">
-              {{ portfolio.collectionCount }} {{ portfolio.collectionCount === 1 ? 'colección' : 'colecciones' }}
-            </span>
+            @if (!vistaLimpia()) {
+              <span class="portfolio-card__meta">
+                {{ portfolio.collectionCount }} {{ portfolio.collectionCount === 1 ? 'colección' : 'colecciones' }}
+              </span>
+            }
           </div>
-        </a>
-        <app-portfolio-acciones
-          class="en-tarjeta"
-          [fotografo]="f.nombreInformalNormalizado"
-          [portfolio]="portfolio"
-          (eliminado)="alEliminarPortfolio()"
-        />
+        </ng-template>
+        @if (!vistaLimpia()) {
+          <app-portfolio-acciones
+            class="en-tarjeta"
+            [fotografo]="f.nombreInformalNormalizado"
+            [portfolio]="portfolio"
+            (eliminado)="alEliminarPortfolio()"
+          />
+        }
       </article>
     } @empty {
       <p class="empty-state">No hay portfolios disponibles todavía.</p>
@@ -65,6 +96,8 @@
 } @else if (fotografo() === null) {
   <section class="hero">
     <h1>Fotógrafo no encontrado</h1>
-    <p><a routerLink="/">Ver todos los fotógrafos</a></p>
+    @if (!vistaLimpia()) {
+      <p><a routerLink="/">Ver todos los fotógrafos</a></p>
+    }
   </section>
 }

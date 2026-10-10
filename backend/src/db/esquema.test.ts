@@ -25,7 +25,7 @@ const cuenta = (db: Database.Database, tabla: string) => (db.prepare(`SELECT cou
 
 test('una BD nueva se crea con el esquema actual, solo con el administrador y en su primer uso', () => {
   const db = nueva('nueva');
-  assert.equal(db.pragma('user_version', { simple: true }), 17);
+  assert.equal(db.pragma('user_version', { simple: true }), 19);
   const tablas = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all() as { name: string }[]).map((t) => t.name);
   assert.deepEqual(tablas, ['coleccionTags', 'colecciones', 'fotografos', 'fotos', 'portfolios', 'sesiones', 'usuarios']);
 
@@ -57,7 +57,7 @@ test('una BD de otra versión del esquema no se abre (para no perder datos)', ()
   const otra = new Database(ruta);
   otra.exec('CREATE TABLE cualquiera (x); PRAGMA user_version = 14;');
   otra.close();
-  assert.throws(() => abrirBaseDatos(ruta), /versión 14 del esquema y la aplicación espera la 17/);
+  assert.throws(() => abrirBaseDatos(ruta), /versión 14 del esquema y la aplicación espera la 19/);
 });
 
 test('una BD de la versión 15 se migra a la actual conservando sus datos', () => {
@@ -66,16 +66,44 @@ test('una BD de la versión 15 se migra a la actual conservando sus datos', () =
   const v15 = new Database(ruta);
   v15.exec(`CREATE TABLE portfolios (idPortfolio INTEGER PRIMARY KEY, nombre TEXT NOT NULL);
     CREATE TABLE colecciones (idColeccion INTEGER PRIMARY KEY);
+    CREATE TABLE fotos (idFoto INTEGER PRIMARY KEY, nombreFichero TEXT NOT NULL);
     INSERT INTO portfolios (nombre) VALUES ('Viajes');
+    INSERT INTO fotos (nombreFichero) VALUES ('mar.avif');
     PRAGMA user_version = 15;`);
   v15.close();
 
   const db = abrirBaseDatos(ruta);
-  assert.equal(db.pragma('user_version', { simple: true }), 17);
+  assert.equal(db.pragma('user_version', { simple: true }), 19);
   // Lo que ya había sigue visible para todos.
-  assert.deepEqual(db.prepare('SELECT nombre, idColeccionPortada, visible FROM portfolios').all(), [
-    { nombre: 'Viajes', idColeccionPortada: null, visible: 1 },
+  assert.deepEqual(db.prepare('SELECT nombre, idColeccionPortada, visibilidad FROM portfolios').all(), [
+    { nombre: 'Viajes', idColeccionPortada: null, visibilidad: 'visible' },
   ]);
+  // Las fotos ya guardadas no tienen metadatos.
+  assert.deepEqual(db.prepare('SELECT nombreFichero, metadatos FROM fotos').all(), [{ nombreFichero: 'mar.avif', metadatos: null }]);
+  db.close();
+});
+
+test('de la versión 18 a la 19, lo oculto sigue oculto y lo demás pasa a visible', () => {
+  const ruta = path.join(datos, 'version-18.db');
+  const v18 = new Database(ruta);
+  v18.exec(`CREATE TABLE portfolios (idPortfolio INTEGER PRIMARY KEY, nombre TEXT NOT NULL, visible INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1)));
+    CREATE TABLE colecciones (idColeccion INTEGER PRIMARY KEY, nombre TEXT NOT NULL, visible INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1)));
+    INSERT INTO portfolios (nombre, visible) VALUES ('Viajes', 1), ('Bodas', 0);
+    INSERT INTO colecciones (nombre, visible) VALUES ('Mar', 0), ('Monte', 1);
+    PRAGMA user_version = 18;`);
+  v18.close();
+
+  const db = abrirBaseDatos(ruta);
+  assert.equal(db.pragma('user_version', { simple: true }), 19);
+  assert.deepEqual(db.prepare('SELECT nombre, visibilidad FROM portfolios ORDER BY idPortfolio').all(), [
+    { nombre: 'Viajes', visibilidad: 'visible' },
+    { nombre: 'Bodas', visibilidad: 'oculto' },
+  ]);
+  assert.deepEqual(db.prepare('SELECT nombre, visibilidad FROM colecciones ORDER BY idColeccion').all(), [
+    { nombre: 'Mar', visibilidad: 'oculto' },
+    { nombre: 'Monte', visibilidad: 'visible' },
+  ]);
+  assert.throws(() => db.prepare("UPDATE portfolios SET visibilidad = 'medio'").run(), /CHECK constraint failed/);
   db.close();
 });
 

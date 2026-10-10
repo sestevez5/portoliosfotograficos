@@ -26,16 +26,13 @@
         <dd>{{ fecha(p.fechaUltimoAcceso) }}</dd>
       </dl>
       <div class="bloque__acciones">
-        <a class="boton" routerLink="/configuracion">Configuración</a>
-        @if (p.rol === 'administrador') {
-          <a class="boton" routerLink="/admin/contrasenya">Cambiar contraseña</a>
-        }
+        <a class="boton boton--principal" routerLink="/perfil/cuenta">Editar cuenta</a>
       </div>
     </section>
 
     @if (p.fotografo; as f) {
       <section class="bloque">
-        <h2 class="bloque__titulo">Fotógrafo</h2>
+        <h2 class="bloque__titulo">Datos personales y preferencias</h2>
         <dl class="datos">
           <dt>Nombre informal</dt>
           <dd>{{ f.nombreInformal }}</dd>

@@ -104,7 +104,7 @@ CREATE TABLE portfolios (
   -- Colección cuya portada es la del portfolio; NULL = la primera colección.
   idColeccionPortada INTEGER REFERENCES colecciones(idColeccion) ON DELETE SET NULL,
   -- 0 = oculto: solo lo ven su fotógrafo y el administrador (con todas sus colecciones).
-  visible            INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1)),
+  visibilidad        TEXT NOT NULL DEFAULT 'visible' CHECK (visibilidad IN ('visible', 'bloqueado', 'oculto')),
   orden              INTEGER NOT NULL,
   fechaCreacion      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   fechaModificacion  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
@@ -121,7 +121,7 @@ CREATE TABLE colecciones (
   descripcion        TEXT,
   idFotoPortada      INTEGER REFERENCES fotos(idFoto) ON DELETE SET NULL,
   -- 0 = oculta: solo la ven su fotógrafo y el administrador.
-  visible            INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1)),
+  visibilidad        TEXT NOT NULL DEFAULT 'visible' CHECK (visibilidad IN ('visible', 'bloqueado', 'oculto')),
   orden              INTEGER NOT NULL,
   fechaCreacion      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   fechaModificacion  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
@@ -138,6 +138,7 @@ CREATE TABLE fotos (
   orden              INTEGER NOT NULL,
   ancho              INTEGER,
   alto               INTEGER,
+  metadatos          TEXT,
   fechaCreacion      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   fechaModificacion  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   UNIQUE (idColeccion, nombreFichero)
@@ -159,9 +160,11 @@ ${triggerFechaModificacion('colecciones', 'idColeccion')}
 ${triggerFechaModificacion('fotos', 'idFoto')}
 `;
 
-// Versión del esquema, guardada en PRAGMA user_version. Cada cambio de esquema sube esta versión y
-// añade en MIGRACIONES la migración desde la anterior, que conserva los datos.
-const VERSION_ESQUEMA = 17;
+// Versión del esquema, guardada en PRAGMA user_version. Cada cambio de esquema sube esta versión (y
+// FECHA_ESQUEMA, el día en que se introdujo, que se muestra en "Acerca de") y añade en MIGRACIONES la
+// migración desde la anterior, que conserva los datos.
+export const VERSION_ESQUEMA = 19;
+export const FECHA_ESQUEMA = '2026-10-10';
 
 // Migraciones: la de la clave N lleva una BD de la versión N a la N + 1. Las BD anteriores a la 15
 // (cuando la aplicación aún no se había publicado y el esquema se redefinía) no se pueden abrir.
@@ -171,6 +174,17 @@ const MIGRACIONES: Record<number, string> = {
   // 17: portfolios y colecciones se pueden ocultar a los demás usuarios.
   16: `ALTER TABLE portfolios ADD COLUMN visible INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1));
        ALTER TABLE colecciones ADD COLUMN visible INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1));`,
+  // 18: metadatos EXIF de cada foto, en JSON (utils/metadatos-foto.ts). Las fotos ya guardadas no los
+  // tienen (se subieron sin ellos).
+  17: 'ALTER TABLE fotos ADD COLUMN metadatos TEXT;',
+  // 19: tres estados de visibilidad en portfolios y colecciones ('visible', 'bloqueado': se ve que
+  // existe pero no se puede entrar, y 'oculto') en lugar de visible 0/1. Lo oculto sigue oculto.
+  18: `ALTER TABLE portfolios ADD COLUMN visibilidad TEXT NOT NULL DEFAULT 'visible' CHECK (visibilidad IN ('visible', 'bloqueado', 'oculto'));
+       UPDATE portfolios SET visibilidad = 'oculto' WHERE visible = 0;
+       ALTER TABLE portfolios DROP COLUMN visible;
+       ALTER TABLE colecciones ADD COLUMN visibilidad TEXT NOT NULL DEFAULT 'visible' CHECK (visibilidad IN ('visible', 'bloqueado', 'oculto'));
+       UPDATE colecciones SET visibilidad = 'oculto' WHERE visible = 0;
+       ALTER TABLE colecciones DROP COLUMN visible;`,
 };
 
 // Credenciales iniciales del administrador (se pueden cambiar; ver services/administrador.service.ts).

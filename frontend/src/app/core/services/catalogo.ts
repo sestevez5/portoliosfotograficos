@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import {
+  Visibilidad,
+  AcercaDe,
   ColeccionAlta,
   ColeccionDetalle,
   ColeccionEnCatalogo,
@@ -23,6 +25,13 @@ function toAbsoluteUrl(path: string): string {
 
 function conUrlsAbsolutas(coleccion: ColeccionDetalle): ColeccionDetalle {
   return { ...coleccion, fotos: coleccion.fotos.map((foto) => ({ ...foto, url: toAbsoluteUrl(foto.url) })) };
+}
+
+// Si la API ha respondido que un portfolio o una colección están bloqueados para quien mira (403
+// "accesoRestringido"): existen, pero no se puede entrar.
+export function esAccesoRestringido(error: unknown): boolean {
+  const respuesta = error as { status?: number; error?: { tipo?: string } } | null;
+  return respuesta?.status === 403 && respuesta.error?.tipo === 'accesoRestringido';
 }
 
 @Service()
@@ -154,13 +163,13 @@ export class CatalogoService {
     return this.http.put<void>(`${this.portfolioUrl(fotografo, portfolio)}/portada`, { coleccionPortada });
   }
 
-  // Muestra u oculta un portfolio (con todas sus colecciones) o una colección a los demás usuarios.
-  cambiarVisibilidadPortfolio(fotografo: string, portfolio: string, visible: boolean): Observable<void> {
-    return this.http.put<void>(`${this.portfolioUrl(fotografo, portfolio)}/visibilidad`, { visible });
+  // Visibilidad de un portfolio (con todas sus colecciones) o de una colección para los demás usuarios.
+  cambiarVisibilidadPortfolio(fotografo: string, portfolio: string, visibilidad: Visibilidad): Observable<void> {
+    return this.http.put<void>(`${this.portfolioUrl(fotografo, portfolio)}/visibilidad`, { visibilidad });
   }
 
-  cambiarVisibilidadColeccion(fotografo: string, portfolio: string, coleccion: string, visible: boolean): Observable<void> {
-    return this.http.put<void>(`${this.coleccionUrl(fotografo, portfolio, coleccion)}/visibilidad`, { visible });
+  cambiarVisibilidadColeccion(fotografo: string, portfolio: string, coleccion: string, visibilidad: Visibilidad): Observable<void> {
+    return this.http.put<void>(`${this.coleccionUrl(fotografo, portfolio, coleccion)}/visibilidad`, { visibilidad });
   }
 
   // Sin confirmar, si la colección tiene fotos el backend responde 422 con la regla
@@ -206,6 +215,11 @@ export class CatalogoService {
 
   getTags(): Observable<string[]> {
     return this.http.get<string[]>(`${this.baseUrl}/tags`);
+  }
+
+  // Versión de la aplicación y de la base de datos, con sus fechas, y el autor ("Acerca de").
+  getAcercaDe(): Observable<AcercaDe> {
+    return this.http.get<AcercaDe>(`${this.baseUrl}/acerca-de`);
   }
 
   // fotografo, portfolio y coleccion son segmentos de URL (normalizarNombre), que pueden llevar tildes.

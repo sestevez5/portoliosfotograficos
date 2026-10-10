@@ -20,10 +20,10 @@ import {
 } from '../db/catalogo.repository.js';
 import { RecursoNoEncontrado } from '../errores.js';
 import { enOperacion, type CodigoOperacion, type DatosRegla } from '../reglas/index.js';
-import type { PortfolioAlta } from '../types/catalogo.js';
+import type { PortfolioAlta, Visibilidad } from '../types/catalogo.js';
 import { apartarCarpeta, renombrarCarpeta, vaciarPapelera } from '../utils/carpetas.js';
 import { normalizarNombre } from '../utils/normalizar-nombre.js';
-import { borrarMiniaturas } from './miniatura.service.js';
+import { borrarMiniaturas, moverMiniaturas } from './miniatura.service.js';
 
 // Alta, edición, eliminación y cambio de nombre de portfolios (las colecciones, en coleccion.service.ts). Su
 // nombreNormalizado se calcula a partir del nombre y es el nombre de su carpeta en fotos:
@@ -98,7 +98,7 @@ function modificarPortfolio(
     return renombrarCarpeta(path.join(carpetaFotografo, actual.nombreNormalizado), path.join(carpetaFotografo, normalizado));
   });
   if (carpetaRenombrada) {
-    borrarMiniaturas(path.join(f.nombreInformalNormalizado, actual.nombreNormalizado));
+    moverMiniaturas(path.join(f.nombreInformalNormalizado, actual.nombreNormalizado), path.join(f.nombreInformalNormalizado, normalizado));
   }
 
   return {
@@ -166,12 +166,13 @@ export function cambiarPortadaPortfolio(fotografo: string, portfolio: string, co
   cambiarColeccionPortada(actual.idPortfolio, elegida?.idColeccion ?? null);
 }
 
-// Muestra u oculta un portfolio a los demás usuarios. Oculto, solo lo ven (con todas sus
-// colecciones y fotos) su fotógrafo y el administrador.
-export function cambiarVisibilidadPortfolio(fotografo: string, portfolio: string, visible: boolean): void {
+// Visibilidad de un portfolio, con todas sus colecciones, para los demás usuarios ('visible',
+// 'bloqueado' u 'oculto'; ver "Visibilidad" en db/catalogo.repository.ts). Su fotógrafo y el
+// administrador lo ven y entran siempre.
+export function cambiarVisibilidadPortfolio(fotografo: string, portfolio: string, visibilidad: Visibilidad): void {
   const { f, actual } = cargarPortfolio(fotografo, portfolio);
   enOperacion('CAMBIAR_VISIBILIDAD_PORTFOLIO', { portfolio: actual.nombre, fotografo: f.nombreInformal }, () =>
-    cambiarVisibilidadPortfolioBD(actual.idPortfolio, visible),
+    cambiarVisibilidadPortfolioBD(actual.idPortfolio, visibilidad),
   );
 }
 

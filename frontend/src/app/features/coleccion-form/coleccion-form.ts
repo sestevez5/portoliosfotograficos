@@ -31,7 +31,9 @@ export class ColeccionForm {
   protected readonly editando = this.coleccionEditada !== null;
   protected readonly cargando = signal(this.editando);
 
-  // Los tags se escriben separados por comas.
+  // Los tags (separados por comas) no se muestran: la web oculta todo lo relativo a ellos. El
+  // control se mantiene para que al editar se conserven los que ya tenga la colección (un PUT sin
+  // tags los borraría); una colección nueva se crea sin tags.
   protected readonly formulario = this.fb.group({
     nombre: ['', Validators.required],
     descripcion: [''],

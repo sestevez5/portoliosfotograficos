@@ -31,6 +31,7 @@ import {
   crearSesion,
   guardarPreferencias,
   perfilDeSesion,
+  editarCuenta,
   DURACION_SESION_DIAS,
   iniciarSesion,
   usuarioDeSesion,
@@ -40,9 +41,13 @@ import { exigirAdministrador, exigirDuenyoOAdministrador, tokenDeSesion, vistaDe
 import { cambiarPortada, cambiarVisibilidadColeccion, crearColeccion, editarColeccion, eliminarColeccion, ordenarColecciones } from '../services/coleccion.service.js';
 import { anyadirFoto, cambiarTituloFoto, eliminarFoto, ordenarFotos, TAMANYO_MAXIMO_FOTO_MB as TAMANYO_MAXIMO_FOTO_COLECCION_MB } from '../services/foto.service.js';
 import { cambiarPortadaPortfolio, cambiarVisibilidadPortfolio, crearPortfolio, editarPortfolio, eliminarPortfolio, ordenarPortfolios } from '../services/portfolio.service.js';
-import { RecursoNoEncontrado } from '../errores.js';
+import { AccesoRestringido, RecursoNoEncontrado } from '../errores.js';
 import { asegurarLogo } from '../services/logo.service.js';
+import { AUTOR, FECHA_VERSION_APLICACION, VERSION_APLICACION } from '../config/version.js';
+import { FECHA_ESQUEMA, VERSION_ESQUEMA } from '../db/conexion.js';
+import { resumirMetadatos } from '../utils/metadatos-foto.js';
 import type {
+  AcercaDe,
   ColeccionAlta,
   ColeccionDetalle,
   ColeccionEnCatalogo,
@@ -56,6 +61,7 @@ import type {
   PortfolioAlta,
   PortfolioDetalle,
   PortfolioResumen,
+  Visibilidad,
 } from '../types/catalogo.js';
 
 // Los ids y el usuario de la BD son internos y no salen en la API. En las URL el fotógrafo se
@@ -102,7 +108,8 @@ function toColeccionResumen(coleccion: ColeccionResumenFila): ColeccionResumen {
       ? photoUrl(coleccion.carpetaFotografo, coleccion.carpetaPortfolio, coleccion.nombreNormalizado, coleccion.coverFilename)
       : '',
     photoCount: coleccion.photoCount,
-    visible: coleccion.visible === 1,
+    visible: coleccion.visibilidad !== 'oculto',
+    visibilidad: coleccion.visibilidad,
   };
 }
 
@@ -114,6 +121,7 @@ function toFoto(coleccion: ColeccionFila, foto: FotoFila): FotoApi {
     ...opcional('ancho', foto.ancho),
     ...opcional('alto', foto.alto),
     url: photoUrl(coleccion.carpetaFotografo, coleccion.carpetaPortfolio, coleccion.nombreNormalizado, foto.nombreFichero),
+    ...opcional('metadatos', resumirMetadatos(foto.metadatos) ?? null),
   };
 }
 
@@ -126,7 +134,8 @@ function toColeccionDetalle(coleccion: ColeccionFila): ColeccionDetalle {
     ...opcional('descripcion', coleccion.descripcion),
     tags: coleccion.tags,
     portfolio: { nombre: coleccion.nombrePortfolio, nombreNormalizado: coleccion.carpetaPortfolio },
-    visible: coleccion.visible === 1,
+    visible: coleccion.visibilidad !== 'oculto',
+    visibilidad: coleccion.visibilidad,
     fotos: fotos.map((foto) => toFoto(coleccion, foto)),
     ...opcional('fotoPortada', portada?.nombreFichero ?? null),
   };
@@ -215,11 +224,21 @@ function leerColeccion(cuerpo: unknown): ColeccionAlta | string {
   return { ...textos, nombre: textos.nombre ?? '', ...(tags ? { tags } : {}) };
 }
 
-// Cuerpo de un cambio de visibilidad: { visible: true | false }. null si está mal formado.
-function leerVisible(cuerpo: unknown): boolean | null {
-  const visible = (cuerpo as { visible?: unknown } | undefined)?.visible;
-  return typeof visible === 'boolean' ? visible : null;
+// Cuerpo de un cambio de visibilidad: { visibilidad: 'visible' | 'bloqueado' | 'oculto' } o, como antes
+// de que hubiera tres estados, { visible: true | false } (visible u oculto). null si está mal formado.
+const VISIBILIDADES: readonly Visibilidad[] = ['visible', 'bloqueado', 'oculto'];
+function leerVisibilidad(cuerpo: unknown): Visibilidad | null {
+  const { visibilidad, visible } = (cuerpo ?? {}) as { visibilidad?: unknown; visible?: unknown };
+  if (typeof visibilidad === 'string' && (VISIBILIDADES as readonly string[]).includes(visibilidad)) {
+    return visibilidad as Visibilidad;
+  }
+  return typeof visible === 'boolean' ? (visible ? 'visible' : 'oculto') : null;
 }
+const VISIBILIDAD_NO_VALIDA = "El campo 'visibilidad' debe ser 'visible', 'bloqueado' u 'oculto'";
+
+// Si quien mira (ve, ver vistaDe) puede entrar en lo bloqueado de ese fotógrafo: es suyo o es el
+// administrador.
+const entraEnLoBloqueado = (ve: Vista, fotografo: string) => ve === VER_TODO || ve === fotografo;
 
 // Cuerpo de un cambio de orden: { orden: [texto, …] }. null si está mal formado.
 function leerOrden(cuerpo: unknown): string[] | null {
@@ -234,6 +253,17 @@ function leerOrden(cuerpo: unknown): string[] | null {
 
 catalogoRouter.get('/estado', (_req, res) => {
   res.json({ primerUso: esPrimerUso() });
+});
+
+// "Acerca de" (botón "?" de la franja superior): versión de la aplicación y del esquema de la base de
+// datos, cada una con su fecha (AAAA-MM-DD), y el autor. Libre, como el catálogo.
+catalogoRouter.get('/acerca-de', (_req, res) => {
+  const acercaDe: AcercaDe = {
+    aplicacion: { version: VERSION_APLICACION, fecha: FECHA_VERSION_APLICACION },
+    baseDatos: { version: VERSION_ESQUEMA, fecha: FECHA_ESQUEMA },
+    autor: AUTOR,
+  };
+  res.json(acercaDe);
 });
 
 // Primer uso: credenciales del administrador y, opcionalmente, su contraseña nueva.
@@ -294,7 +324,9 @@ catalogoRouter.get('/perfil', (req, res) => {
   res.json(perfilDeSesion(tokenDeSesion(req)));
 });
 
-// "Configuración": el tema que prefiere ('oscuro', 'claro' o null para ninguno). 401 sin sesión.
+// El tema que prefiere ('oscuro', 'claro' o null para ninguno). 401 sin sesión. La web ya no lo usa
+// (era la página "Configuración", que se quitó): el tema se guarda con "Editar cuenta"
+// (PUT /api/perfil/cuenta). Se mantiene por compatibilidad.
 catalogoRouter.put('/perfil/preferencias', express.json({ limit: '1kb' }), (req, res) => {
   const tema = (req.body as { temaPreferido?: unknown } | undefined)?.temaPreferido;
   if (tema !== null && tema !== 'oscuro' && tema !== 'claro') {
@@ -302,6 +334,33 @@ catalogoRouter.put('/perfil/preferencias', express.json({ limit: '1kb' }), (req,
     return;
   }
   guardarPreferencias(tokenDeSesion(req), { temaPreferido: tema });
+  res.status(204).end();
+});
+
+// "Editar cuenta": nombre de usuario, preferencias y, si llega "contrasenya" ({ contrasenyaActual,
+// contrasenyaNueva }), la contraseña del usuario de la sesión, todo junto (o todo o nada). Cambiar la
+// contraseña cierra sus demás sesiones. 401 sin sesión, 422 si incumple una regla.
+catalogoRouter.put('/perfil/cuenta', express.json({ limit: '5kb' }), (req, res) => {
+  const cuerpo = req.body as { usuario?: unknown; temaPreferido?: unknown; contrasenya?: unknown } | undefined;
+  const tema = cuerpo?.temaPreferido ?? null;
+  const contrasenya =
+    cuerpo?.contrasenya === undefined || cuerpo.contrasenya === null
+      ? undefined
+      : leerTextos(cuerpo.contrasenya, ['contrasenyaActual', 'contrasenyaNueva'] as const);
+  if (typeof cuerpo?.usuario !== 'string' || (tema !== null && tema !== 'oscuro' && tema !== 'claro') || typeof contrasenya === 'string') {
+    res.status(400).json({
+      message:
+        "Se esperan 'usuario' (texto), 'temaPreferido' ('oscuro', 'claro' o null) y, si se cambia, 'contrasenya' ({ contrasenyaActual, contrasenyaNueva })",
+    });
+    return;
+  }
+  editarCuenta(tokenDeSesion(req), {
+    usuario: cuerpo.usuario,
+    temaPreferido: tema,
+    ...(contrasenya && {
+      contrasenya: { contrasenyaActual: contrasenya.contrasenyaActual ?? '', contrasenyaNueva: contrasenya.contrasenyaNueva ?? '' },
+    }),
+  });
   res.status(204).end();
 });
 
@@ -408,7 +467,8 @@ catalogoRouter.get('/fotografos/:fotografo', (req, res) => {
         ? photoUrl(fotografo.nombreInformalNormalizado, p.nombreNormalizado, p.coverCarpetaColeccion, p.coverFilename)
         : '',
     collectionCount: p.collectionCount,
-    visible: p.visible === 1,
+    visible: p.visibilidad !== 'oculto',
+    visibilidad: p.visibilidad,
   }));
 
   const detalle: FotografoDetalle = { ...toFotografoPublico(fotografo), portfolios };
@@ -458,7 +518,8 @@ function toPortfolioDetalle(portfolio: PortfolioFila, ve: Vista, tag?: string): 
     nombre: portfolio.nombre,
     nombreNormalizado: portfolio.nombreNormalizado,
     ...opcional('descripcion', portfolio.descripcion),
-    visible: portfolio.visible === 1,
+    visible: portfolio.visibilidad !== 'oculto',
+    visibilidad: portfolio.visibilidad,
     colecciones: listarColecciones({ idPortfolio: portfolio.idPortfolio, tag }, ve).map(toColeccionResumen),
     ...opcional('coleccionPortada', portfolio.coleccionPortada),
   };
@@ -466,12 +527,16 @@ function toPortfolioDetalle(portfolio: PortfolioFila, ve: Vista, tag?: string): 
 
 catalogoRouter.get('/fotografos/:fotografo/portfolios/:portfolio', (req, res) => {
   const fotografo = obtenerFotografo(req.params.fotografo);
-  // Un portfolio oculto, para quien no puede verlo, no existe (404).
+  // Un portfolio oculto, para quien no puede verlo, no existe (404); uno bloqueado, existe pero no
+  // se puede entrar (403, acceso restringido).
   const ve = vistaDe(req);
   const portfolio = fotografo && obtenerPortfolio(fotografo.idFotografo, req.params.portfolio, ve);
   if (!portfolio) {
     noEncontrado(res, `Portfolio '${req.params.portfolio}' no encontrado para '${req.params.fotografo}'`);
     return;
+  }
+  if (portfolio.visibilidad === 'bloqueado' && !entraEnLoBloqueado(ve, fotografo.nombreInformalNormalizado)) {
+    throw new AccesoRestringido(`El portfolio "${portfolio.nombre}" tiene el acceso restringido.`);
   }
 
   res.json(toPortfolioDetalle(portfolio, ve, tagDeQuery(req.query.tag)));
@@ -513,16 +578,16 @@ catalogoRouter.put('/fotografos/:fotografo/orden-portfolios', express.json({ lim
   res.status(204).end();
 });
 
-// Muestra u oculta el portfolio (con todas sus colecciones) a los demás usuarios. Cuerpo:
-// { visible: true | false }. 204.
+// Visibilidad del portfolio (con todas sus colecciones) para los demás usuarios. Cuerpo:
+// { visibilidad: 'visible' | 'bloqueado' | 'oculto' } (o { visible: true | false }). 204.
 catalogoRouter.put('/fotografos/:fotografo/portfolios/:portfolio/visibilidad', express.json({ limit: '1kb' }), (req, res) => {
   exigirDuenyoOAdministrador(req, req.params.fotografo);
-  const visible = leerVisible(req.body);
-  if (visible === null) {
-    res.status(400).json({ message: "El campo 'visible' debe ser true o false" });
+  const visibilidad = leerVisibilidad(req.body);
+  if (visibilidad === null) {
+    res.status(400).json({ message: VISIBILIDAD_NO_VALIDA });
     return;
   }
-  cambiarVisibilidadPortfolio(req.params.fotografo, req.params.portfolio, visible);
+  cambiarVisibilidadPortfolio(req.params.fotografo, req.params.portfolio, visibilidad);
   res.status(204).end();
 });
 
@@ -551,14 +616,20 @@ catalogoRouter.delete('/fotografos/:fotografo/portfolios/:portfolio', (req, res)
 
 catalogoRouter.get('/fotografos/:fotografo/portfolios/:portfolio/colecciones/:coleccion', (req, res) => {
   const fotografo = obtenerFotografo(req.params.fotografo);
-  // Una colección oculta (o de un portfolio oculto), para quien no puede verla, no existe (404).
-  const coleccion = fotografo && obtenerColeccion(fotografo.idFotografo, req.params.portfolio, req.params.coleccion, vistaDe(req));
+  // Una colección oculta (o de un portfolio oculto), para quien no puede verla, no existe (404); una
+  // bloqueada (o de un portfolio bloqueado), existe pero no se puede entrar (403, acceso restringido).
+  const ve = vistaDe(req);
+  const coleccion = fotografo && obtenerColeccion(fotografo.idFotografo, req.params.portfolio, req.params.coleccion, ve);
   if (!coleccion) {
     noEncontrado(
       res,
       `Colección '${req.params.coleccion}' no encontrada en '${req.params.fotografo}/${req.params.portfolio}'`,
     );
     return;
+  }
+  const bloqueada = coleccion.visibilidad === 'bloqueado' || coleccion.portfolioVisibilidad === 'bloqueado';
+  if (bloqueada && !entraEnLoBloqueado(ve, fotografo.nombreInformalNormalizado)) {
+    throw new AccesoRestringido(`La colección "${coleccion.nombre}" tiene el acceso restringido.`);
   }
 
   res.json(toColeccionDetalle(coleccion));
@@ -691,18 +762,19 @@ catalogoRouter.put(
   },
 );
 
-// Muestra u oculta la colección a los demás usuarios. Cuerpo: { visible: true | false }. 204.
+// Visibilidad de la colección para los demás usuarios. Cuerpo: { visibilidad: 'visible' | 'bloqueado'
+// | 'oculto' } (o { visible: true | false }). 204.
 catalogoRouter.put(
   '/fotografos/:fotografo/portfolios/:portfolio/colecciones/:coleccion/visibilidad',
   express.json({ limit: '1kb' }),
   (req, res) => {
     exigirDuenyoOAdministrador(req, req.params.fotografo);
-    const visible = leerVisible(req.body);
-    if (visible === null) {
-      res.status(400).json({ message: "El campo 'visible' debe ser true o false" });
+    const visibilidad = leerVisibilidad(req.body);
+    if (visibilidad === null) {
+      res.status(400).json({ message: VISIBILIDAD_NO_VALIDA });
       return;
     }
-    cambiarVisibilidadColeccion(req.params.fotografo, req.params.portfolio, req.params.coleccion, visible);
+    cambiarVisibilidadColeccion(req.params.fotografo, req.params.portfolio, req.params.coleccion, visibilidad);
     res.status(204).end();
   },
 );

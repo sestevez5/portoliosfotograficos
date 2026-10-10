@@ -16,6 +16,16 @@ export class SinPermiso extends Error {
   }
 }
 
+// Un portfolio o una colección bloqueados (visibilidad 'bloqueado'): quien no es su fotógrafo ni el
+// administrador ve que existen, pero no puede entrar. La API lo responde con 403 y tipo
+// "accesoRestringido", para que la web muestre "Acceso restringido" en vez de "no encontrado".
+export class AccesoRestringido extends Error {
+  constructor(mensaje: string) {
+    super(mensaje);
+    this.name = 'AccesoRestringido';
+  }
+}
+
 // La operación necesita la sesión iniciada y no la hay (o ha caducado). La API lo responde con 401.
 export class SinSesion extends Error {
   constructor(mensaje = 'Hay que iniciar sesión.') {

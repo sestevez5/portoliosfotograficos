@@ -61,6 +61,13 @@ export interface OrganizacionFotos {
 // API devuelve para construir los enlaces.
 // ---------------------------------------------------------------------------------------
 
+// GET /api/acerca-de. Fechas en AAAA-MM-DD.
+export interface AcercaDe {
+  aplicacion: { version: string; fecha: string };
+  baseDatos: { version: number; fecha: string };
+  autor: string;
+}
+
 export interface FotoApi {
   nombreFichero: string;
   titulo?: string;
@@ -68,6 +75,24 @@ export interface FotoApi {
   ancho?: number;
   alto?: number;
   url: string;
+  // Resumen de su EXIF, si lo tenía al subirla (sin la ubicación GPS, que no sale en la API).
+  metadatos?: MetadatosFoto;
+}
+
+// Datos EXIF de una foto, en forma legible (utils/metadatos-foto.ts). Solo los que tenga.
+export interface MetadatosFoto {
+  camara?: string; // "FUJIFILM X-T5"
+  objetivo?: string; // "XF23mmF1.4 R"
+  distanciaFocal?: number; // mm
+  distanciaFocal35mm?: number; // mm, equivalente en formato completo
+  apertura?: number; // número f (2.8 = f/2,8)
+  exposicion?: string; // "1/250 s"
+  iso?: number;
+  compensacionExposicion?: number; // pasos (EV)
+  fechaToma?: string; // "2026-05-01T10:20:30", hora local de la cámara (sin zona horaria)
+  autor?: string;
+  copyright?: string;
+  software?: string;
 }
 
 export interface ColeccionResumen {
@@ -79,7 +104,8 @@ export interface ColeccionResumen {
   coverPhotoUrl: string;
   photoCount: number;
   /** false = oculta: solo la ven su fotógrafo y el administrador (los demás no la reciben). */
-  visible: boolean;
+  visible: boolean; // = visibilidad distinta de 'oculto' (se mantiene por compatibilidad)
+  visibilidad: Visibilidad;
 }
 
 // Colección en el listado global (/api/colecciones): lleva su fotógrafo y portfolio para poder enlazarlo.
@@ -94,7 +120,8 @@ export interface ColeccionDetalle {
   descripcion?: string;
   tags: string[];
   portfolio: { nombre: string; nombreNormalizado: string };
-  visible: boolean;
+  visible: boolean; // = visibilidad distinta de 'oculto' (se mantiene por compatibilidad)
+  visibilidad: Visibilidad;
   fotos: FotoApi[];
   /** nombreFichero de la foto elegida como portada; sin ella, la portada es la primera foto. */
   fotoPortada?: string;
@@ -108,14 +135,16 @@ export interface PortfolioResumen {
   coverPhotoUrl: string;
   collectionCount: number;
   /** false = oculto: solo lo ven su fotógrafo y el administrador (los demás no lo reciben). */
-  visible: boolean;
+  visible: boolean; // = visibilidad distinta de 'oculto' (se mantiene por compatibilidad)
+  visibilidad: Visibilidad;
 }
 
 export interface PortfolioDetalle {
   nombre: string;
   nombreNormalizado: string;
   descripcion?: string;
-  visible: boolean;
+  visible: boolean; // = visibilidad distinta de 'oculto' (se mantiene por compatibilidad)
+  visibilidad: Visibilidad;
   colecciones: ColeccionResumen[];
   /** nombreNormalizado de la colección de portada; sin ella, la portada es la de la primera colección. */
   coleccionPortada?: string;
@@ -162,6 +191,11 @@ export interface Credenciales {
 
 export type Tema = 'oscuro' | 'claro';
 
+// Visibilidad de un portfolio o una colección para los demás usuarios (su fotógrafo y el
+// administrador lo ven y entran siempre): 'visible', cualquiera lo ve y entra; 'bloqueado', se ve que
+// existe (su nombre, con un candado) pero no se puede entrar ni ver sus fotos; 'oculto', no existe.
+export type Visibilidad = 'visible' | 'bloqueado' | 'oculto';
+
 // Usuario con la sesión iniciada (GET /api/sesion). Solo se devuelve a él mismo: el nombre de
 // usuario y el correo de los demás nunca salen en la API.
 export interface UsuarioSesion {
@@ -193,6 +227,13 @@ export interface Perfil {
 // Cuerpo de PUT /api/perfil/preferencias. null = sin preferencia.
 export interface Preferencias {
   temaPreferido: Tema | null;
+}
+
+// PUT /api/perfil/cuenta ("Editar cuenta"): su nombre de usuario, sus preferencias y, opcionalmente,
+// el cambio de su contraseña (con la actual).
+export interface CuentaEdicion extends Preferencias {
+  usuario: string;
+  contrasenya?: { contrasenyaActual: string; contrasenyaNueva: string };
 }
 
 // Respuesta de GET /api/fotografos/:fotografo/edicion: los datos editables para rellenar el

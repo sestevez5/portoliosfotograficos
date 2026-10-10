@@ -50,17 +50,16 @@ describe('ColeccionForm', () => {
     expect(elemento.textContent).toContain('Indica un nombre para la colección.');
   });
 
-  it('crea la colección con sus tags y navega a su página', async () => {
+  it('crea la colección sin tags y navega a su página', async () => {
     await crear({ fotografo: 'ana-uno', portfolio: 'viajes' });
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     rellenar('nombre', 'Montaña');
-    rellenar('tags', ' nieve, , roca ');
     enviar();
 
     const peticion = http.expectOne(
       (r) => r.method === 'POST' && r.url.endsWith('/api/fotografos/ana-uno/portfolios/viajes/colecciones'),
     );
-    expect(peticion.request.body).toEqual({ nombre: 'Montaña', tags: ['nieve', 'roca'] });
+    expect(peticion.request.body).toEqual({ nombre: 'Montaña', tags: [] });
     peticion.flush(COLECCION);
     expect(navegar).toHaveBeenCalledWith(['/', 'ana-uno', 'viajes', 'montanya']);
   });
@@ -70,7 +69,7 @@ describe('ColeccionForm', () => {
     http.expectOne((r) => r.method === 'GET' && r.url.endsWith('/portfolios/viajes/colecciones/montanya')).flush(COLECCION);
     await fixture.whenStable();
     expect(elemento.querySelector<HTMLInputElement>('#nombre')!.value).toBe('Montaña');
-    expect(elemento.querySelector<HTMLInputElement>('#tags')!.value).toBe('nieve, roca');
+    expect(elemento.querySelector('#tags')).toBeNull();
 
     rellenar('nombre', 'Mar');
     enviar();

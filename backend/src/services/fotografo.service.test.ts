@@ -95,7 +95,7 @@ test('cambiar el nombre informal renombra la carpeta', () => {
   assert.throws(() => cambiarNombreInformal('carla-trevinyo', 'Ana Núñez'), esRegla('FOTOGRAFO_NOMBRE_INFORMAL_DUPLICADO'));
 });
 
-test('editar actualiza los datos, renombra la carpeta y conserva la contraseña si no se indica', () => {
+test('editar actualiza los datos, renombra la carpeta y nunca cambia la contraseña', () => {
   crearFotografo({ nombreInformal: 'Dani Cuatro', nombre: 'Dani', primerApellido: 'Cuatro', email: 'dani@example.com', contrasenya: 'original123' });
   const { passwordHash: hashAntes, idUsuario } = fila('dani-cuatro')!;
 
@@ -117,8 +117,10 @@ test('editar actualiza los datos, renombra la carpeta y conserva la contraseña 
   assert.equal(fila('daniela-cuatro')!.idUsuario, idUsuario);
   assert.equal(fila('daniela-cuatro')!.passwordHash, hashAntes);
 
+  // Aunque llegue una contraseña, editar el fotógrafo no la cambia (se cambia en "Editar cuenta").
   editarFotografo('daniela-cuatro', { nombreInformal: 'Daniela Cuatro', nombre: 'Daniela', primerApellido: 'Cuatro', contrasenya: 'nueva12345' });
-  assert.ok(verificarContrasenya('nueva12345', fila('daniela-cuatro')!.passwordHash!));
+  assert.equal(fila('daniela-cuatro')!.passwordHash, hashAntes);
+  assert.ok(verificarContrasenya('original123', fila('daniela-cuatro')!.passwordHash!));
   assert.equal(fila('daniela-cuatro')!.email, null);
 
   // El correo de otro usuario no se puede usar.

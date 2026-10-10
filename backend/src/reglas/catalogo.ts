@@ -21,6 +21,8 @@ export const REGLAS = {
   USUARIO_CONTRASENYA_CORTA: 'La contraseña debe tener al menos {minimo} caracteres.',
   USUARIO_CREDENCIALES_INCORRECTAS: 'El usuario o la contraseña no son correctos.',
   USUARIO_CONTRASENYA_REPETIDA: 'La contraseña nueva debe ser distinta de la actual.',
+  USUARIO_CONTRASENYA_ACTUAL_INCORRECTA: 'La contraseña actual no es correcta.',
+  USUARIO_ADMINISTRADOR_NO_RENOMBRABLE: 'El nombre de usuario del administrador ("{usuario}") no se puede cambiar.',
   USUARIO_FOTO_NO_VALIDA: 'La foto de perfil debe ser una imagen JPEG de como máximo {maximo} MB.',
 
   // ---------------- Administrador y primer uso ----------------
@@ -54,6 +56,8 @@ export const REGLAS = {
 
   // ---------------- Colecciones ----------------
   COLECCION_NOMBRE_OBLIGATORIO: 'El nombre dla colección es obligatorio.',
+  CARPETA_EN_USO:
+    'No se ha podido renombrar ni mover la carpeta de fotos "{carpeta}" porque otro programa la está usando (por ejemplo, el explorador de archivos o un editor con algo suyo abierto). Ciérralo y vuelve a intentarlo.',
   COLECCION_NOMBRE_DUPLICADO: 'Ya existe otra colección con el mismo nombre ("{nombre}") en este portfolio.',
   COLECCION_CARPETA_OCUPADA:
     'Ya existe la carpeta "{carpeta}" en la del portfolio; no se puede usar para la colección "{nombre}".',
@@ -92,6 +96,7 @@ export const OPERACIONES = {
   REGISTRAR_USUARIO: 'Registrar al usuario "{usuario}"',
   COMPLETAR_PRIMER_USO: 'Completar la configuración inicial de la aplicación',
   CAMBIAR_CONTRASENYA_ADMINISTRADOR: 'Cambiar la contraseña del administrador',
+  EDITAR_CUENTA: 'Modificar la cuenta del usuario "{usuario}"',
   CREAR_FOTOGRAFO: 'Dar de alta al fotógrafo "{nombreInformal}"',
   CAMBIAR_NOMBRE_INFORMAL: 'Cambiar el nombre informal del fotógrafo "{actual}" a "{nuevo}"',
   EDITAR_FOTOGRAFO: 'Modificar los datos del fotógrafo "{nombreInformal}"',

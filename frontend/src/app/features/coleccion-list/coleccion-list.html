@@ -1,26 +1,37 @@
 @if (portfolio(); as p) {
-  <a class="back-link" [routerLink]="['/', segmentoFotografo()]">&larr; Portfolios</a>
+  @if (!vistaLimpia()) {
+    <a class="back-link" [routerLink]="['/', segmentoFotografo()!]" [queryParams]="vistas.consulta(['/', segmentoFotografo()!])">&larr; Portfolios</a>
+  }
 
   <!-- Cabecera del portfolio a todo el ancho: datos a la izquierda, mantenimiento a la derecha y
        una línea separadora que la cierra antes de la colección de colecciones. -->
   <header class="cabecera">
     <div class="cabecera__datos">
-      <span class="cabecera__etiqueta">
-        Portfolio · {{ p.colecciones.length }} {{ p.colecciones.length === 1 ? 'colección' : 'colecciones' }}
-        @if (!p.visible) {
-          · <app-marca-oculto />
+      @if (!vistaLimpia()) {
+        <span class="cabecera__etiqueta">
+          Portfolio · {{ p.colecciones.length }} {{ p.colecciones.length === 1 ? 'colección' : 'colecciones' }}
+          @if (p.visibilidad !== 'visible') {
+            · <app-marca-visibilidad [visibilidad]="p.visibilidad" />
+          }
+        </span>
+      }
+      <div class="cabecera__titulo">
+        <h1>Portfolio: {{ p.nombre }}</h1>
+        @if (!vistaLimpia()) {
+          <app-compartir />
         }
-      </span>
-      <h1>Portfolio: {{ p.nombre }}</h1>
+      </div>
       @if (p.descripcion) {
         <p class="cabecera__descripcion" appTextoRecortado>{{ p.descripcion }}</p>
       }
     </div>
-    <app-portfolio-acciones class="cabecera__gestion" [fotografo]="segmentoFotografo()!" [portfolio]="p" (eliminado)="alEliminar()" />
+    @if (!vistaLimpia()) {
+      <app-portfolio-acciones class="cabecera__gestion" [fotografo]="segmentoFotografo()!" [portfolio]="p" (eliminado)="alEliminar()" />
+    }
   </header>
 
   <!-- Solo para quien puede gestionar lo de este fotógrafo (no se elimina: no se muestra). -->
-  @if (sesion.puedeGestionar(segmentoFotografo())) {
+  @if (!vistaLimpia() && sesion.puedeGestionar(segmentoFotografo())) {
     <div class="cabecera-barra">
       <a class="cabecera-barra__boton" [routerLink]="['/gestion', segmentoFotografo(), 'portfolios', p.nombreNormalizado, 'colecciones', 'gestionar']">Gestionar colecciones</a>
       <a class="cabecera-barra__boton" [routerLink]="['/gestion', segmentoFotografo(), 'portfolios', p.nombreNormalizado, 'colecciones', 'nuevo']">+ Nueva colección</a>
@@ -30,13 +41,25 @@
   <section class="coleccion-grid">
     @for (coleccion of p.colecciones; track coleccion.nombreNormalizado) {
       <article class="coleccion-card">
-        <a class="coleccion-card__enlace" [routerLink]="['/', segmentoFotografo(), p.nombreNormalizado, coleccion.nombreNormalizado]">
+        <!-- Bloqueada para quien mira (no es suya): se ve, con un candado, pero no es un enlace. -->
+        @if (coleccion.visibilidad === 'bloqueado' && !sesion.puedeGestionar(segmentoFotografo())) {
+          <div class="coleccion-card__enlace coleccion-card__enlace--bloqueado" title="Acceso restringido">
+            <ng-container [ngTemplateOutlet]="tarjeta" [ngTemplateOutletContext]="{ $implicit: coleccion, bloqueada: true }" />
+          </div>
+        } @else {
+          <a class="coleccion-card__enlace" [routerLink]="['/', segmentoFotografo(), p.nombreNormalizado, coleccion.nombreNormalizado]">
+            <ng-container [ngTemplateOutlet]="tarjeta" [ngTemplateOutletContext]="{ $implicit: coleccion, bloqueada: false }" />
+          </a>
+        }
+        <ng-template #tarjeta let-coleccion let-bloqueada="bloqueada">
           <div class="coleccion-card__image">
-            <!-- Las ocultas solo llegan a quien puede verlas (su fotógrafo y el administrador). -->
-            @if (!coleccion.visible) {
-              <app-marca-oculto class="sobre-portada" texto="Oculta" />
+            <!-- Para su fotógrafo y el administrador: si los demás no la ven o no pueden entrar. -->
+            @if (coleccion.visibilidad !== 'visible' && !bloqueada && !vistaLimpia()) {
+              <app-marca-visibilidad class="sobre-portada" [visibilidad]="coleccion.visibilidad" [femenina]="true" />
             }
-            @if (coleccion.coverPhotoUrl) {
+            @if (bloqueada) {
+              <app-marca-visibilidad class="coleccion-card__sin-fotos" visibilidad="bloqueado" [femenina]="true" />
+            } @else if (coleccion.coverPhotoUrl) {
               <img [appFotoReducida]="coleccion.coverPhotoUrl" tamanyos="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 25vw" [alt]="coleccion.nombre" loading="lazy" />
             } @else {
               <span class="coleccion-card__sin-fotos">Sin fotos</span>
@@ -45,22 +68,28 @@
           <div class="coleccion-card__info">
             <h2>{{ coleccion.nombre }}</h2>
           </div>
-        </a>
-        <app-coleccion-acciones
-          class="en-tarjeta"
-          [fotografo]="segmentoFotografo()!"
-          [portfolio]="p.nombreNormalizado"
-          [coleccion]="coleccion"
-          (eliminado)="alEliminarColeccion()"
-        />
+        </ng-template>
+        @if (!vistaLimpia()) {
+          <app-coleccion-acciones
+            class="en-tarjeta"
+            [fotografo]="segmentoFotografo()!"
+            [portfolio]="p.nombreNormalizado"
+            [coleccion]="coleccion"
+            (eliminado)="alEliminarColeccion()"
+          />
+        }
       </article>
     } @empty {
       <p class="empty-state">No hay colecciones disponibles todavía.</p>
     }
   </section>
+} @else if (restringido()) {
+  <app-acceso-restringido que="Este portfolio" [volver]="['/', segmentoFotografo()!]" textoVolver="Ver los portfolios del fotógrafo" />
 } @else if (portfolio() === null) {
   <section class="hero">
     <h1>Portfolio no encontrado</h1>
-    <p><a [routerLink]="['/', segmentoFotografo()]">Ver los portfolios del fotógrafo</a></p>
+    @if (!vistaLimpia()) {
+      <p><a [routerLink]="['/', segmentoFotografo()!]" [queryParams]="vistas.consulta(['/', segmentoFotografo()!])">Ver los portfolios del fotógrafo</a></p>
+    }
   </section>
 }

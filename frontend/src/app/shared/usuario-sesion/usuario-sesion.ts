@@ -5,8 +5,7 @@ import { Avatar } from '../avatar/avatar';
 import { PanelSesion } from '../panel-sesion/panel-sesion';
 
 // Esquina superior de la página. Con sesión: su foto de perfil (o sus iniciales), nombre (el nombre informal
-// del fotógrafo, o "Administrador") y un menú desplegable con "Mi perfil", "Configuración" y
-// "Salir"; se cierra al pulsar fuera, con Escape o al elegir una opción. Sin sesión: "Iniciar
+// del fotógrafo, o "Administrador") y un menú desplegable con "Mi perfil" y "Salir"; se cierra al pulsar fuera, con Escape o al elegir una opción. Sin sesión: "Iniciar
 // sesión", que abre el panel de autenticación (usuario o correo y contraseña; ofrece registrarse).
 @Component({
   imports: [RouterLink, Avatar, PanelSesion],

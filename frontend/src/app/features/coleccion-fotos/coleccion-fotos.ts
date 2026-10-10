@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { ColeccionDetalle, Foto, ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
 import { CatalogoService } from '../../core/services/catalogo';
 import { Confirmacion } from '../../shared/confirmacion/confirmacion';
+import { Notificacion } from '../../shared/notificacion/notificacion';
 import { OrdenPorArrastre } from '../../shared/orden-arrastre/orden-arrastre';
 import { FotoReducida } from '../../shared/foto-reducida/foto-reducida';
 
@@ -32,7 +33,7 @@ interface Subida {
 // en que se eligieron (el backend las añade al final); las que fallan se quedan en la lista con el
 // motivo (la regla incumplida).
 @Component({
-  imports: [RouterLink, Confirmacion, FotoReducida],
+  imports: [RouterLink, Confirmacion, Notificacion, FotoReducida],
   selector: 'app-coleccion-fotos',
   styleUrl: './coleccion-fotos.scss',
   templateUrl: './coleccion-fotos.html',
@@ -63,6 +64,12 @@ export class ColeccionFotos {
   protected readonly pendientes = computed(() => this.subidas().filter((s) => s.estado !== 'error').length);
   protected readonly errores = computed(() => this.subidas().filter((s) => s.estado === 'error').length);
   protected readonly arrastrando = signal(false);
+
+  // Tanda de subidas en curso: desde que se añaden fotos con la cola vacía hasta que no queda
+  // ninguna por subir. Si al terminar se han subido todas, se avisa con un diálogo (exito: cuántas);
+  // si alguna ha fallado no, porque ya se ve en la lista con su motivo.
+  private tanda = { correctas: 0, fallidas: 0 };
+  protected readonly exito = signal<number | null>(null);
 
   protected readonly fotoAEliminar = signal<Foto | null>(null);
   protected readonly eliminando = signal<string | null>(null);
@@ -159,6 +166,7 @@ export class ColeccionFotos {
           : undefined;
       return { id: this.siguienteId++, archivo, estado: motivo ? 'error' : 'pendiente', mensaje: motivo };
     });
+    this.tanda.fallidas += nuevas.filter((s) => s.estado === 'error').length;
     this.subidas.update((subidas) => [...subidas, ...nuevas]);
     this.subirSiguiente();
   }
@@ -166,8 +174,12 @@ export class ColeccionFotos {
   // Sube la primera pendiente si no hay otra subiendo; al terminar, sigue con la siguiente.
   private subirSiguiente(): void {
     const subidas = this.subidas();
+    if (subidas.some((s) => s.estado === 'subiendo')) {
+      return;
+    }
     const siguiente = subidas.find((s) => s.estado === 'pendiente');
-    if (!siguiente || subidas.some((s) => s.estado === 'subiendo')) {
+    if (!siguiente) {
+      this.terminarTanda();
       return;
     }
 
@@ -177,14 +189,30 @@ export class ColeccionFotos {
       .subscribe({
         next: (foto) => {
           this.fotos.update((fotos) => [...fotos, foto]);
+          this.tanda.correctas++;
           this.subidas.update((subidas) => subidas.filter((s) => s.id !== siguiente.id));
           this.subirSiguiente();
         },
         error: (respuesta: HttpErrorResponse) => {
           this.actualizar(siguiente.id, { estado: 'error', mensaje: mensajeDeError(respuesta, 'No se ha podido subir.') });
+          this.tanda.fallidas++;
           this.subirSiguiente();
         },
       });
+  }
+
+  private terminarTanda(): void {
+    const { correctas, fallidas } = this.tanda;
+    this.tanda = { correctas: 0, fallidas: 0 };
+    if (correctas > 0 && fallidas === 0) {
+      this.exito.set(correctas);
+    }
+  }
+
+  protected mensajeExito(correctas: number): string {
+    return correctas === 1
+      ? 'Se ha añadido 1 foto a la colección.'
+      : `Se han añadido las ${correctas} fotos a la colección.`;
   }
 
   private actualizar(id: number, cambios: Partial<Subida>): void {

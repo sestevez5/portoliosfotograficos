@@ -4,7 +4,7 @@
   @if (fotografo(); as f) {
     <p>{{ nombreCompleto(f) }} · {{ portfolios().length }} {{ portfolios().length === 1 ? 'portfolio' : 'portfolios' }}</p>
     @if (portfolios().length) {
-      <p>El ojo de cada portfolio indica si lo puede ver cualquiera; púlsalo para ocultarlo, con todas sus colecciones, a los demás usuarios.</p>
+      <p>Elige qué ven los demás usuarios de cada portfolio (y de todas sus colecciones): el ojo, que cualquiera lo vea y entre; el candado, que lo vean pero no puedan entrar; el ojo tachado, que no lo vean.</p>
     }
     @if (portfolios().length > 1) {
       <p>Arrastra cada portfolio al lugar que quieres que ocupe. El orden se guarda al soltarlo.</p>
@@ -29,7 +29,7 @@
     @for (portfolio of portfolios(); track portfolio.nombreNormalizado; let i = $index) {
       <figure
         class="tarjeta"
-        [class.tarjeta--oculta]="!portfolio.visible"
+        [class.tarjeta--oculta]="portfolio.visibilidad === 'oculto'"
         [class.tarjeta--arrastrada]="orden.arrastrado() === portfolio.nombreNormalizado"
         [class.tarjeta--ordenable]="puedeOrdenar()"
         [attr.draggable]="puedeOrdenar()"
@@ -52,9 +52,9 @@
               {{ portfolio.collectionCount }} {{ portfolio.collectionCount === 1 ? 'colección' : 'colecciones' }}
             </span>
           </span>
-          <!-- Ojo: tachado si el portfolio está oculto a los demás usuarios; pulsarlo lo cambia. -->
-          <app-ojo-visibilidad
-            [visible]="portfolio.visible"
+          <!-- Visibilidad para los demás usuarios: visible (ojo), bloqueado (candado) u oculto (ojo tachado). -->
+          <app-selector-visibilidad
+            [visibilidad]="portfolio.visibilidad"
             [nombre]="portfolio.nombre"
             [desactivado]="cambiandoVisibilidad()"
             (cambiar)="cambiarVisibilidad(portfolio, $event)"
