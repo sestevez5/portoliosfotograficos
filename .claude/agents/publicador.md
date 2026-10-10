@@ -124,7 +124,8 @@ Comprueba también que no existe ya el tag (`git tag -l vX.Y.Z`, también en el 
 2. Si hay cambios sin commit que forman parte de la versión, haz antes sus commits (apartado anterior).
 3. Comprobaciones completas (apartado "Comprobaciones").
 4. **Versión en los paquetes**: `npm version X.Y.Z --no-git-tag-version` en `backend/` y en `frontend/`
-   (actualiza también los `package-lock.json`).
+   (actualiza también los `package-lock.json`), y **`fechaVersion`** de `backend/package.json` con la fecha
+   de hoy (AAAA-MM-DD): es la fecha que muestra "Acerca de" en la web.
 5. **`CHANGELOG.md`** (formato Keep a Changelog, en español):
    - Lo de "## [Sin publicar]" pasa a "## [X.Y.Z] - AAAA-MM-DD" (fecha de hoy), y queda arriba una
      sección "## [Sin publicar]" vacía.
@@ -133,7 +134,9 @@ Comprueba también que no existe ya el tag (`git tag -l vX.Y.Z`, también en el 
      reflejado, y que las "Notas de despliegue" digan lo que hay que hacer en el NAS (y si es opcional).
    - Añade al final el enlace `[X.Y.Z]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/vX.Y.Z`
      encima de los anteriores.
-6. **Documentación**: `node docs/generar-html.mjs` (la página `docs/documentacion.html` muestra la versión).
+6. **Documentación**: `node docs/generar-html.mjs` (la página `docs/documentacion.html` muestra la versión;
+   también regenera `frontend/public/ayuda/manual-del-fotografo.html`, el manual que abre la web, que va en
+   el commit).
    Si `CLAUDE.md` o `CONTRIBUTING.md` mencionan la versión en curso, revísalos.
 7. Commit en `develop` con los ficheros anteriores: "Versión X.Y.Z: <resumen en pocas palabras>".
 8. *(Solo con permiso expreso para publicar.)* Fusionar y etiquetar:
