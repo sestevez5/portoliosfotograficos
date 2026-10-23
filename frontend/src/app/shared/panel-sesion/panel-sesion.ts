@@ -5,8 +5,8 @@ import { Router } from '@angular/router';
 import { ReglaNegocioIncumplida } from '../../core/models/catalogo.model';
 import { SesionService } from '../../core/services/sesion';
 
-// Panel de autenticación (diálogo modal): usuario o correo y contraseña, y "Regístrate", que lleva
-// al registro. Se abre mientras "abierto" es true ([(abierto)]) y se cierra solo al entrar.
+// Panel de autenticación (diálogo modal): usuario o correo y contraseña, "¿Has olvidado tu
+// contraseña?", que lleva a pedir un enlace por correo, y "Regístrate", que lleva al registro. Se abre mientras "abierto" es true ([(abierto)]) y se cierra solo al entrar.
 @Component({
   imports: [ReactiveFormsModule],
   selector: 'app-panel-sesion',
@@ -54,6 +54,12 @@ export class PanelSesion {
   protected registrarse(): void {
     this.abierto.set(false);
     this.router.navigate(['/registro']);
+  }
+
+  // "¿Has olvidado tu contraseña?": lleva a pedir el enlace por correo, y también cierra el panel.
+  protected recuperarContrasenya(): void {
+    this.abierto.set(false);
+    this.router.navigate(['/recuperar-contrasenya']);
   }
 
   protected entrar(): void {

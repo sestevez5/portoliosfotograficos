@@ -12,6 +12,7 @@
     <div class="campo">
       <label for="sesion-contrasenya">Contraseña</label>
       <input id="sesion-contrasenya" type="password" formControlName="contrasenya" autocomplete="current-password" />
+      <button type="button" class="enlace panel__olvido" (click)="recuperarContrasenya()">¿Has olvidado tu contraseña?</button>
     </div>
     <div class="panel__acciones">
       <button type="submit" class="boton boton--principal" [disabled]="enviando()">

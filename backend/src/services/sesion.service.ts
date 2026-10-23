@@ -30,7 +30,8 @@ import { urlFotoPerfil } from './foto-perfil.service.js';
 export const COOKIE_SESION = 'sesion';
 export const DURACION_SESION_DIAS = 30;
 
-const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
+// También para los enlaces de recuperación de la contraseña (services/recuperacion.service.ts).
+export const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
 
 // Abre una sesión para el usuario y devuelve el token que se envía al navegador.
 export function crearSesion(idUsuario: number): string {

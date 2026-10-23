@@ -27,6 +27,17 @@ export const routes: Routes = [
         data: { modo: 'registro' },
         loadComponent: () => import('./features/fotografo-form/fotografo-form').then((m) => m.FotografoForm),
       },
+      // "¿Has olvidado tu contraseña?" (panel de "Iniciar sesión"): pedir el enlace por correo y, desde
+      // ese enlace, elegir la contraseña nueva. "recuperar-contrasenya" está reservado igual que "admin".
+      {
+        path: 'recuperar-contrasenya',
+        loadComponent: () =>
+          import('./features/recuperar-contrasenya/recuperar-contrasenya').then((m) => m.RecuperarContrasenya),
+      },
+      {
+        path: 'recuperar-contrasenya/nueva',
+        loadComponent: () => import('./features/nueva-contrasenya/nueva-contrasenya').then((m) => m.NuevaContrasenya),
+      },
       // Páginas del usuario con la sesión iniciada (menú del usuario). Sin sesión, a la portada.
       // "perfil" está reservado igual que "admin".
       {

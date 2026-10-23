@@ -62,6 +62,11 @@
   }
 }
 
+.panel__olvido {
+  align-self: flex-end;
+  margin-top: 0.25rem;
+}
+
 .panel__acciones {
   display: flex;
   gap: var(--space-2);

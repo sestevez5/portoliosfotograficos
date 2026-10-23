@@ -25,9 +25,9 @@ const cuenta = (db: Database.Database, tabla: string) => (db.prepare(`SELECT cou
 
 test('una BD nueva se crea con el esquema actual, solo con el administrador y en su primer uso', () => {
   const db = nueva('nueva');
-  assert.equal(db.pragma('user_version', { simple: true }), 19);
+  assert.equal(db.pragma('user_version', { simple: true }), 20);
   const tablas = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all() as { name: string }[]).map((t) => t.name);
-  assert.deepEqual(tablas, ['coleccionTags', 'colecciones', 'fotografos', 'fotos', 'portfolios', 'sesiones', 'usuarios']);
+  assert.deepEqual(tablas, ['coleccionTags', 'colecciones', 'fotografos', 'fotos', 'portfolios', 'recuperacionesContrasenya', 'sesiones', 'usuarios']);
 
   const administrador = db.prepare('SELECT idUsuario, usuario, passwordHash, rol, fechaUltimoAcceso FROM usuarios').get() as {
     idUsuario: number;
@@ -57,7 +57,7 @@ test('una BD de otra versión del esquema no se abre (para no perder datos)', ()
   const otra = new Database(ruta);
   otra.exec('CREATE TABLE cualquiera (x); PRAGMA user_version = 14;');
   otra.close();
-  assert.throws(() => abrirBaseDatos(ruta), /versión 14 del esquema y la aplicación espera la 19/);
+  assert.throws(() => abrirBaseDatos(ruta), /versión 14 del esquema y la aplicación espera la 20/);
 });
 
 test('una BD de la versión 15 se migra a la actual conservando sus datos', () => {
@@ -73,7 +73,7 @@ test('una BD de la versión 15 se migra a la actual conservando sus datos', () =
   v15.close();
 
   const db = abrirBaseDatos(ruta);
-  assert.equal(db.pragma('user_version', { simple: true }), 19);
+  assert.equal(db.pragma('user_version', { simple: true }), 20);
   // Lo que ya había sigue visible para todos.
   assert.deepEqual(db.prepare('SELECT nombre, idColeccionPortada, visibilidad FROM portfolios').all(), [
     { nombre: 'Viajes', idColeccionPortada: null, visibilidad: 'visible' },
@@ -94,7 +94,7 @@ test('de la versión 18 a la 19, lo oculto sigue oculto y lo demás pasa a visib
   v18.close();
 
   const db = abrirBaseDatos(ruta);
-  assert.equal(db.pragma('user_version', { simple: true }), 19);
+  assert.equal(db.pragma('user_version', { simple: true }), 20);
   assert.deepEqual(db.prepare('SELECT nombre, visibilidad FROM portfolios ORDER BY idPortfolio').all(), [
     { nombre: 'Viajes', visibilidad: 'visible' },
     { nombre: 'Bodas', visibilidad: 'oculto' },
@@ -114,7 +114,22 @@ test('solo puede haber un administrador y el rol solo admite sus dos valores', (
   db.close();
 });
 
-test('borrar un usuario borra en cascada su fotógrafo, portfolios, colecciones, fotos y sesiones', () => {
+test('de la versión 19 a la 20 se añade la tabla de los enlaces para recuperar la contraseña', () => {
+  const ruta = path.join(datos, 'version-19.db');
+  const v19 = new Database(ruta);
+  v19.exec(`CREATE TABLE usuarios (idUsuario INTEGER PRIMARY KEY, usuario TEXT NOT NULL);
+    INSERT INTO usuarios (usuario) VALUES ('anun');
+    PRAGMA user_version = 19;`);
+  v19.close();
+
+  const db = abrirBaseDatos(ruta);
+  assert.equal(db.pragma('user_version', { simple: true }), 20);
+  assert.equal(cuenta(db, 'usuarios'), 1);
+  assert.equal(cuenta(db, 'recuperacionesContrasenya'), 0);
+  db.close();
+});
+
+test('borrar un usuario borra en cascada su fotógrafo, portfolios, colecciones, fotos, sesiones y enlaces de recuperación', () => {
   const db = nueva('cascada');
   const idUsuario = Number(db.prepare("INSERT INTO usuarios (usuario) VALUES ('anun')").run().lastInsertRowid);
   const idFotografo = db
@@ -127,9 +142,10 @@ test('borrar un usuario borra en cascada su fotógrafo, portfolios, colecciones,
   db.prepare("INSERT INTO fotos (idColeccion, nombreFichero, orden) VALUES (?, '01.jpg', 1)").run(idColeccion);
   db.prepare("INSERT INTO coleccionTags (idColeccion, tag, orden) VALUES (?, 'agua', 0)").run(idColeccion);
   db.prepare("INSERT INTO sesiones (idUsuario, tokenHash, fechaExpiracion) VALUES (?, 'x', '2999-01-01')").run(idUsuario);
+  db.prepare("INSERT INTO recuperacionesContrasenya (idUsuario, tokenHash, fechaExpiracion) VALUES (?, 'y', '2999-01-01')").run(idUsuario);
 
   db.prepare('DELETE FROM usuarios WHERE idUsuario = ?').run(idUsuario);
-  for (const tabla of ['fotografos', 'portfolios', 'colecciones', 'fotos', 'coleccionTags', 'sesiones']) {
+  for (const tabla of ['fotografos', 'portfolios', 'colecciones', 'fotos', 'coleccionTags', 'sesiones', 'recuperacionesContrasenya']) {
     assert.equal(cuenta(db, tabla), 0, tabla);
   }
   db.close();

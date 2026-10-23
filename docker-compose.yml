@@ -9,6 +9,16 @@ services:
       # una carpeta del host junto a la de fotos (lo recomendado en el NAS: se copian juntas); sin
       # ella, el volumen interno "datos-internos", gestionado por Docker y no visible en el host.
       - ${DATOS_PATH:-datos-internos}:/app/datos
+    # Correo (enlaces para recuperar la contraseña) y dirección pública de la web, con la que se
+    # construyen esos enlaces. Sin SMTP_HOST no se envía ningún correo (se escribe en el registro).
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
     networks:
       - portfolio
     healthcheck:

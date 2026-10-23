@@ -32,7 +32,7 @@ export interface DatosUsuario {
 // Primeros segmentos de URL que usa la propia aplicación (p. ej. /admin/fotografos/nuevo o
 // /gestion/<fotógrafo>/portfolios/nuevo): un fotógrafo no puede tener un nombreInformalNormalizado
 // igual, o su página quedaría tapada.
-export const SEGMENTOS_RESERVADOS = ['admin', 'api', 'configuracion', 'gestion', 'perfil', 'photos', 'registro'];
+export const SEGMENTOS_RESERVADOS = ['admin', 'api', 'configuracion', 'gestion', 'perfil', 'photos', 'recuperar-contrasenya', 'registro'];
 
 // Nombre de usuario elegido al registrarse (se guarda en minúsculas): 3 a 30 caracteres, letras
 // sin tildes, números, ".", "_" o "-", empezando por letra o número.
@@ -43,6 +43,12 @@ export const LONGITUD_MINIMA_CONTRASENYA = 8;
 // Comprobación de formato básica (algo@algo.algo, sin espacios); la verificación real sería
 // enviar un correo.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Solo el formato, sin consultar la BD (p. ej. al pedir un enlace para recuperar la contraseña).
+export function exigirEmailValido(email: string): void {
+  exigir(email !== '', 'USUARIO_EMAIL_OBLIGATORIO');
+  exigir(EMAIL.test(email), 'USUARIO_EMAIL_NO_VALIDO', { email });
+}
 
 export const LONGITUD_MAXIMA_NOMBRE_FICHERO = 200;
 

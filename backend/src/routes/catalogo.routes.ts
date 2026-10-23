@@ -37,6 +37,7 @@ import {
   usuarioDeSesion,
 } from '../services/sesion.service.js';
 import { cambiarContrasenyaAdministrador, completarPrimerUso, esPrimerUso } from '../services/administrador.service.js';
+import { comprobarEnlace, restablecerContrasenya, solicitarRecuperacion } from '../services/recuperacion.service.js';
 import { exigirAdministrador, exigirDuenyoOAdministrador, tokenDeSesion, vistaDe } from './autorizacion.js';
 import { cambiarPortada, cambiarVisibilidadColeccion, crearColeccion, editarColeccion, eliminarColeccion, ordenarColecciones } from '../services/coleccion.service.js';
 import { anyadirFoto, cambiarTituloFoto, eliminarFoto, ordenarFotos, TAMANYO_MAXIMO_FOTO_MB as TAMANYO_MAXIMO_FOTO_COLECCION_MB } from '../services/foto.service.js';
@@ -363,6 +364,43 @@ catalogoRouter.put('/perfil/cuenta', express.json({ limit: '5kb' }), (req, res) 
     }),
   });
   res.status(204).end();
+});
+
+// "¿Has olvidado tu contraseña?": envía al correo, si es el de una cuenta, un enlace para elegir otra
+// (ver services/recuperacion.service.ts). Responde 204 exista o no la cuenta; 422 si el correo falta
+// o no tiene formato válido.
+catalogoRouter.post('/recuperar-contrasenya', express.json({ limit: '5kb' }), (req, res) => {
+  const textos = leerTextos(req.body, ['email'] as const);
+  if (typeof textos === 'string') {
+    res.status(400).json({ message: textos });
+    return;
+  }
+  solicitarRecuperacion(textos.email ?? '');
+  res.status(204).end();
+});
+
+// Si el enlace del correo ({ token }) sigue sirviendo: 204, o 422 (RECUPERACION_ENLACE_NO_VALIDO).
+catalogoRouter.post('/recuperar-contrasenya/comprobar', express.json({ limit: '5kb' }), (req, res) => {
+  const textos = leerTextos(req.body, ['token'] as const);
+  if (typeof textos === 'string') {
+    res.status(400).json({ message: textos });
+    return;
+  }
+  comprobarEnlace(textos.token ?? '');
+  res.status(204).end();
+});
+
+// Contraseña nueva con el enlace del correo ({ token, contrasenya }): cierra todas las sesiones del
+// usuario, invalida el enlace y deja iniciada una sesión nueva. 422 si incumple una regla.
+catalogoRouter.post('/recuperar-contrasenya/nueva', express.json({ limit: '5kb' }), (req, res) => {
+  const textos = leerTextos(req.body, ['token', 'contrasenya'] as const);
+  if (typeof textos === 'string') {
+    res.status(400).json({ message: textos });
+    return;
+  }
+  const token = crearSesion(restablecerContrasenya(textos.token ?? '', textos.contrasenya ?? ''));
+  enviarSesion(req, res, token);
+  res.json({ usuario: usuarioDeSesion(token) });
 });
 
 // Registro de un usuario fotógrafo: sus datos de acceso (usuario, correo y contraseña,
