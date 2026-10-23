@@ -19,7 +19,7 @@ Los botones de mantenimiento ("Editar", "Eliminar", "Gestionar portfolios", "+ N
 En la franja superior de todas las páginas están:
 
 - A la izquierda, "Portfolios fotográficos.", que lleva siempre a la portada.
-- A la derecha, el selector de tema ("Oscuro" / "Claro") y, según haya sesión o no, "Iniciar sesión" o el menú del usuario (su foto o sus iniciales, su nombre y una flecha).
+- A la derecha, el selector de tema ("Oscuro" / "Claro"), en la página de una colección el del marco de las fotos ("Con marco" / "Sin marco") y, según haya sesión o no, "Iniciar sesión" o el menú del usuario (su foto o sus iniciales, su nombre y una flecha).
 
 En las páginas de un fotógrafo, de sus portfolios y de sus colecciones aparece además, bajo la franja, la firma del fotógrafo (su logo); pulsarla lleva a su página.
 
@@ -52,6 +52,37 @@ Si una dirección no corresponde a nada (o a algo que está oculto para ti), ver
 3. Cierra el visor con "×", con la tecla Escape o pulsando fuera de la foto.
 
 ![El visor: la foto en grande con su título, las flechas para pasar de foto y "×" para cerrar](imagenes/manual-de-usuario/visor.webp)
+
+### Cómo ampliar una foto y moverte por ella (zoom)
+
+En el visor puedes ampliar la foto para ver sus detalles:
+
+- **Ampliar o reducir**: gira la rueda del ratón sobre la foto (se amplía hacia donde está el puntero), pellizca en una pantalla táctil, pulsa las teclas "+" y "−" o usa los botones "+" y "−" de abajo a la derecha. El porcentaje entre ellos indica cuánto está ampliada. Como máximo se ve a su tamaño real.
+- **Doble clic o doble toque** sobre un punto: la amplía al máximo en ese punto; otro doble clic la vuelve a encajar.
+- **Moverte por la foto**: arrástrala, usa las teclas flecha o pulsa en el minimapa (la foto en pequeño que aparece abajo a la derecha, con un rectángulo rojo que marca la zona que estás viendo). También puedes arrastrar sobre él.
+- **Ver la foto entera**: el botón "⤢", la tecla 0 o la tecla Escape (con la foto entera, Escape cierra el visor).
+
+Mientras la foto está ampliada, las teclas flecha la mueven en lugar de pasar de foto. Al pasar a otra foto se muestra entera. Los controles del zoom se ocultan solos a los pocos segundos y reaparecen al mover el ratón o tocar la pantalla.
+
+![El visor con la foto ampliada: abajo a la derecha, el minimapa con el rectángulo rojo de la zona que se ve y los botones "−", "+" y "⤢" con el porcentaje](imagenes/manual-de-usuario/visor-zoom.webp)
+
+### Cómo ver los datos de la toma (cámara, ISO, apertura y distancia focal)
+
+1. En el visor, amplía la foto (ver el apartado anterior).
+2. Abajo a la derecha aparece el minimapa y, a su izquierda, los datos de la toma que guardó la cámara: la cámara, el ISO, la apertura y la distancia focal.
+
+Solo se muestran los que tenga la foto: las que se subieron antes de que la aplicación guardara estos datos, o las que no los traían, no muestran ninguno. Nunca se muestra dónde se tomó la foto. Como los controles del zoom, se ocultan solos a los pocos segundos.
+
+![Los datos de la toma en el visor (cámara, ISO, apertura y distancia focal), a la izquierda del minimapa y los controles del zoom](imagenes/manual-de-usuario/datos-toma.webp)
+
+### Cómo ver las fotos con marco o sin él
+
+1. En la página de una colección, en la franja superior, pulsa "Con marco" o "Sin marco". Este selector solo aparece en las páginas de las colecciones.
+2. Con marco, cada foto lleva un borde del color opuesto al fondo: blanco con el tema oscuro y negro con el claro. Se aplica a las miniaturas de la colección y al visor a pantalla completa.
+
+El navegador recuerda la elección para las siguientes visitas, en todas las colecciones.
+
+![La página de una colección con "Con marco" elegido en la franja superior: cada foto lleva un borde blanco](imagenes/manual-de-usuario/coleccion-con-marco.webp)
 
 ### Cómo cambiar entre el tema oscuro y el claro
 
