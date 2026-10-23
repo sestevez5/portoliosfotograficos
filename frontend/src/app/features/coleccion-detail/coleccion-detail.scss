@@ -45,5 +45,5 @@
 // "Con marco" (data-marco="con" en <html>, core/services/marco.ts): un borde del color opuesto al
 // fondo. Va en el botón, fuera de la zona recortada, así que el zoom al pasar por encima queda dentro.
 :host-context([data-marco='con']) .photo-grid__item {
-  border: 0.2rem solid var(--color-marco);
+  border: 0.4rem solid var(--color-marco);
 }
