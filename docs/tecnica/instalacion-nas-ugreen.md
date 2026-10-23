@@ -198,6 +198,11 @@ También se pueden crear desde el gestor de archivos de UGOS Pro, dentro de la c
 | `FOTOS_PATH` | `/volume1/docker/portfolio-fotografico/contenido/fotos` | Carpeta de las fotos. Obligatoria: sin ella el `backend` no arranca. |
 | `DATOS_PATH` | `/volume1/docker/portfolio-fotografico/contenido/datos` | Carpeta de la base de datos, logos, miniaturas y fotos de perfil. Si se deja sin definir, estos datos van en un volumen interno de Docker (`datos-internos`), que no se ve en el NAS ni entra en sus copias. En el NAS, defínela siempre. |
 | `FRONTEND_PORT` | `8080` (o cualquier puerto libre del NAS) | Puerto por el que se abre la web. |
+| `PUBLIC_URL` | `http://<ip-del-nas>:8080` (o la dirección pública, p. ej. `https://fotos.midominio.es`) | Dirección con la que se abre la web, sin `/` al final. Con ella se construyen los enlaces de los correos para recuperar la contraseña: debe abrirse desde donde se lean esos correos. |
+| `SMTP_HOST` | p. ej. `smtp.gmail.com` | Servidor de correo saliente para enviar esos enlaces. Si se deja vacía no se envía ningún correo: el enlace solo aparece en el registro del backend (`docker compose logs backend`). |
+| `SMTP_PORT` y `SMTP_SECURE` | `465` y `true` (o `587` y `false`) | Puerto del servidor de correo: con `465`, `SMTP_SECURE=true` (conexión cifrada desde el principio); con `587`, `false` (STARTTLS). |
+| `SMTP_USER` y `SMTP_PASSWORD` | La cuenta de correo y su contraseña | Credenciales del servidor de correo. Con Gmail, la contraseña es una "contraseña de aplicación" de la cuenta de Google (con la verificación en dos pasos activada), no la de la cuenta. |
+| `MAIL_FROM` | p. ej. `Portfolios fotográficos <tu.cuenta@gmail.com>` | Remitente de los correos. Si se deja vacía, `SMTP_USER`. |
 
 Cada variable va en una línea, con el formato `NOMBRE=valor` y sin espacios alrededor del `=`. Para editarlo por
 SSH: `sudo vi .env` (o `sudo nano .env` si está disponible).

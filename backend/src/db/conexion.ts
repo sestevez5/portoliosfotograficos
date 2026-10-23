@@ -55,6 +55,17 @@ BEGIN
   UPDATE ${tabla} SET fechaModificacion = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE ${pk} = NEW.${pk};
 END;`;
 
+// Recuperación de la contraseña: el enlace que se envía por correo lleva un token aleatorio y la BD
+// guarda solo su hash, como en sesiones (ver services/recuperacion.service.ts). Cada usuario tiene a
+// lo sumo uno vigente; se borra al usarlo.
+const TABLA_RECUPERACIONES = `CREATE TABLE recuperacionesContrasenya (
+  idRecuperacion   INTEGER PRIMARY KEY,
+  idUsuario        INTEGER NOT NULL UNIQUE REFERENCES usuarios(idUsuario) ON DELETE CASCADE,
+  tokenHash        TEXT NOT NULL UNIQUE,
+  fechaCreacion    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  fechaExpiracion  TEXT NOT NULL
+);`;
+
 const ESQUEMA = `
 CREATE TABLE usuarios (
   idUsuario          INTEGER PRIMARY KEY,
@@ -81,6 +92,8 @@ CREATE TABLE sesiones (
   fechaExpiracion  TEXT NOT NULL
 );
 CREATE INDEX sesionesPorUsuario ON sesiones(idUsuario);
+
+${TABLA_RECUPERACIONES}
 
 CREATE TABLE fotografos (
   idFotografo                INTEGER PRIMARY KEY,
@@ -163,8 +176,8 @@ ${triggerFechaModificacion('fotos', 'idFoto')}
 // Versión del esquema, guardada en PRAGMA user_version. Cada cambio de esquema sube esta versión (y
 // FECHA_ESQUEMA, el día en que se introdujo, que se muestra en "Acerca de") y añade en MIGRACIONES la
 // migración desde la anterior, que conserva los datos.
-export const VERSION_ESQUEMA = 19;
-export const FECHA_ESQUEMA = '2026-10-10';
+export const VERSION_ESQUEMA = 20;
+export const FECHA_ESQUEMA = '2026-10-23';
 
 // Migraciones: la de la clave N lleva una BD de la versión N a la N + 1. Las BD anteriores a la 15
 // (cuando la aplicación aún no se había publicado y el esquema se redefinía) no se pueden abrir.
@@ -185,6 +198,8 @@ const MIGRACIONES: Record<number, string> = {
        ALTER TABLE colecciones ADD COLUMN visibilidad TEXT NOT NULL DEFAULT 'visible' CHECK (visibilidad IN ('visible', 'bloqueado', 'oculto'));
        UPDATE colecciones SET visibilidad = 'oculto' WHERE visible = 0;
        ALTER TABLE colecciones DROP COLUMN visible;`,
+  // 20: enlaces para recuperar la contraseña por correo.
+  19: TABLA_RECUPERACIONES,
 };
 
 // Credenciales iniciales del administrador (se pueden cambiar; ver services/administrador.service.ts).

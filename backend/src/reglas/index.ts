@@ -9,4 +9,4 @@ export {
   type DatosRegla,
   type OperacionIntentada,
 } from './regla-incumplida.js';
-export { validadorCatalogo, type ValidadorCatalogo } from './validaciones.js';
+export { exigirEmailValido, validadorCatalogo, type ValidadorCatalogo } from './validaciones.js';

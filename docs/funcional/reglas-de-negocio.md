@@ -48,14 +48,15 @@ el mismo: "Ciudad de noche", "ciudad de Noche" y "Ciudad-de noche" coinciden.
 | `USUARIO_OBLIGATORIO` | Quien se registra debe indicar un nombre de usuario. | El nombre de usuario es obligatorio. | `REGISTRAR_USUARIO` |
 | `USUARIO_NO_VALIDO` | El nombre de usuario tiene de 3 a 30 caracteres, empieza por letra o número y solo usa letras sin tildes, números, `.`, `_` o `-`. Se guarda en minúsculas. | El nombre de usuario "{usuario}" no es válido: debe tener entre 3 y 30 caracteres, empezar por una letra o un número y usar solo letras sin tildes, números, ".", "_" o "-". | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO` |
 | `USUARIO_DUPLICADO` | No puede haber dos usuarios con el mismo nombre de usuario. | Ya existe otro usuario con el nombre de usuario "{usuario}". | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO` |
-| `USUARIO_EMAIL_OBLIGATORIO` | Quien se registra debe indicar un correo electrónico. | El correo electrónico es obligatorio. | `REGISTRAR_USUARIO` |
-| `USUARIO_EMAIL_NO_VALIDO` | El correo, si se indica, debe tener formato de correo. | El correo electrónico "{email}" no tiene un formato válido. | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO` |
+| `USUARIO_EMAIL_OBLIGATORIO` | Quien se registra debe indicar un correo electrónico. | El correo electrónico es obligatorio. | `REGISTRAR_USUARIO`, `SOLICITAR_RECUPERACION` |
+| `USUARIO_EMAIL_NO_VALIDO` | El correo, si se indica, debe tener formato de correo. | El correo electrónico "{email}" no tiene un formato válido. | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO`, `SOLICITAR_RECUPERACION` |
 | `USUARIO_EMAIL_DUPLICADO` | No puede haber dos usuarios con el mismo correo, sin distinguir mayúsculas. | Ya existe otro usuario con el correo electrónico "{email}". | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO` |
-| `USUARIO_CONTRASENYA_OBLIGATORIA` | Quien se registra debe indicar una contraseña. | La contraseña es obligatoria. | `REGISTRAR_USUARIO` |
-| `USUARIO_CONTRASENYA_CORTA` | Una contraseña, si se indica, tiene 8 caracteres o más. | La contraseña debe tener al menos {minimo} caracteres. | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO`, `COMPLETAR_PRIMER_USO`, `CAMBIAR_CONTRASENYA_ADMINISTRADOR` |
+| `USUARIO_CONTRASENYA_OBLIGATORIA` | Quien se registra debe indicar una contraseña. | La contraseña es obligatoria. | `REGISTRAR_USUARIO`, `RESTABLECER_CONTRASENYA` |
+| `USUARIO_CONTRASENYA_CORTA` | Una contraseña, si se indica, tiene 8 caracteres o más. | La contraseña debe tener al menos {minimo} caracteres. | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO`, `COMPLETAR_PRIMER_USO`, `CAMBIAR_CONTRASENYA_ADMINISTRADOR`, `RESTABLECER_CONTRASENYA` |
 | `USUARIO_CONTRASENYA_REPETIDA` | Al cambiar la contraseña del administrador, la nueva debe ser distinta de la actual. | La contraseña nueva debe ser distinta de la actual. | `COMPLETAR_PRIMER_USO`, `CAMBIAR_CONTRASENYA_ADMINISTRADOR` |
 | `USUARIO_CREDENCIALES_INCORRECTAS` | El usuario (o correo) y la contraseña deben ser los de una cuenta. El mensaje es el mismo si el usuario no existe, no tiene contraseña o no coincide, para no revelar cuál falla. | El usuario o la contraseña no son correctos. | `INICIAR_SESION`, `COMPLETAR_PRIMER_USO`, `CAMBIAR_CONTRASENYA_ADMINISTRADOR` |
 | `USUARIO_FOTO_NO_VALIDA` | La foto de perfil es una imagen JPEG de 2 MB como máximo. | La foto de perfil debe ser una imagen JPEG de como máximo {maximo} MB. | `CAMBIAR_FOTO_PERFIL` |
+| `RECUPERACION_ENLACE_NO_VALIDO` | El enlace del correo para recuperar la contraseña debe existir, no haber caducado (dura 60 minutos) ni haberse usado ya; pedir otro anula el anterior. | El enlace para recuperar la contraseña no es válido o ha caducado (dura {minutos} minutos y solo sirve una vez). Pide otro desde "¿Has olvidado tu contraseña?". | `RESTABLECER_CONTRASENYA` |
 
 ## Administrador y primer uso
 
@@ -71,7 +72,7 @@ el mismo: "Ciudad de noche", "ciudad de Noche" y "Ciudad-de noche" coinciden.
 | `FOTOGRAFO_NOMBRE_OBLIGATORIO` | Todo fotógrafo tiene nombre. | El nombre del fotógrafo es obligatorio. | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO` |
 | `FOTOGRAFO_PRIMER_APELLIDO_OBLIGATORIO` | Todo fotógrafo tiene primer apellido. | El primer apellido del fotógrafo es obligatorio. | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO` |
 | `FOTOGRAFO_NOMBRE_INFORMAL_DUPLICADO` | No puede haber dos fotógrafos cuyo nombre informal dé la misma dirección ("Ana Ruiz" y "ana  ruíz" coinciden). | Ya existe otro fotógrafo con el mismo nombre informal ("{nombreInformal}" coincide con "{otro}"). | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO`, `CAMBIAR_NOMBRE_INFORMAL` |
-| `FOTOGRAFO_NOMBRE_INFORMAL_RESERVADO` | La dirección de un fotógrafo no puede coincidir con una que usa la propia aplicación: `admin`, `api`, `configuracion`, `gestion`, `perfil`, `photos` o `registro`. | El nombre informal "{nombreInformal}" no se puede usar: su dirección coincide con una reservada por la aplicación ("{reservado}"). | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO`, `CAMBIAR_NOMBRE_INFORMAL` |
+| `FOTOGRAFO_NOMBRE_INFORMAL_RESERVADO` | La dirección de un fotógrafo no puede coincidir con una que usa la propia aplicación: `admin`, `api`, `configuracion`, `gestion`, `perfil`, `photos`, `recuperar-contrasenya` o `registro`. | El nombre informal "{nombreInformal}" no se puede usar: su dirección coincide con una reservada por la aplicación ("{reservado}"). | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO`, `CAMBIAR_NOMBRE_INFORMAL` |
 | `FOTOGRAFO_CARPETA_OCUPADA` | La carpeta de fotos que le corresponde al fotógrafo no puede existir ya en el disco. | Ya existe la carpeta "{carpeta}" en la carpeta de fotos; no se puede usar para el fotógrafo "{nombreInformal}". | `REGISTRAR_USUARIO`, `CREAR_FOTOGRAFO`, `EDITAR_FOTOGRAFO`, `CAMBIAR_NOMBRE_INFORMAL` |
 | `FOTOGRAFO_ELIMINAR_CON_PORTFOLIOS` | Un fotógrafo con portfolios solo se elimina si se confirma expresamente. **Es una pregunta de confirmación.** | El usuario que intenta eliminar tiene portfolios creados. Si lo elimina, se perderán de forma permanente sus portfolios, colecciones y fotos. ¿Desea continuar? | `ELIMINAR_FOTOGRAFO` |
 
@@ -127,6 +128,8 @@ instalación.
 | `REGISTRAR_USUARIO` | Registrar al usuario "{usuario}" | Web | Sí |
 | `COMPLETAR_PRIMER_USO` | Completar la configuración inicial de la aplicación | Web | Sí |
 | `CAMBIAR_CONTRASENYA_ADMINISTRADOR` | Cambiar la contraseña del administrador | Web | Sí |
+| `SOLICITAR_RECUPERACION` | Pedir un enlace para recuperar la contraseña | Web | Sí |
+| `RESTABLECER_CONTRASENYA` | Cambiar la contraseña con el enlace de recuperación | Web | Sí |
 | `CREAR_FOTOGRAFO` | Dar de alta al fotógrafo "{nombreInformal}" | Web (administrador) e importación | Sí |
 | `CAMBIAR_NOMBRE_INFORMAL` | Cambiar el nombre informal del fotógrafo "{actual}" a "{nuevo}" | Comando `fotografo:renombrar` | Sí |
 | `EDITAR_FOTOGRAFO` | Modificar los datos del fotógrafo "{nombreInformal}" | Web | Sí |

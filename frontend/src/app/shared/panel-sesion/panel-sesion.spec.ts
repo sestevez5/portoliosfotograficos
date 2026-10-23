@@ -59,4 +59,12 @@ describe('PanelSesion', () => {
     expect(navegar).toHaveBeenCalledWith(['/registro']);
     expect(elemento.querySelector('dialog')!.open).toBe(false);
   });
+
+  it('"¿Has olvidado tu contraseña?" cierra el panel y lleva a recuperarla', async () => {
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    boton('¿Has olvidado tu contraseña?').click();
+    await fixture.whenStable();
+    expect(navegar).toHaveBeenCalledWith(['/recuperar-contrasenya']);
+    expect(elemento.querySelector('dialog')!.open).toBe(false);
+  });
 });

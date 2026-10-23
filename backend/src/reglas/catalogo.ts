@@ -24,6 +24,8 @@ export const REGLAS = {
   USUARIO_CONTRASENYA_ACTUAL_INCORRECTA: 'La contraseña actual no es correcta.',
   USUARIO_ADMINISTRADOR_NO_RENOMBRABLE: 'El nombre de usuario del administrador ("{usuario}") no se puede cambiar.',
   USUARIO_FOTO_NO_VALIDA: 'La foto de perfil debe ser una imagen JPEG de como máximo {maximo} MB.',
+  RECUPERACION_ENLACE_NO_VALIDO:
+    'El enlace para recuperar la contraseña no es válido o ha caducado (dura {minutos} minutos y solo sirve una vez). Pide otro desde "¿Has olvidado tu contraseña?".',
 
   // ---------------- Administrador y primer uso ----------------
   PRIMER_USO_COMPLETADO: 'La aplicación ya está configurada: el primer uso ya se completó.',
@@ -97,6 +99,8 @@ export const OPERACIONES = {
   COMPLETAR_PRIMER_USO: 'Completar la configuración inicial de la aplicación',
   CAMBIAR_CONTRASENYA_ADMINISTRADOR: 'Cambiar la contraseña del administrador',
   EDITAR_CUENTA: 'Modificar la cuenta del usuario "{usuario}"',
+  SOLICITAR_RECUPERACION: 'Pedir un enlace para recuperar la contraseña',
+  RESTABLECER_CONTRASENYA: 'Cambiar la contraseña con el enlace de recuperación',
   CREAR_FOTOGRAFO: 'Dar de alta al fotógrafo "{nombreInformal}"',
   CAMBIAR_NOMBRE_INFORMAL: 'Cambiar el nombre informal del fotógrafo "{actual}" a "{nuevo}"',
   EDITAR_FOTOGRAFO: 'Modificar los datos del fotógrafo "{nombreInformal}"',

@@ -278,6 +278,32 @@ const consultas = {
     "DELETE FROM sesiones WHERE fechaExpiracion <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
   ),
 
+  eliminarSesionesDe: db.prepare('DELETE FROM sesiones WHERE idUsuario = ?'),
+
+  // Recuperación de la contraseña (services/recuperacion.service.ts).
+  usuarioParaRecuperar: db.prepare(
+    `SELECT u.idUsuario, u.email, f.nombre
+     FROM usuarios u LEFT JOIN fotografos f ON f.idUsuario = u.idUsuario
+     WHERE u.email = ?`,
+  ),
+  // Un enlace por usuario (idUsuario es UNIQUE): pedir otro sustituye al anterior.
+  guardarRecuperacion: db.prepare(
+    `INSERT INTO recuperacionesContrasenya (idUsuario, tokenHash, fechaExpiracion) VALUES (@idUsuario, @tokenHash, @fechaExpiracion)
+     ON CONFLICT (idUsuario) DO UPDATE SET tokenHash = excluded.tokenHash, fechaExpiracion = excluded.fechaExpiracion,
+       fechaCreacion = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
+  ),
+  recuperacionVigente: db.prepare(
+    "SELECT idUsuario FROM recuperacionesContrasenya WHERE tokenHash = ? AND fechaExpiracion > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+  ),
+  // Si se pidió otro enlace hace menos de @segundos (para no enviar correos en ráfaga).
+  recuperacionReciente: db.prepare(
+    "SELECT 1 FROM recuperacionesContrasenya WHERE idUsuario = @idUsuario AND fechaCreacion > strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-' || @segundos || ' seconds')",
+  ),
+  eliminarRecuperacion: db.prepare('DELETE FROM recuperacionesContrasenya WHERE idUsuario = ?'),
+  eliminarRecuperacionesCaducadas: db.prepare(
+    "DELETE FROM recuperacionesContrasenya WHERE fechaExpiracion <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+  ),
+
   registrarAcceso: db.prepare(
     "UPDATE usuarios SET fechaUltimoAcceso = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE idUsuario = ?",
   ),
@@ -633,6 +659,43 @@ export function eliminarSesion(tokenHash: string): void {
 // Cierra las demás sesiones del usuario (p. ej. al cambiar su contraseña), salvo la indicada.
 export function eliminarOtrasSesiones(idUsuario: number, tokenHashActual: string): void {
   consultas.eliminarOtrasSesiones.run(idUsuario, tokenHashActual);
+}
+
+// Cierra todas las sesiones del usuario (al restablecer su contraseña con el enlace del correo).
+export function eliminarSesionesDe(idUsuario: number): void {
+  consultas.eliminarSesionesDe.run(idUsuario);
+}
+
+// ---------------- Recuperación de la contraseña ----------------
+// Solo para services/recuperacion.service.ts. Se guarda el hash del token, nunca el token.
+
+export interface UsuarioParaRecuperarFila {
+  idUsuario: number;
+  email: string;
+  // null si el usuario no es fotógrafo (p. ej. el administrador)
+  nombre: string | null;
+}
+
+// El email se compara sin distinguir mayúsculas (la columna es COLLATE NOCASE).
+export function usuarioParaRecuperar(email: string): UsuarioParaRecuperarFila | undefined {
+  return consultas.usuarioParaRecuperar.get(email) as UsuarioParaRecuperarFila | undefined;
+}
+
+export function guardarRecuperacion(idUsuario: number, tokenHash: string, fechaExpiracion: string): void {
+  consultas.eliminarRecuperacionesCaducadas.run();
+  consultas.guardarRecuperacion.run({ idUsuario, tokenHash, fechaExpiracion });
+}
+
+export function idUsuarioDeRecuperacion(tokenHash: string): number | undefined {
+  return (consultas.recuperacionVigente.get(tokenHash) as { idUsuario: number } | undefined)?.idUsuario;
+}
+
+export function recuperacionReciente(idUsuario: number, segundos: number): boolean {
+  return consultas.recuperacionReciente.get({ idUsuario, segundos }) !== undefined;
+}
+
+export function eliminarRecuperacion(idUsuario: number): void {
+  consultas.eliminarRecuperacion.run(idUsuario);
 }
 
 // ---------------- Fotógrafos ----------------

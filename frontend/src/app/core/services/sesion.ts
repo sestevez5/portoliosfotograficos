@@ -93,6 +93,27 @@ export class SesionService {
     );
   }
 
+  // "¿Has olvidado tu contraseña?": el backend envía al correo, si es el de una cuenta, un enlace para
+  // elegir otra. Responde igual exista o no la cuenta; 422 si el correo falta o no es válido.
+  solicitarRecuperacion(email: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/recuperar-contrasenya`, { email });
+  }
+
+  // Si el enlace del correo sigue sirviendo (422 con RECUPERACION_ENLACE_NO_VALIDO si no).
+  comprobarEnlaceRecuperacion(token: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/recuperar-contrasenya/comprobar`, { token });
+  }
+
+  // Contraseña nueva con el enlace del correo: el backend cierra las demás sesiones del usuario y deja
+  // iniciada una nueva.
+  restablecerContrasenya(token: string, contrasenya: string): Observable<UsuarioSesion> {
+    return this.http.post<{ usuario: UsuarioSesion }>(`${this.baseUrl}/recuperar-contrasenya/nueva`, { token, contrasenya }).pipe(
+      map(({ usuario }) => usuario),
+      tap((usuario) => this.establecer(usuario)),
+      map(() => this.usuario()!),
+    );
+  }
+
   // "Mi perfil": sus datos como usuario y, si lo es, como fotógrafo.
   perfil(): Observable<Perfil> {
     return this.http.get<Perfil>(`${this.baseUrl}/perfil`).pipe(map(conLogoAbsoluto));

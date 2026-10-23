@@ -7,6 +7,41 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [2.7.0] - 2026-10-23
+
+### Añadido
+
+- **Recuperar la contraseña por correo**: "¿Has olvidado tu contraseña?" en el panel de inicio de sesión lleva a
+  `/recuperar-contrasenya`, que pide el correo de la cuenta y envía a esa dirección un enlace para elegir una
+  contraseña nueva (`/recuperar-contrasenya/nueva`). El enlace caduca a los 60 minutos y solo sirve una vez (pedir
+  otro anula el anterior); al cambiar la contraseña se cierran las demás sesiones y queda la sesión iniciada. La
+  respuesta es la misma exista o no la cuenta, para no revelar qué correos están registrados. El administrador, que
+  no tiene correo, no puede usarla.
+- Nuevas rutas `POST /api/recuperar-contrasenya`, `POST /api/recuperar-contrasenya/comprobar` y
+  `POST /api/recuperar-contrasenya/nueva`, y la regla `RECUPERACION_ENLACE_NO_VALIDO`.
+- Envío de correo por SMTP (nodemailer), configurable con `PUBLIC_URL` (la dirección de la web, con la que se
+  construyen los enlaces), `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` y `MAIL_FROM`. Sin
+  `SMTP_HOST` no se envía nada y el correo se escribe en la consola del backend.
+- En desarrollo, `npm run dev` carga `backend/.env` si existe (ver `backend/.env.example`).
+- Manual de usuario y manual del fotógrafo: cómo recuperar la contraseña, con capturas nuevas.
+
+### Cambiado
+
+- `recuperar-contrasenya` pasa a ser un segmento reservado: ningún fotógrafo puede tener esa dirección.
+- Esquema de la base de datos en la versión 20 (tabla `recuperacionesContrasenya`), con migración automática desde la
+  19 al arrancar.
+
+### Notas de despliegue
+
+- La base de datos se migra sola de la versión 19 a la 20 al arrancar el backend (conviene hacer antes una copia de
+  `portfolio.db`; una vez migrada, la 2.6.0 ya no la abre).
+- **Opcional**: para que se envíen los correos de recuperación, añadir al `.env` del NAS `PUBLIC_URL` (p. ej.
+  `http://<ip-del-nas>:8080`) y las variables del servidor de correo (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`,
+  `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`; ver `.env.example` y `docs/tecnica/instalacion-nas-ugreen.md`), y copiar
+  el `docker-compose.yml` nuevo, que las pasa al backend. Sin ellas todo funciona como antes, pero el enlace solo
+  aparece en el registro del backend (`docker compose logs backend`).
+- Después, `docker compose pull && docker compose up -d`.
+
 ## [2.6.0] - 2026-10-23
 
 ### Añadido
@@ -371,6 +406,7 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
+[2.7.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.7.0
 [2.6.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.6.0
 [2.5.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.5.0
 [2.4.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.4.0
