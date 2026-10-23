@@ -128,7 +128,7 @@ Si has iniciado sesión y tienes un tema preferido en tu cuenta (ver "Cómo edit
 
 ![El formulario "Crear cuenta", con los datos de acceso y los de fotógrafo](imagenes/manual-de-usuario/registro.webp)
 
-El registro se rechaza, con el aviso "No se ha podido crear la cuenta", si el usuario o el correo ya los usa otra persona, si el correo no tiene un formato válido, si la contraseña es demasiado corta, o si el nombre informal coincide con el de otro fotógrafo o con una dirección reservada de la aplicación (`admin`, `api`, `configuracion`, `gestion`, `perfil`, `photos` o `registro`).
+El registro se rechaza, con el aviso "No se ha podido crear la cuenta", si el usuario o el correo ya los usa otra persona, si el correo no tiene un formato válido, si la contraseña es demasiado corta, o si el nombre informal coincide con el de otro fotógrafo o con una dirección reservada de la aplicación (`admin`, `api`, `configuracion`, `gestion`, `perfil`, `photos`, `recuperar-contrasenya` o `registro`).
 
 ### Cómo iniciar sesión
 
@@ -141,6 +141,22 @@ El registro se rechaza, con el aviso "No se ha podido crear la cuenta", si el us
 Si el usuario o la contraseña no son correctos, el diálogo muestra "El usuario o la contraseña no son correctos." (el mismo mensaje en todos los casos, para no revelar cuál falla). "Cancelar" cierra el diálogo sin iniciar sesión.
 
 La sesión dura 30 días en ese navegador, salvo que la cierres antes.
+
+### Cómo recuperar la contraseña si la has olvidado
+
+1. Pulsa "Iniciar sesión" en la franja superior y, en el diálogo, "¿Has olvidado tu contraseña?", debajo de la contraseña.
+2. Escribe el correo electrónico de tu cuenta y pulsa "Enviar el enlace". La página te indica que, si hay una cuenta con ese correo, te ha enviado un enlace. Dice lo mismo aunque el correo no sea de ninguna cuenta, para no revelar qué correos están registrados.
+3. Abre el correo "Recupera tu contraseña de Portfolios fotográficos" y pulsa "Elegir una contraseña nueva". Si no lo encuentras, mira en la carpeta de correo no deseado. Si no te ha llegado, pulsa "No me ha llegado" y vuelve a pedirlo pasado un minuto.
+4. En la página "Nueva contraseña", escribe la contraseña nueva en "Contraseña nueva" y otra vez en "Repetir contraseña nueva". Debe tener al menos 8 caracteres.
+5. Pulsa "Cambiar contraseña". La contraseña queda cambiada y ya tienes la sesión iniciada.
+
+![La página "Recuperar la contraseña", después de pedir el enlace](imagenes/manual-de-usuario/recuperar-contrasenya.webp)
+
+![La página "Nueva contraseña", a la que lleva el enlace del correo](imagenes/manual-de-usuario/nueva-contrasenya.webp)
+
+El enlace caduca en una hora y solo sirve una vez: si ya lo has usado, ha caducado o has pedido otro después, la página lo indica y ofrece "Pedir otro enlace". Al cambiar la contraseña así se cierran las sesiones que tuvieras abiertas en otros navegadores.
+
+Para recuperar la contraseña, la cuenta debe tener un correo: las de los fotógrafos registrados lo tienen siempre. El administrador (`admin`) no tiene correo, así que no puede usarla.
 
 ### Cómo cerrar sesión
 

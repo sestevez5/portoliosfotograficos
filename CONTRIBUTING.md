@@ -139,6 +139,14 @@ $env:DATOS_DIR="..\..\copia\datos"; $env:FOTOS_DIR="..\..\copia\fotos"; npm run 
 Dentro de la de datos se usan las mismas subcarpetas `BD/`, `logos/`, `miniaturas/` y `avatares/`. Si solo indicas `DATOS_DIR`, las fotos se buscan en `<DATOS_DIR>/fotos`. El frontend en desarrollo siempre
 llama a la API en `localhost:3000`, así que solo puede haber un backend de desarrollo a la vez.
 
+### Correos ("¿Has olvidado tu contraseña?")
+
+`npm run dev` carga, si existe, el fichero `backend/.env` (no versionado ni incluido en la imagen Docker). Para
+enviar correos de verdad, cópialo de `backend/.env.example` y rellena la cuenta de correo (`SMTP_USER`, `MAIL_FROM`) y
+su contraseña de aplicación (`SMTP_PASSWORD`); reinicia `npm run dev` después de cambiarlo. Sin `.env` o con
+`SMTP_HOST` vacío no se envían correos: el backend escribe en su consola el correo que habría enviado, con el enlace
+para elegir la contraseña nueva (que apunta a `http://localhost:4200`, `PUBLIC_URL`). Los tests no lo cargan.
+
 ### Comprobar tus cambios
 
 Antes de proponer un cambio, todo esto debe pasar:
