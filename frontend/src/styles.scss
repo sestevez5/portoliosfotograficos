@@ -24,6 +24,8 @@
   --color-visor-fondo: rgba(0, 0, 0, 0.97);
   // Marco de las fotos de una colección, si se elige "Con marco" (data-marco="con"): el opuesto al fondo.
   --color-marco: #ffffff;
+  // Rectángulo del minimapa del visor que marca la zona ampliada (igual en los dos temas).
+  --color-minimapa-zona: #e53935;
 
   // Sombra de los menús desplegables (menú del usuario).
   --sombra-menu: 0 16px 40px rgba(0, 0, 0, 0.45);

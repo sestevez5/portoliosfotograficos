@@ -1,4 +1,4 @@
-<div class="lightbox" (click)="close()">
+<div class="lightbox" (click)="alPulsarFondo()" (pointermove)="mostrarControles()" (pointerdown)="mostrarControles()">
   <button class="lightbox__close" type="button" (click)="close()" aria-label="Cerrar">&times;</button>
 
   @if (photos().length > 1) {
@@ -8,7 +8,27 @@
   }
 
   <figure class="lightbox__content" (click)="$event.stopPropagation()">
-    <img [src]="grande(current.url)" [alt]="current.titulo ?? ''" />
+    <div
+      #ventana
+      class="lightbox__ventana"
+      [class.lightbox__ventana--ampliada]="ampliada()"
+      [class.lightbox__ventana--arrastrando]="arrastrando() && ampliada()"
+      (pointerdown)="alPulsar($event)"
+      (pointermove)="alMover($event)"
+      (pointerup)="alSoltar($event)"
+      (pointercancel)="alCancelar($event)"
+      (wheel)="alGirarRueda($event)"
+    >
+      <img
+        #foto
+        [src]="grande(current.url)"
+        [alt]="current.titulo ?? ''"
+        draggable="false"
+        [style.transform]="transformacion()"
+        [class.lightbox__foto--animada]="animar()"
+        (load)="medir()"
+      />
+    </div>
     @if (current.titulo) {
       <figcaption>{{ current.titulo }}</figcaption>
     }
@@ -19,4 +39,52 @@
       &#8250;
     </button>
   }
+
+  <div
+    class="lightbox__zoom"
+    [class.lightbox__zoom--oculto]="!controlesVisibles()"
+    (click)="$event.stopPropagation()"
+    (pointerenter)="sobreControles = true"
+    (pointerleave)="sobreControles = false"
+  >
+    @if (ampliada() && datosToma().length) {
+      <dl class="lightbox__metadatos" aria-label="Datos de la toma">
+        @for (dato of datosToma(); track dato.nombre) {
+          <div>
+            <dt>{{ dato.nombre }}</dt>
+            <dd>{{ dato.valor }}</dd>
+          </div>
+        }
+      </dl>
+    }
+    <div class="lightbox__mapa-zoom">
+      @if (ampliada()) {
+        <div
+          class="lightbox__minimapa"
+          aria-hidden="true"
+          (pointerdown)="alPulsarMinimapa($event)"
+          (pointermove)="alMoverMinimapa($event)"
+        >
+          <img [src]="miniatura(current.url)" alt="" draggable="false" />
+          <span
+            class="lightbox__zona"
+            [style.left.%]="zonaVisible().left"
+            [style.top.%]="zonaVisible().top"
+            [style.width.%]="zonaVisible().width"
+            [style.height.%]="zonaVisible().height"
+          ></span>
+        </div>
+      }
+      <div class="lightbox__capsula" role="toolbar" aria-label="Zoom">
+        @if (ampliada()) {
+          <button type="button" (click)="reducir()" aria-label="Reducir">&minus;</button>
+          <span class="lightbox__porcentaje" aria-live="polite">{{ porcentaje() }} %</span>
+        }
+        <button type="button" (click)="ampliar()" [disabled]="zoom() >= zoomMaximo()" aria-label="Ampliar">+</button>
+        @if (ampliada()) {
+          <button type="button" (click)="encajar()" aria-label="Ver la foto entera" title="Ver la foto entera">&#10530;</button>
+        }
+      </div>
+    </div>
+  </div>
 </div>

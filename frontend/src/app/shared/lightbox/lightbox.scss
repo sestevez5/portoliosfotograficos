@@ -8,36 +8,64 @@
   // Casi opaco, del color de fondo del tema: la página de detrás apenas se intuye.
   background: var(--color-visor-fondo);
   padding: var(--space-2);
+  --visor-ancho-max: calc(100vw - 8rem);
 }
 
 .lightbox__content {
   margin: 0;
   // Deja a los lados el hueco justo para las flechas de navegación.
-  max-width: calc(100vw - 8rem);
+  max-width: var(--visor-ancho-max);
   max-height: 94vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
+}
+
+// Recuadro de la foto: con zoom, la foto se amplía dentro de él y se recorta.
+.lightbox__ventana {
+  display: flex;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  cursor: zoom-in;
 
   img {
-    max-width: 100%;
+    display: block;
+    max-width: var(--visor-ancho-max);
     max-height: 90vh;
     width: auto;
     object-fit: contain;
+    transform-origin: center;
+    will-change: transform;
+    -webkit-user-drag: none;
   }
 }
 
-// "Con marco" (data-marco="con" en <html>, core/services/marco.ts): un borde del color opuesto al
-// fondo, algo más grueso que en las miniaturas y proporcional a la pantalla. Se descuenta del tamaño
-// máximo para que la foto con su marco quepa igual.
-$marco-visor: clamp(0.25rem, 0.6vmin, 0.5rem);
+.lightbox__ventana--ampliada {
+  cursor: grab;
+}
 
-:host-context([data-marco='con']) .lightbox__content img {
-  box-sizing: content-box;
-  max-width: calc(100% - 2 * #{$marco-visor});
-  max-height: calc(90vh - 2 * #{$marco-visor});
+.lightbox__ventana--arrastrando {
+  cursor: grabbing;
+}
+
+.lightbox__foto--animada {
+  transition: transform var(--transition);
+}
+
+// "Con marco" (data-marco="con" en <html>, core/services/marco.ts): un borde del color opuesto al
+// fondo, algo más grueso que en las miniaturas y proporcional a la pantalla, alrededor del recuadro
+// (con zoom sigue rodeando la zona visible). Se descuenta del tamaño máximo para que quepa igual.
+$marco-visor: clamp(0.5rem, 1.2vmin, 1rem);
+
+:host-context([data-marco='con']) .lightbox__ventana {
   border: $marco-visor solid var(--color-marco);
+
+  img {
+    max-width: calc(var(--visor-ancho-max) - 2 * #{$marco-visor});
+    max-height: calc(90vh - 2 * #{$marco-visor});
+  }
 }
 
 .lightbox__content {
@@ -97,7 +125,140 @@ $marco-visor: clamp(0.25rem, 0.6vmin, 0.5rem);
     font-size: 2rem;
   }
 
-  .lightbox__content {
-    max-width: calc(100vw - 5rem);
+  .lightbox {
+    --visor-ancho-max: calc(100vw - 5rem);
+  }
+}
+
+// Controles del zoom, abajo a la derecha (lejos del título): la cápsula y, con zoom, el minimapa,
+// y a su izquierda los datos de la toma. Se ocultan solos tras unos segundos sin mover el ratón ni
+// tocar la pantalla.
+.lightbox__zoom {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  transition: opacity var(--transition);
+}
+
+.lightbox__mapa-zoom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+.lightbox__metadatos {
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-visor-fondo);
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 0.75rem;
+  row-gap: 0.15rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+
+  div {
+    display: contents;
+  }
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.lightbox__zoom--oculto {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lightbox__capsula {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: var(--color-visor-fondo);
+  color: var(--color-text);
+  font-size: 0.8rem;
+
+  button {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.15rem;
+    line-height: 1;
+    width: 1.8rem;
+    height: 1.8rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity var(--transition);
+  }
+
+  button:hover:not(:disabled) {
+    opacity: 1;
+  }
+
+  button:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+}
+
+.lightbox__porcentaje {
+  min-width: 3.2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+// Minimapa: la foto entera en pequeño, con la zona visible marcada y el resto oscurecido.
+.lightbox__minimapa {
+  position: relative;
+  overflow: hidden;
+  line-height: 0;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  outline: 1px solid var(--color-text-muted);
+
+  img {
+    max-width: 8.5rem;
+    max-height: 8.5rem;
+    -webkit-user-drag: none;
+  }
+}
+
+.lightbox__zona {
+  position: absolute;
+  border: 1px solid var(--color-minimapa-zona);
+  box-shadow: 0 0 0 100rem rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .lightbox__zoom {
+    right: var(--space-2);
+    bottom: var(--space-2);
+  }
+
+  .lightbox__minimapa img {
+    max-width: 6rem;
+    max-height: 6rem;
+  }
+
+  .lightbox__metadatos {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
   }
 }

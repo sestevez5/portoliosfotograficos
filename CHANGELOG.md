@@ -7,6 +7,30 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [2.6.0] - 2026-10-23
+
+### Añadido
+
+- **Zoom en el visor de fotos**: la foto se amplía con la rueda del ratón, pellizcando, con doble clic o doble toque,
+  con `+`/`−`/`0` o con los controles de abajo a la derecha, desde su tamaño encajado hasta su tamaño real. Con
+  zoom se mueve arrastrando, con las flechas o con un minimapa que marca en rojo la zona visible; Escape primero la
+  encaja y después cierra.
+- **Datos de la toma** en el visor: con la foto ampliada se muestran la cámara, el ISO, la apertura y la distancia
+  focal (de los metadatos EXIF de la foto, solo los que tenga). Los controles del visor se ocultan solos a los 2,5 s
+  sin mover el ratón ni tocar la pantalla.
+- Favicon nuevo (una cámara telemétrica clásica) en SVG, ICO y como icono de Apple (`apple-touch-icon.png`).
+- Manual de usuario y manual del fotógrafo: cómo ampliar una foto y moverse por ella, cómo ver los datos de la toma
+  y (en el de usuario) cómo ver las fotos con marco o sin él.
+
+### Cambiado
+
+- El marco de "Con marco" es más ancho, en las miniaturas de la colección y en el visor.
+
+### Notas de despliegue
+
+- Sin cambios en el esquema de la base de datos ni en la configuración: basta con
+  `docker compose pull && docker compose up -d`.
+
 ## [2.5.0] - 2026-10-10
 
 ### Añadido
@@ -347,6 +371,7 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
+[2.6.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.6.0
 [2.5.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.5.0
 [2.4.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.4.0
 [2.3.1]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.3.1
