@@ -19,17 +19,24 @@ export function conAncho(url: string, ancho: number): string {
 //
 // tamanyos es el atributo sizes: el ancho aproximado con que se muestra la imagen. La imagen debe
 // tener su ancho fijado por CSS (el ancho declarado de la grande no es el real si es vertical).
+//
+// Se carga cuando va a aparecer en pantalla (loading="lazy"), salvo con [prioritaria]="true": las
+// primeras de una página, que se ven nada más abrirla, se piden enseguida y antes que el resto
+// (fetchpriority="high"). Es lo que mide el LCP de Google (lo que tarda en verse lo principal).
 @Directive({
   selector: 'img[appFotoReducida]',
   host: {
     '[attr.src]': 'src()',
     '[attr.srcset]': 'srcset()',
     '[attr.sizes]': 'tamanyos()',
+    '[attr.loading]': "prioritaria() ? 'eager' : 'lazy'",
+    '[attr.fetchpriority]': "prioritaria() ? 'high' : null",
   },
 })
 export class FotoReducida {
   readonly appFotoReducida = input.required<string>();
   readonly tamanyos = input('100vw');
+  readonly prioritaria = input(false);
 
   // Sin srcset (navegadores muy antiguos), la miniatura.
   protected readonly src = computed(() => conAncho(this.appFotoReducida(), ANCHO_MINIATURA));

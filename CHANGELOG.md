@@ -7,6 +7,40 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+### Añadido
+
+- **Posicionamiento en buscadores (SEO) y vistas previas al compartir.** Al abrir una dirección de la web, el
+  backend sirve su `index.html` con el `<head>` ya relleno: título y descripción propios de cada fotógrafo,
+  portfolio y colección, URL canónica (sin `?limpia=true`), Open Graph y Twitter Card (al compartir un enlace en
+  WhatsApp, Facebook o LinkedIn sale con su título, su descripción y su portada) y datos estructurados de
+  schema.org en JSON-LD (`ProfilePage`, `CollectionPage`, `ImageGallery` con cada foto como `ImageObject` con su
+  autor y copyright, y `BreadcrumbList`). Responde con el código real: 404 si la página no existe o está oculta y
+  403 si está bloqueada. Las páginas que no son del catálogo (formularios, gestión, "Mi perfil"…) llevan
+  `noindex`. Al navegar dentro de la web, el título, la descripción y la URL canónica se actualizan.
+- `GET /robots.txt` (fuera las páginas de la aplicación, la API y las vistas limpias) y `GET /sitemap.xml`
+  (fotógrafos, portfolios y colecciones visibles, con su fecha de modificación y las fotos de cada colección),
+  generados por el backend. Nunca incluyen nada oculto ni bloqueado.
+- `?compartir` en las fotos de `/photos/`: un JPEG sRGB de 1200 px para las vistas previas (las redes sociales no
+  admiten AVIF), que se genera la primera vez en `datos/miniaturas/compartir/`.
+- `GET …/portfolios/:portfolio` y `GET …/colecciones/:coleccion` devuelven también su `fotografo`
+  (`{ nombreInformal, nombreInformalNormalizado }`).
+
+### Cambiado
+
+- Rendimiento: nginx comprime el texto (gzip) y guarda en caché un año los ficheros de Angular con hash; las fuentes
+  (Cormorant Garamond e Inter) se sirven desde la propia web en lugar de Google Fonts; las primeras fotos de cada
+  página se cargan enseguida y con prioridad (antes esperaban como las demás).
+- El título genérico de la web pasa a ser "Portfolios fotográficos" (era "Portfolios Fotográfico") y las fotos de una
+  colección tienen un texto alternativo más descriptivo (título, colección y fotógrafo).
+- `robots.txt` y `sitemap.xml` pasan a ser segmentos reservados (ningún fotógrafo puede tener esa dirección).
+
+### Despliegue
+
+- La imagen del backend lee el `index.html` de la web del servicio `frontend` (`PLANTILLA_HTML_URL`, fijada en su
+  Dockerfile como `http://frontend/index.html`): no hace falta tocar `docker-compose.yml` ni `.env`. `PUBLIC_URL`
+  debe ser la dirección pública de la web, porque con ella se construyen las URL canónicas, el sitemap y las
+  vistas previas.
+
 ## [2.7.0] - 2026-10-23
 
 ### Añadido

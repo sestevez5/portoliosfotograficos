@@ -15,10 +15,25 @@ import { conPerfilDeColor, convertirAAvif, esAvif, LADO_MAXIMO_FOTO } from '../u
 //   generar si la foto es más reciente. Borrar la carpeta datos/miniaturas no pierde nada.
 // - 3840: la foto tal cual. Solo si es una foto antigua, aún sin convertir a AVIF (ver
 //   npm run fotos:convertir), se genera su versión grande en datos/miniaturas/3840.
+//
+// Y con ?compartir, la versión para las vistas previas de los enlaces compartidos (og:image, ver
+// services/seo.service.ts): un JPEG sRGB de 1200 px de ancho, porque WhatsApp, Facebook, LinkedIn…
+// no admiten AVIF. Se genera la primera vez que se pide, en datos/miniaturas/compartir/<misma ruta>.jpg.
 
 export const ANCHOS_MINIATURA = [960, LADO_MAXIMO_FOTO] as const;
 export type AnchoMiniatura = (typeof ANCHOS_MINIATURA)[number];
 const ANCHO_CUADRICULA: AnchoMiniatura = 960;
+
+// Versión para compartir (og:image): 1200 px de ancho es lo que recomiendan Facebook y LinkedIn.
+const CARPETA_COMPARTIR = 'compartir';
+const ANCHO_COMPARTIR = 1200;
+const CALIDAD_COMPARTIR = 82;
+
+// Carpetas de datos/miniaturas que están en uso, con la extensión de sus ficheros.
+const CARPETAS: readonly { carpeta: string; extension: string }[] = [
+  ...ANCHOS_MINIATURA.map((ancho) => ({ carpeta: String(ancho), extension: '.avif' })),
+  { carpeta: CARPETA_COMPARTIR, extension: '.jpg' },
+];
 
 // Calidad AVIF de la miniatura: la más baja en la que, comparada al 100 % con la foto reducida sin
 // pérdidas (fotos con mucho grano incluidas), no se aprecian diferencias.
@@ -86,12 +101,50 @@ export async function miniatura(relativa: string, ancho: AnchoMiniatura): Promis
     return destino;
   }
 
+  return generarUnaVez(destino, () => generar(foto, destino, ancho));
+}
+
+// Una sola generación a la vez de cada fichero, aunque lleguen dos peticiones a la vez.
+function generarUnaVez(destino: string, generarlo: () => Promise<string>): Promise<string> {
   let generando = enCurso.get(destino);
   if (!generando) {
-    generando = generar(foto, destino, ancho).finally(() => enCurso.delete(destino));
+    generando = generarlo().finally(() => enCurso.delete(destino));
     enCurso.set(destino, generando);
   }
   return generando;
+}
+
+async function generarParaCompartir(foto: string, destino: string): Promise<string> {
+  mkdirSync(path.dirname(destino), { recursive: true });
+  const temporal = `${destino}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    await sharp(foto)
+      .rotate()
+      .resize({ width: ANCHO_COMPARTIR, withoutEnlargement: true })
+      // En sRGB y sin metadatos: no todas las redes sociales respetan los perfiles de color.
+      .toColourspace('srgb')
+      .jpeg({ quality: CALIDAD_COMPARTIR, mozjpeg: true })
+      .toFile(temporal);
+    renameSync(temporal, destino);
+  } catch (error) {
+    rmSync(temporal, { force: true });
+    throw error;
+  }
+  return destino;
+}
+
+// Ruta del JPEG para compartir de una foto (relativa a /photos), generándolo si hace falta. null si
+// la foto no existe.
+export async function fotoParaCompartir(relativa: string): Promise<string | null> {
+  const foto = rutaFoto(relativa);
+  if (!foto) {
+    return null;
+  }
+  const destino = path.join(miniaturasDir, CARPETA_COMPARTIR, `${path.relative(fotosDir, foto)}.jpg`);
+  if (existsSync(destino) && statSync(destino).mtimeMs >= statSync(foto).mtimeMs) {
+    return destino;
+  }
+  return generarUnaVez(destino, () => generarParaCompartir(foto, destino));
 }
 
 // Genera por adelantado la miniatura de una foto (ruta relativa a la carpeta de fotos), para que la
@@ -142,9 +195,9 @@ export async function generarMiniaturasPendientes(): Promise<void> {
 // carpeta de fotos.
 export function moverMiniaturas(antes: string, despues: string): void {
   let regenerar = false;
-  for (const ancho of ANCHOS_MINIATURA) {
-    const origen = path.join(miniaturasDir, String(ancho), antes);
-    const destino = path.join(miniaturasDir, String(ancho), despues);
+  for (const { carpeta } of CARPETAS) {
+    const origen = path.join(miniaturasDir, carpeta, antes);
+    const destino = path.join(miniaturasDir, carpeta, despues);
     if (!existsSync(origen)) {
       continue;
     }
@@ -167,13 +220,13 @@ export function moverMiniaturas(antes: string, despues: string): void {
 // con su ruta relativa a la carpeta de fotos. Se llama al eliminar: si no, quedarían ocupando sitio
 // (no se verían: sin la original ya no se sirven).
 export function borrarMiniaturas(relativa: string): void {
-  for (const ancho of ANCHOS_MINIATURA) {
+  for (const { carpeta: nombre, extension } of CARPETAS) {
     try {
-      const carpeta = path.join(miniaturasDir, String(ancho));
+      const carpeta = path.join(miniaturasDir, nombre);
       // Una carpeta (fotógrafo, portfolio, colección) o una foto (si es antigua, sin convertir, su
-      // versión lleva .avif detrás).
+      // versión lleva .avif detrás; la de compartir, siempre .jpg).
       rmSync(path.join(carpeta, relativa), { recursive: true, force: true });
-      rmSync(path.join(carpeta, `${relativa}.avif`), { force: true });
+      rmSync(path.join(carpeta, `${relativa}${extension}`), { force: true });
     } catch (error) {
       console.warn(`Aviso: no se han podido borrar las miniaturas de ${relativa}:`, (error as Error).message);
     }
@@ -183,21 +236,21 @@ export function borrarMiniaturas(relativa: string): void {
 // Borra lo que ya no se usa de datos/miniaturas, para que no ocupe sitio: las carpetas de los anchos
 // que ya no se generan (hasta la 2.2, JPEG de 480, 960, 1600 y 2400 px) y, en las de los anchos
 // actuales, los ficheros que no son AVIF (los JPEG de 960 de antes y temporales que hayan quedado de
-// una generación interrumpida). Se llama al arrancar.
+// una generación interrumpida; en la de compartir, los que no son JPEG). Se llama al arrancar.
 export function borrarAnchosObsoletos(): void {
   if (!existsSync(miniaturasDir)) {
     return;
   }
-  const vigentes = ANCHOS_MINIATURA.map(String);
   for (const carpeta of readdirSync(miniaturasDir)) {
     const ruta = path.join(miniaturasDir, carpeta);
     try {
-      if (!vigentes.includes(carpeta)) {
+      const vigente = CARPETAS.find((c) => c.carpeta === carpeta);
+      if (!vigente) {
         rmSync(ruta, { recursive: true, force: true });
         continue;
       }
       for (const fichero of readdirSync(ruta, { recursive: true, withFileTypes: true })) {
-        if (fichero.isFile() && !fichero.name.endsWith('.avif')) {
+        if (fichero.isFile() && !fichero.name.endsWith(vigente.extension)) {
           rmSync(path.join(fichero.parentPath, fichero.name), { force: true });
         }
       }

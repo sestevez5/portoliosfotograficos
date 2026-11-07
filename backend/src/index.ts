@@ -3,6 +3,7 @@ import cors from 'cors';
 import { catalogoRouter } from './routes/catalogo.routes.js';
 import { fotosDir } from './config/rutas.js';
 import { gestionarErrores } from './gestionar-errores.js';
+import { seoRouter } from './routes/seo.routes.js';
 import { soloFotosVisibles } from './routes/fotos-visibles.routes.js';
 import { servirMiniaturas, tipoAvif } from './routes/miniaturas.routes.js';
 import { borrarAnchosObsoletos, generarMiniaturasPendientes } from './services/miniatura.service.js';
@@ -17,6 +18,8 @@ const app = express();
 // la petición, que es obligatorio (en vez de "*") para admitir credenciales.
 app.use(cors({ origin: true, credentials: true }));
 app.use('/api', catalogoRouter);
+// robots.txt, sitemap.xml y el index.html de cada página con sus metadatos (ver routes/seo.routes.ts).
+app.use(seoRouter);
 // Solo las fotos de las colecciones que puede ver quien las pide (soloFotosVisibles). Con ?ancho=<ancho>, la miniatura de la foto; sin él, la original. dotfiles: 'ignore' no sirve nada
 // con un segmento que empiece por punto (papeleras, subidas a medias); por defecto express.static
 // sí serviría los ficheros de dentro de una carpeta con punto.

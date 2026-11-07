@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, map, of, switchMap } from 'rxjs';
 import { CatalogoService, esAccesoRestringido } from '../../core/services/catalogo';
+import { SeoService } from '../../core/services/seo';
 import { SesionService } from '../../core/services/sesion';
 import { VistaLimpiaService, esVistaLimpia } from '../../core/services/vista-limpia';
 import { ColeccionAcciones } from '../../shared/coleccion-acciones/coleccion-acciones';
@@ -57,6 +58,23 @@ export class ColeccionList {
       }),
     ),
   );
+
+  constructor() {
+    // Título, descripción y URL canónica de la página (core/services/seo.ts).
+    const seo = inject(SeoService);
+    effect(() => {
+      const portfolio = this.portfolio();
+      if (portfolio) {
+        seo.portfolio(portfolio);
+      } else if (portfolio === null) {
+        if (this.restringido()) {
+          seo.restringida();
+        } else {
+          seo.noEncontrada();
+        }
+      }
+    });
+  }
 
   // Tras eliminar el portfolio se vuelve a los portfolios del fotógrafo.
   protected alEliminar(): void {

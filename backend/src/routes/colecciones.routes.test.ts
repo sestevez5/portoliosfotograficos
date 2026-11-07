@@ -70,6 +70,7 @@ test('POST crea la colección (201) y valida el cuerpo (400) y las reglas (422)'
     descripcion: 'Picos',
     tags: ['nieve'],
     portfolio: { nombre: 'Viajes', nombreNormalizado: 'viajes' },
+    fotografo: { nombreInformal: 'Ana Uno', nombreInformalNormalizado: 'ana-uno' },
     visible: true,
     visibilidad: 'visible',
     fotos: [],

@@ -70,6 +70,7 @@ test('POST crea el portfolio (201) y valida el cuerpo (400) y las reglas (422)',
     descripcion: 'En blanco y negro',
     visible: true,
     visibilidad: 'visible',
+    fotografo: { nombreInformal: 'Ana Uno', nombreInformalNormalizado: 'ana-uno' },
     colecciones: [],
   });
   assert.ok(existsSync(path.join(fotos, 'ana-uno', 'retratos-de-estudio')));
