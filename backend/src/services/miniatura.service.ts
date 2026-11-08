@@ -150,14 +150,22 @@ export async function fotoParaCompartir(relativa: string): Promise<string | null
 // Genera por adelantado la miniatura de una foto (ruta relativa a la carpeta de fotos), para que la
 // primera vez que se vea en una cuadrícula ya esté hecha y se sirva al instante: generarla al pedirla
 // tarda de medio segundo a un segundo por foto, y una colección pide todas a la vez. Si falla, solo
-// avisa: se volverá a intentar al pedirla.
-export async function prepararMiniatura(relativa: string): Promise<void> {
+// avisa (y devuelve false): se volverá a intentar al pedirla.
+export async function prepararMiniatura(relativa: string): Promise<boolean> {
   try {
     await miniatura(relativa.split(path.sep).join('/'), ANCHO_CUADRICULA);
+    return true;
   } catch (error) {
     console.warn(`Aviso: no se ha podido generar la miniatura de ${relativa}:`, (error as Error).message);
+    return false;
   }
 }
+
+// Extensiones de las fotos de las colecciones: AVIF y las de los formatos que se admiten al subirlas
+// (fotos antiguas, aún sin convertir). Lo demás que haya en las carpetas (Thumbs.db y desktop.ini de
+// Windows, .DS_Store de macOS…) no es una foto y no tiene miniatura.
+const EXTENSIONES_FOTO = new Set(['.avif', '.jpg', '.jpeg', '.png', '.webp']);
+const esFoto = (nombreFichero: string) => EXTENSIONES_FOTO.has(path.extname(nombreFichero).toLowerCase());
 
 // Genera, de una en una para no acaparar el procesador, las miniaturas que falten (fotos subidas con
 // db:importar, convertidas con fotos:convertir, de antes de que se generaran al subirlas o cuya
@@ -168,7 +176,7 @@ export async function generarMiniaturasPendientes(): Promise<void> {
   }
   let generadas = 0;
   for (const fichero of readdirSync(fotosDir, { recursive: true, withFileTypes: true })) {
-    if (!fichero.isFile()) {
+    if (!fichero.isFile() || !esFoto(fichero.name)) {
       continue;
     }
     const relativa = path.relative(fotosDir, path.join(fichero.parentPath, fichero.name));
@@ -179,8 +187,9 @@ export async function generarMiniaturasPendientes(): Promise<void> {
     if (existsSync(destino)) {
       continue;
     }
-    await prepararMiniatura(relativa);
-    generadas++;
+    if (await prepararMiniatura(relativa)) {
+      generadas++;
+    }
   }
   if (generadas > 0) {
     console.log(`Generadas ${generadas} miniaturas pendientes.`);
