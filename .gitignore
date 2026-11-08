@@ -14,3 +14,6 @@ backend/contenido/
 *.db
 *.db-wal
 *.db-shm
+
+# Configuración local de Claude Code
+.claude/settings.local.json
