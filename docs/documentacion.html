@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Documentación · Portfolio fotográfico 2.7.0</title>
+<title>Documentación · Portfolio fotográfico 2.8.0</title>
 <style>
   :root {
     --fondo: #f6f5f1; --superficie: #ffffff; --texto: #1b1b1c; --apagado: #6d6b66; --borde: #dedbd3; --codigo: #efede7;
@@ -109,7 +109,7 @@
 <body>
 <header class="cabecera">
   <p class="cabecera__titulo"><a href="#inicio">Portfolio fotográfico · Documentación</a></p>
-  <p class="cabecera__datos">Versión de la aplicación <strong>2.7.0</strong> · Generado el 23 de octubre de 2026 · 5 documentos</p>
+  <p class="cabecera__datos">Versión de la aplicación <strong>2.8.0</strong> · Generado el 8 de noviembre de 2026 · 5 documentos</p>
 </header>
 <div class="pagina">
   <nav class="menu" aria-label="Documentos">
@@ -236,7 +236,7 @@ networks:
 <tr><td data-col="Variable"><code>FOTOS_PATH</code></td><td data-col="Valor en el NAS"><code>/volume1/docker/portfolio-fotografico/contenido/fotos</code></td><td data-col="Para qué sirve">Carpeta de las fotos. Obligatoria: sin ella el <code>backend</code> no arranca.</td></tr>
 <tr><td data-col="Variable"><code>DATOS_PATH</code></td><td data-col="Valor en el NAS"><code>/volume1/docker/portfolio-fotografico/contenido/datos</code></td><td data-col="Para qué sirve">Carpeta de la base de datos, logos, miniaturas y fotos de perfil. Si se deja sin definir, estos datos van en un volumen interno de Docker (<code>datos-internos</code>), que no se ve en el NAS ni entra en sus copias. En el NAS, defínela siempre.</td></tr>
 <tr><td data-col="Variable"><code>FRONTEND_PORT</code></td><td data-col="Valor en el NAS"><code>8080</code> (o cualquier puerto libre del NAS)</td><td data-col="Para qué sirve">Puerto por el que se abre la web.</td></tr>
-<tr><td data-col="Variable"><code>PUBLIC_URL</code></td><td data-col="Valor en el NAS"><code>http://&lt;ip-del-nas&gt;:8080</code> (o la dirección pública, p. ej. <code>https://fotos.midominio.es</code>)</td><td data-col="Para qué sirve">Dirección con la que se abre la web, sin <code>/</code> al final. Con ella se construyen los enlaces de los correos para recuperar la contraseña: debe abrirse desde donde se lean esos correos.</td></tr>
+<tr><td data-col="Variable"><code>PUBLIC_URL</code></td><td data-col="Valor en el NAS"><code>http://&lt;ip-del-nas&gt;:8080</code> (o la dirección pública, p. ej. <code>https://fotos.midominio.es</code>)</td><td data-col="Para qué sirve">Dirección con la que se abre la web, sin <code>/</code> al final. Con ella se construyen los enlaces de los correos para recuperar la contraseña (debe abrirse desde donde se lean esos correos) y, para los buscadores, las URL canónicas, el <code>sitemap.xml</code> y las vistas previas al compartir: si la web se publica en Internet, debe ser su dirección pública.</td></tr>
 <tr><td data-col="Variable"><code>SMTP_HOST</code></td><td data-col="Valor en el NAS">p. ej. <code>smtp.gmail.com</code></td><td data-col="Para qué sirve">Servidor de correo saliente para enviar esos enlaces. Si se deja vacía no se envía ningún correo: el enlace solo aparece en el registro del backend (<code>docker compose logs backend</code>).</td></tr>
 <tr><td data-col="Variable"><code>SMTP_PORT</code> y <code>SMTP_SECURE</code></td><td data-col="Valor en el NAS"><code>465</code> y <code>true</code> (o <code>587</code> y <code>false</code>)</td><td data-col="Para qué sirve">Puerto del servidor de correo: con <code>465</code>, <code>SMTP_SECURE=true</code> (conexión cifrada desde el principio); con <code>587</code>, <code>false</code> (STARTTLS).</td></tr>
 <tr><td data-col="Variable"><code>SMTP_USER</code> y <code>SMTP_PASSWORD</code></td><td data-col="Valor en el NAS">La cuenta de correo y su contraseña</td><td data-col="Para qué sirve">Credenciales del servidor de correo. Con Gmail, la contraseña es una "contraseña de aplicación" de la cuenta de Google (con la verificación en dos pasos activada), no la de la cuenta.</td></tr>

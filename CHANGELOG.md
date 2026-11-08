@@ -7,6 +7,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [2.8.0] - 2026-11-08
+
 ### Añadido
 
 - **Posicionamiento en buscadores (SEO) y vistas previas al compartir.** Al abrir una dirección de la web, el
@@ -34,8 +36,15 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   colección tienen un texto alternativo más descriptivo (título, colección y fotógrafo).
 - `robots.txt` y `sitemap.xml` pasan a ser segmentos reservados (ningún fotógrafo puede tener esa dirección).
 
-### Despliegue
+### Corregido
 
+- Al arrancar, la generación de miniaturas pendientes ya no intenta procesar los ficheros que no son fotos de las
+  carpetas de las colecciones (`Thumbs.db`, `desktop.ini`, `.DS_Store`…), que llenaban la consola de avisos, y el
+  mensaje "Generadas N miniaturas pendientes" ya no cuenta las que no se han podido generar.
+
+### Notas de despliegue
+
+- No hay cambios en la base de datos ni pasos obligatorios: basta con `docker compose pull && docker compose up -d`.
 - La imagen del backend lee el `index.html` de la web del servicio `frontend` (`PLANTILLA_HTML_URL`, fijada en su
   Dockerfile como `http://frontend/index.html`): no hace falta tocar `docker-compose.yml` ni `.env`. `PUBLIC_URL`
   debe ser la dirección pública de la web, porque con ella se construyen las URL canónicas, el sitemap y las
@@ -440,6 +449,7 @@ Primera versión estable.
 - Despliegue con Docker Compose en el NAS usando imágenes publicadas en GHCR.
 - Datos de prueba: 8 fotógrafos adicionales con colecciones y fotos de relleno.
 
+[2.8.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.8.0
 [2.7.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.7.0
 [2.6.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.6.0
 [2.5.0]: https://github.com/sestevez5/portoliosfotograficos/releases/tag/v2.5.0
