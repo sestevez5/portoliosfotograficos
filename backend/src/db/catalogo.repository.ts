@@ -67,6 +67,7 @@ export interface ColeccionResumenFila {
 export interface ColeccionFila {
   idColeccion: number;
   carpetaFotografo: string;
+  nombreInformal: string;
   idPortfolio: number;
   nombrePortfolio: string;
   carpetaPortfolio: string;
@@ -190,7 +191,7 @@ const consultas = {
     ORDER BY f.idFotografo, p.orden, a.orden`),
 
   coleccion: db.prepare(`
-    SELECT a.idColeccion, f.nombreInformalNormalizado AS carpetaFotografo, p.idPortfolio, p.nombre AS nombrePortfolio,
+    SELECT a.idColeccion, f.nombreInformalNormalizado AS carpetaFotografo, f.nombreInformal, p.idPortfolio, p.nombre AS nombrePortfolio,
       p.nombreNormalizado AS carpetaPortfolio, a.nombreNormalizado, a.nombre, a.descripcion, a.idFotoPortada,
       a.visibilidad, p.visibilidad AS portfolioVisibilidad,
       ${TAGS_COLECCION} AS tags
@@ -203,6 +204,19 @@ const consultas = {
   fotosDeColeccion: db.prepare(`
     SELECT idFoto, nombreFichero, titulo, orden, ancho, alto, metadatos
     FROM fotos WHERE idColeccion = ? ORDER BY orden`),
+
+  // Para el sitemap (services/seo.service.ts): lo que cualquiera puede ver y en lo que puede entrar
+  // (nada oculto ni bloqueado), con la fecha de su última modificación. Un fotógrafo sin portfolios
+  // (o sin ninguno visible) sale con portfolio NULL, y un portfolio sin colecciones, con coleccion NULL.
+  paginasPublicas: db.prepare(`
+    SELECT f.nombreInformalNormalizado AS fotografo, f.fechaModificacion AS fechaFotografo,
+      p.nombreNormalizado AS portfolio, p.fechaModificacion AS fechaPortfolio,
+      a.idColeccion, a.nombreNormalizado AS coleccion,
+      max(a.fechaModificacion, COALESCE((SELECT max(fechaModificacion) FROM fotos WHERE idColeccion = a.idColeccion), '')) AS fechaColeccion
+    FROM fotografos f
+    LEFT JOIN portfolios p ON p.idFotografo = f.idFotografo AND p.visibilidad = 'visible'
+    LEFT JOIN colecciones a ON a.idPortfolio = p.idPortfolio AND a.visibilidad = 'visible'
+    ORDER BY f.idFotografo, p.orden, a.orden`),
 
   tags: db.prepare(`
     SELECT DISTINCT t.tag FROM coleccionTags t JOIN colecciones a ON a.idColeccion = t.idColeccion
@@ -501,6 +515,21 @@ export function cambiarTituloFoto(idFoto: number, titulo: string | null): void {
 
 export function eliminarFoto(idFoto: number): void {
   consultas.eliminarFoto.run(idFoto);
+}
+
+export interface PaginaPublicaFila {
+  fotografo: string;
+  fechaFotografo: string;
+  portfolio: string | null;
+  fechaPortfolio: string | null;
+  idColeccion: number | null;
+  coleccion: string | null;
+  fechaColeccion: string | null;
+}
+
+// Fotógrafos, portfolios y colecciones que puede ver y en los que puede entrar cualquiera (sitemap).
+export function listarPaginasPublicas(): PaginaPublicaFila[] {
+  return consultas.paginasPublicas.all() as PaginaPublicaFila[];
 }
 
 export function listarTags(ve: Vista = VER_TODO): string[] {

@@ -51,7 +51,7 @@
   <section class="photo-grid">
     @for (foto of a.fotos; track foto.nombreFichero; let i = $index) {
       <button class="photo-grid__item" type="button" (click)="openLightbox(i)">
-        <img [appFotoReducida]="foto.url" tamanyos="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 25vw" [alt]="foto.titulo ?? a.nombre" loading="lazy" />
+        <img [appFotoReducida]="foto.url" tamanyos="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 25vw" [alt]="textoAlternativo(foto, a, i)" [prioritaria]="i < 4" />
       </button>
     }
   </section>

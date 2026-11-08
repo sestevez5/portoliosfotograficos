@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -6,6 +6,7 @@ import { BehaviorSubject, catchError, combineLatest, map, of, switchMap } from '
 import { nombreCompleto } from '../../core/models/catalogo.model';
 import { CatalogoService } from '../../core/services/catalogo';
 import { SesionService } from '../../core/services/sesion';
+import { SeoService } from '../../core/services/seo';
 import { esVistaLimpia } from '../../core/services/vista-limpia';
 import { FotografoAcciones } from '../../shared/fotografo-acciones/fotografo-acciones';
 import { PortfolioAcciones } from '../../shared/portfolio-acciones/portfolio-acciones';
@@ -53,6 +54,19 @@ export class PortfolioList {
       ),
     ),
   );
+
+  constructor() {
+    // Título, descripción y URL canónica de la página (core/services/seo.ts).
+    const seo = inject(SeoService);
+    effect(() => {
+      const fotografo = this.fotografo();
+      if (fotografo) {
+        seo.fotografo(fotografo);
+      } else if (fotografo === null) {
+        seo.noEncontrada();
+      }
+    });
+  }
 
   protected alEliminar(): void {
     this.router.navigate(['/']);

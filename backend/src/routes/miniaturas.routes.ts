@@ -1,10 +1,15 @@
 import type { NextFunction, Request, Response } from 'express';
-import { ANCHOS_MINIATURA, type AnchoMiniatura, miniatura } from '../services/miniatura.service.js';
+import { ANCHOS_MINIATURA, type AnchoMiniatura, fotoParaCompartir, miniatura } from '../services/miniatura.service.js';
 
 // Middleware para /photos, delante de express.static: si la petición lleva ?ancho=<ancho> sirve la
 // versión AVIF de la foto a ese ancho (ver services/miniatura.service.ts); sin ?ancho, la foto tal cual.
-// Si la miniatura no se puede generar (p. ej. un fichero dañado), se sirve la foto.
+// Si la miniatura no se puede generar (p. ej. un fichero dañado), se sirve la foto. Con ?compartir, el
+// JPEG para las vistas previas de los enlaces compartidos.
 export function servirMiniaturas(req: Request, res: Response, next: NextFunction): void {
+  if (req.query.compartir !== undefined) {
+    servirParaCompartir(req, res, next);
+    return;
+  }
   if (req.query.ancho === undefined) {
     next();
     return;
@@ -47,4 +52,28 @@ export function tipoAvif(res: Response, ruta: string): void {
   if (ruta.toLowerCase().endsWith('.avif')) {
     res.setHeader('Content-Type', 'image/avif');
   }
+}
+
+function servirParaCompartir(req: Request, res: Response, next: NextFunction): void {
+  let relativa: string;
+  try {
+    relativa = decodeURIComponent(req.path);
+  } catch {
+    res.status(400).json({ message: 'Ruta no válida' });
+    return;
+  }
+  fotoParaCompartir(relativa).then(
+    (fichero) => {
+      if (!fichero) {
+        next();
+        return;
+      }
+      res.set('Cache-Control', `${res.locals.fotoOculta ? 'private' : 'public'}, max-age=86400`);
+      res.sendFile(fichero, { headers: { 'Content-Type': 'image/jpeg' } });
+    },
+    (error: Error) => {
+      console.warn(`Aviso: no se ha podido generar la versión para compartir de ${relativa}:`, error.message);
+      next();
+    },
+  );
 }

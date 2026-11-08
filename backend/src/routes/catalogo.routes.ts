@@ -47,6 +47,7 @@ import { asegurarLogo } from '../services/logo.service.js';
 import { AUTOR, COLABORADORES, FECHA_VERSION_APLICACION, VERSION_APLICACION } from '../config/version.js';
 import { FECHA_ESQUEMA, VERSION_ESQUEMA } from '../db/conexion.js';
 import { resumirMetadatos } from '../utils/metadatos-foto.js';
+import { photoUrl } from '../utils/url-foto.js';
 import type {
   AcercaDe,
   ColeccionAlta,
@@ -69,13 +70,6 @@ import type {
 // identifica por su nombreInformalNormalizado ("santi-estevez"), el portfolio por su
 // nombreNormalizado dentro del fotógrafo y la colección por el suyo dentro del portfolio (ver
 // normalizarNombre). Express entrega los parámetros ya decodificados.
-
-// /photos/<fotógrafo>/<portfolio>/<colección>/<nombreFichero>, con los nombres normalizados (que son
-// los de sus carpetas). El nombre del fichero se codifica: las fotos subidas desde la web conservan
-// el nombre original, que puede llevar espacios, "#", "?"…
-function photoUrl(carpetaFotografo: string, carpetaPortfolio: string, carpetaColeccion: string, nombreFichero: string): string {
-  return `/photos/${carpetaFotografo}/${carpetaPortfolio}/${carpetaColeccion}/${encodeURIComponent(nombreFichero)}`;
-}
 
 // Los campos opcionales se omiten de la respuesta en vez de devolverse como null.
 function opcional<K extends string, V>(clave: K, valor: V | null): { [P in K]?: V } {
@@ -135,6 +129,7 @@ function toColeccionDetalle(coleccion: ColeccionFila): ColeccionDetalle {
     ...opcional('descripcion', coleccion.descripcion),
     tags: coleccion.tags,
     portfolio: { nombre: coleccion.nombrePortfolio, nombreNormalizado: coleccion.carpetaPortfolio },
+    fotografo: { nombreInformal: coleccion.nombreInformal, nombreInformalNormalizado: coleccion.carpetaFotografo },
     visible: coleccion.visibilidad !== 'oculto',
     visibilidad: coleccion.visibilidad,
     fotos: fotos.map((foto) => toFoto(coleccion, foto)),
@@ -552,13 +547,14 @@ catalogoRouter.delete('/fotografos/:fotografo/foto', (req, res) => {
 
 // ve: quién mira (sus colecciones ocultas solo las recibe quien puede verlas). Tras una escritura,
 // VER_TODO: quien la ha hecho es el dueño o el administrador.
-function toPortfolioDetalle(portfolio: PortfolioFila, ve: Vista, tag?: string): PortfolioDetalle {
+function toPortfolioDetalle(portfolio: PortfolioFila, fotografo: FotografoFila, ve: Vista, tag?: string): PortfolioDetalle {
   return {
     nombre: portfolio.nombre,
     nombreNormalizado: portfolio.nombreNormalizado,
     ...opcional('descripcion', portfolio.descripcion),
     visible: portfolio.visibilidad !== 'oculto',
     visibilidad: portfolio.visibilidad,
+    fotografo: { nombreInformal: fotografo.nombreInformal, nombreInformalNormalizado: fotografo.nombreInformalNormalizado },
     colecciones: listarColecciones({ idPortfolio: portfolio.idPortfolio, tag }, ve).map(toColeccionResumen),
     ...opcional('coleccionPortada', portfolio.coleccionPortada),
   };
@@ -578,7 +574,7 @@ catalogoRouter.get('/fotografos/:fotografo/portfolios/:portfolio', (req, res) =>
     throw new AccesoRestringido(`El portfolio "${portfolio.nombre}" tiene el acceso restringido.`);
   }
 
-  res.json(toPortfolioDetalle(portfolio, ve, tagDeQuery(req.query.tag)));
+  res.json(toPortfolioDetalle(portfolio, fotografo, ve, tagDeQuery(req.query.tag)));
 });
 
 // Mantenimiento de los portfolios de un fotógrafo. Es cosa del propio fotógrafo, no del
@@ -599,7 +595,7 @@ catalogoRouter.post('/fotografos/:fotografo/portfolios', express.json({ limit: '
   res
     .status(201)
     .location(`/api/fotografos/${fotografo.nombreInformalNormalizado}/portfolios/${nombreNormalizado}`)
-    .json(toPortfolioDetalle(obtenerPortfolio(fotografo.idFotografo, nombreNormalizado)!, VER_TODO));
+    .json(toPortfolioDetalle(obtenerPortfolio(fotografo.idFotografo, nombreNormalizado)!, fotografo, VER_TODO));
 });
 
 // Cambia el orden de los portfolios del fotógrafo. Cuerpo: { orden: [nombreNormalizado, …] } con todos
@@ -641,7 +637,7 @@ catalogoRouter.put('/fotografos/:fotografo/portfolios/:portfolio', express.json(
 
   const { despues } = editarPortfolio(req.params.fotografo, req.params.portfolio, cambios);
   const fotografo = obtenerFotografo(req.params.fotografo)!;
-  res.json(toPortfolioDetalle(obtenerPortfolio(fotografo.idFotografo, despues.nombreNormalizado)!, VER_TODO));
+  res.json(toPortfolioDetalle(obtenerPortfolio(fotografo.idFotografo, despues.nombreNormalizado)!, fotografo, VER_TODO));
 });
 
 // Eliminación de un portfolio con sus colecciones y fotos. Si tiene colecciones hay que confirmarlo con

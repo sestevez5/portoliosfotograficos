@@ -87,7 +87,7 @@
         (dragend)="orden.terminar($event)"
       >
         <span class="foto__posicion">{{ i + 1 }}</span>
-        <img [appFotoReducida]="foto.url" tamanyos="(max-width: 40rem) 50vw, 20vw" [alt]="foto.titulo ?? 'Foto ' + (i + 1)" loading="lazy" draggable="false" />
+        <img [appFotoReducida]="foto.url" tamanyos="(max-width: 40rem) 50vw, 20vw" [alt]="foto.titulo ?? 'Foto ' + (i + 1)" draggable="false" />
         <!-- Título: al salir del cuadro (o con Intro) se guarda; vacío es "Sin título". -->
         <input
           #titulo

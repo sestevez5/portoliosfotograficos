@@ -60,7 +60,7 @@
             @if (bloqueada) {
               <app-marca-visibilidad class="coleccion-card__sin-fotos" visibilidad="bloqueado" [femenina]="true" />
             } @else if (coleccion.coverPhotoUrl) {
-              <img [appFotoReducida]="coleccion.coverPhotoUrl" tamanyos="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 25vw" [alt]="coleccion.nombre" loading="lazy" />
+              <img [appFotoReducida]="coleccion.coverPhotoUrl" tamanyos="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 25vw" [alt]="coleccion.nombre" [prioritaria]="$index < 4" />
             } @else {
               <span class="coleccion-card__sin-fotos">Sin fotos</span>
             }

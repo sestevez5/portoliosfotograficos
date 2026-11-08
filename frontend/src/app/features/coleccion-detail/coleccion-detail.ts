@@ -1,8 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
+import { ColeccionDetalle, Foto } from '../../core/models/catalogo.model';
 import { CatalogoService, esAccesoRestringido } from '../../core/services/catalogo';
+import { SeoService } from '../../core/services/seo';
 import { SesionService } from '../../core/services/sesion';
 import { VistaLimpiaService, esVistaLimpia } from '../../core/services/vista-limpia';
 import { ColeccionAcciones } from '../../shared/coleccion-acciones/coleccion-acciones';
@@ -57,12 +59,35 @@ export class ColeccionDetail {
 
   protected readonly lightboxIndex = signal<number | null>(null);
 
+  // Texto alternativo de cada foto (lectores de pantalla y buscadores de imágenes): su título, o su
+  // número si no tiene, con la colección y el fotógrafo ("La ola · Mar · Ana").
+  protected textoAlternativo(foto: Foto, coleccion: ColeccionDetalle, indice: number): string {
+    return [foto.titulo ?? `Foto ${indice + 1}`, coleccion.nombre, coleccion.fotografo.nombreInformal].join(' · ');
+  }
+
   protected openLightbox(index: number): void {
     this.lightboxIndex.set(index);
   }
 
   protected closeLightbox(): void {
     this.lightboxIndex.set(null);
+  }
+
+  constructor() {
+    // Título, descripción y URL canónica de la página (core/services/seo.ts).
+    const seo = inject(SeoService);
+    effect(() => {
+      const coleccion = this.coleccion();
+      if (coleccion) {
+        seo.coleccion(coleccion);
+      } else if (coleccion === null) {
+        if (this.restringido()) {
+          seo.restringida();
+        } else {
+          seo.noEncontrada();
+        }
+      }
+    });
   }
 
   // Tras eliminar la colección se vuelve a las colecciones de su portfolio.

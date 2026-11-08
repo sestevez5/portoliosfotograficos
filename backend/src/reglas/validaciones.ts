@@ -32,7 +32,19 @@ export interface DatosUsuario {
 // Primeros segmentos de URL que usa la propia aplicación (p. ej. /admin/fotografos/nuevo o
 // /gestion/<fotógrafo>/portfolios/nuevo): un fotógrafo no puede tener un nombreInformalNormalizado
 // igual, o su página quedaría tapada.
-export const SEGMENTOS_RESERVADOS = ['admin', 'api', 'configuracion', 'gestion', 'perfil', 'photos', 'recuperar-contrasenya', 'registro'];
+export const SEGMENTOS_RESERVADOS = [
+  'admin',
+  'api',
+  'configuracion',
+  'gestion',
+  'perfil',
+  'photos',
+  'recuperar-contrasenya',
+  'registro',
+  // Ficheros de la raíz de la web para los buscadores (ver services/seo.service.ts).
+  'robots.txt',
+  'sitemap.xml',
+];
 
 // Nombre de usuario elegido al registrarse (se guarda en minúsculas): 3 a 30 caracteres, letras
 // sin tildes, números, ".", "_" o "-", empezando por letra o número.

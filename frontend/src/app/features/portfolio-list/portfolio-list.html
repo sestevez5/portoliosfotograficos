@@ -57,7 +57,7 @@
                 [appFotoReducida]="portfolio.coverPhotoUrl"
                 tamanyos="(max-width: 40rem) 100vw, (max-width: 80rem) 50vw, 33vw"
                 alt=""
-                loading="lazy"
+                [prioritaria]="$index < 3"
               />
             }
             <!-- Para su fotógrafo y el administrador: si los demás no lo ven o no pueden entrar. -->

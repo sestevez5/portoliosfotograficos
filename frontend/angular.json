@@ -31,6 +31,13 @@
               }
             ],
             "styles": [
+              "@fontsource/cormorant-garamond/400.css",
+              "@fontsource/cormorant-garamond/400-italic.css",
+              "@fontsource/cormorant-garamond/500.css",
+              "@fontsource/cormorant-garamond/500-italic.css",
+              "@fontsource/cormorant-garamond/600.css",
+              "@fontsource/inter/400.css",
+              "@fontsource/inter/500.css",
               "src/styles.scss"
             ]
           },

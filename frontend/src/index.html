@@ -2,15 +2,20 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Portfolios Fotográfico</title>
+  <!-- seo -->
+  <!-- El backend sustituye este bloque por el título, la descripción, la URL canónica, la vista previa
+       para compartir y los datos estructurados de cada página (backend/src/services/seo.service.ts);
+       al navegar los actualiza la web (core/services/seo.ts). -->
+  <title>Portfolios fotográficos</title>
+  <meta name="description" content="Portfolios y colecciones de fotografía de autor.">
+  <!-- /seo -->
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Las fuentes (Cormorant Garamond e Inter) se sirven desde la propia web (paquetes @fontsource,
+       en "styles" de angular.json): sin pedirlas a otro dominio antes de pintar la página. -->
   <!-- Aplica el tema guardado antes de pintar la página, para que no se vea un instante el oscuro
        al cargar con el claro elegido (ver core/services/tema.ts, que lo gestiona después). -->
   <script>

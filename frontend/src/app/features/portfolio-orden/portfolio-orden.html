@@ -40,7 +40,7 @@
         <span class="tarjeta__posicion">{{ i + 1 }}</span>
         <div class="tarjeta__imagen">
           @if (portfolio.coverPhotoUrl) {
-            <img [appFotoReducida]="portfolio.coverPhotoUrl" tamanyos="(max-width: 40rem) 50vw, 20vw" [alt]="portfolio.nombre" loading="lazy" draggable="false" />
+            <img [appFotoReducida]="portfolio.coverPhotoUrl" tamanyos="(max-width: 40rem) 50vw, 20vw" [alt]="portfolio.nombre" draggable="false" />
           } @else {
             <span class="tarjeta__sin-portada">{{ portfolio.collectionCount ? 'Sin fotos' : 'Sin colecciones' }}</span>
           }

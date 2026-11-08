@@ -67,6 +67,8 @@ export interface ColeccionDetalle {
   descripcion?: string;
   tags: string[];
   portfolio: { nombre: string; nombreNormalizado: string };
+  // Su fotógrafo (para el título de la página, entre otras cosas).
+  fotografo: { nombreInformal: string; nombreInformalNormalizado: string };
   visible: boolean; // = visibilidad distinta de 'oculto'
   visibilidad: Visibilidad;
   fotos: Foto[];
@@ -92,6 +94,8 @@ export interface PortfolioDetalle {
   descripcion?: string;
   visible: boolean; // = visibilidad distinta de 'oculto'
   visibilidad: Visibilidad;
+  // Su fotógrafo (para el título de la página, entre otras cosas).
+  fotografo: { nombreInformal: string; nombreInformalNormalizado: string };
   colecciones: ColeccionResumen[];
   /** nombreNormalizado de la colección de portada; sin ella, la portada es la de la primera colección. */
   coleccionPortada?: string;

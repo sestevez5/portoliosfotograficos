@@ -4,6 +4,7 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { catchError, filter, map, of, switchMap } from 'rxjs';
 import { nombreCompleto } from './core/models/catalogo.model';
 import { CatalogoService } from './core/services/catalogo';
+import { SeoService } from './core/services/seo';
 import { VistaLimpiaService, esVistaLimpia } from './core/services/vista-limpia';
 import { AcercaDe } from './shared/acerca-de/acerca-de';
 import { SelectorTema } from './shared/selector-tema/selector-tema';
@@ -22,6 +23,8 @@ export class App {
   // Se crea aquí, al arrancar, para que recuerde desde la primera navegación qué páginas se
   // abrieron en su vista limpia; el logo vuelve al fotógrafo como se vio por última vez.
   protected readonly vistas = inject(VistaLimpiaService);
+  // También desde el arranque: pone el título, la descripción y la URL canónica tras cada navegación.
+  private readonly seo = inject(SeoService);
 
   protected readonly nombreCompleto = nombreCompleto;
 

@@ -40,5 +40,8 @@ COPY assets ./assets
 ENV DATOS_DIR=/app/datos
 ENV FOTOS_DIR=/app/fotos
 RUN mkdir -p /app/datos /app/fotos
+# index.html de la web, que el backend sirve con los metadatos de cada página (SEO, ver
+# src/routes/seo.routes.ts): lo sirve el servicio "frontend" de docker-compose.yml.
+ENV PLANTILLA_HTML_URL=http://frontend/index.html
 EXPOSE 3000
 CMD ["node", "dist/index.js"]
